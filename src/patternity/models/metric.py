@@ -1,4 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from dataclasses import fields as _fields
+from typing import Any
+
+from patternity.models.song import Difficulty, GrooveRadar, Song
+
 
 @dataclass
 class BasicMetrics:
@@ -144,17 +149,55 @@ class ChartAnalysisResult:
         ]
         return "\n".join(lines)
 
-    def format_radar(self, chart: Chart) -> str:
+    def format_radar(self, radar: GrooveRadar) -> str:
         """Return a formatted string with Groove Radar statistics."""
-        r = chart.metadata.radar
         lines = [
             "\n=== Radar Statistics ===",
-            f"Steps: {r.steps}",
-            f"Taps: {r.taps}",
-            f"Jumps: {r.jumps}",
-            f"Hands: {r.hands}",
+            f"Steps: {radar.steps}",
+            f"Taps: {radar.taps}",
+            f"Jumps: {radar.jumps}",
+            f"Hands: {radar.hands}",
             "",
             "",
         ]
         return "\n".join(lines)
 
+
+@dataclass
+class AnalyzedSong:
+    song: Song
+    analyses: list[ChartAnalysisResult | None] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        charts: list[dict[str, Any]] = []
+        for i, chart in enumerate(self.song.charts):
+            chart_dict = chart.to_dict()
+            analysis = self.analyses[i] if i < len(self.analyses) else None
+            if analysis is not None:
+                chart_dict["analysis"] = analysis.to_dict()
+            charts.append(chart_dict)
+        return {
+            "header": self.song.header.to_dict(),
+            "charts": charts,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> AnalyzedSong:
+        chart_dicts = data.get("charts", [])
+        song = Song.from_dict(
+            {
+                "header": data["header"],
+                "charts": [
+                    {k: v for k, v in chart.items() if k != "analysis"}
+                    for chart in chart_dicts
+                ],
+            }
+        )
+        analyses: list[ChartAnalysisResult | None] = []
+        for chart in chart_dicts:
+            raw = chart.get("analysis")
+            if raw is None:
+                analyses.append(None)
+            else:
+                analyses.append(ChartAnalysisResult.from_dict(raw))
+        return cls(song=song, analyses=analyses)

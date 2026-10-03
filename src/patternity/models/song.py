@@ -3,10 +3,12 @@ SM/SSC File Reference:
 https://outfox.wiki/en/dev/mode-support/sm-support
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dataclasses import fields as _fields
 from enum import StrEnum
 from typing import Any
+
+from patternity.models.engine import NoteRow
 
 HEADER_SETTERS = {
     "#TITLE": "set_title",
@@ -262,30 +264,25 @@ class ChartMetadata:
             radar=GrooveRadar.from_dict(data["radar"]),
         )
 
+
 @dataclass
 class Chart:
     metadata: ChartMetadata
     notes: list[NoteRow] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        result: dict[str, Any] = {
+        return {
             "metadata": self.metadata.to_dict(),
             "notes": [note.to_dict() for note in self.notes],
         }
-        if self.analysis is not None:
-            result["analysis"] = self.analysis.to_dict()
-        return result
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Chart:
-        analysis = None
-        if data.get("analysis") is not None:
-            analysis = ChartAnalysisResult.from_dict(data["analysis"])
         return cls(
             metadata=ChartMetadata.from_dict(data["metadata"]),
             notes=[NoteRow.from_dict(n) for n in data.get("notes", [])],
-            analysis=analysis,
         )
+
 
 @dataclass
 class Song:
