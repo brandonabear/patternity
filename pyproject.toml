@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "patternity"
+version = "0.1.0"
+description = "A StepMania file parser and pattern analyzer."
+readme = "README.md"
+authors = [
+    { name = "Brandon Abear", email = "barndoorabear@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "rich>=15.0.0",
+]
+
+[project.scripts]
+patternity = "patternity:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.3.1",
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "ruff>=0.16.3",
+]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+packages = ["patternity"]
+mypy_path = ["src"]
+exclude = ["^tests/"]
