@@ -1,2 +1,3 @@
-def main() -> None:
-    print("Hello from patternity!")
+from patternity.parser import StepmaniaFileParser
+
+__all__ = ["StepmaniaFileParser"]

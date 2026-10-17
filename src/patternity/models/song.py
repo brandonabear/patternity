@@ -60,7 +60,6 @@ class Header:
     offset: float | None = None
     stops: dict[float, float] | None = None
     bpms: dict[float, float] | None = None
-    notes: str | None = None
 
     def set_title(self, value: str) -> None:
         self.title = value
@@ -125,21 +124,20 @@ class Header:
     def set_offset(self, value: str) -> None:
         self.offset = float(value)
 
-    def set_stops(self, value: str) -> None:
-        stops = {}
+    @staticmethod
+    def _parse_beat_value_map(value: str) -> dict[float, float]:
+        beat_value_map = {}
         if value.strip():
-            for stop in value.split(","):
-                time_val, duration = stop.split("=")
-                stops[float(time_val)] = float(duration)
-        self.stops = stops
+            for beat_value in value.split(","):
+                b, v = beat_value.split("=", maxsplit=1)
+                beat_value_map[float(b)] = float(v)
+        return beat_value_map
+
+    def set_stops(self, value: str) -> None:
+        self.stops = self._parse_beat_value_map(value)
 
     def set_bpms(self, value: str) -> None:
-        bpms = {}
-        if value.strip():
-            for bpm in value.split(","):
-                time_val, bpm_value = bpm.split("=")
-                bpms[float(time_val)] = float(bpm_value)
-        self.bpms = bpms
+        self.bpms = self._parse_beat_value_map(value)
 
     def to_dict(self) -> dict[str, Any]:
         return {
