@@ -25,6 +25,7 @@ def build_parser() -> argparse.ArgumentParser:
         "-o",
         help="The directory to output the parsed song results to.",
         type=Path,
+        default=Path("data"),
         required=False,
     )
     return parser

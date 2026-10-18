@@ -16,5 +16,5 @@ def deserialize(path: Path) -> Song:
     return Song.from_dict(data)
 
 
-def output_path(input_file: Path, output_dir: Path = Path("data")) -> Path:
+def output_path(input_file: Path, output_dir: Path) -> Path:
     return output_dir / f"{input_file.stem}.json"
