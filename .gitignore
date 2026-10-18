@@ -16,4 +16,4 @@ wheels/
 .vscode/
 
 # Output files
-out/
+data/

@@ -1,0 +1,183 @@
+// Footswitch corpus fixture (synthetic + Too Much extracts).
+// End this preamble with a semicolon so headers parse as their own sections.
+//
+// Sections
+// --------
+// 1. Synthetic: 3 no-mine resolution FS + 3 side-mine FS (originally @ 150 BPM;
+//    still classifies at 90).
+// 2. Too Much excerpt: 3 holdswitches (open free tap → tail → mine → retap).
+// 3. Too Much excerpts: 4 jacks + 2 mine-cued footswitches.
+//
+// Training tags: @foot=L/R, @pattern=jack/footswitch/holdswitch, @section=name.
+//
+// BPM=90 matches Too Much timing (8th mine gallops need the 0.35s mine FS gate).
+//
+// Row format (dance-single) columns are Left, Down, Up, Right
+//   0 empty   1 tap   2 hold head   3 hold/roll tail   4 roll head
+//   M mine    F fake  L lift
+//
+// End every measure with a comma on its own line so the last measure is not
+// dropped when the chart-closing semicolon is used as the section delimiter.
+;
+
+#TITLE:Footswitches;
+#SUBTITLE:;
+#ARTIST:;
+#CREDIT:pymania;
+#BANNER:;
+#BACKGROUND:;
+#MUSIC:;
+#OFFSET:0.000;
+#SAMPLESTART:0.000;
+#SAMPLELENGTH:0.000;
+#SELECTABLE:YES;
+#BPMS:0.000=90.000;
+#STOPS:;
+#BGCHANGES:;
+
+//--------------- dance-single ----------------
+#NOTES:
+     dance-single:
+     Footswitches:
+     Challenge:
+     1:
+     0.000,0.000,0.000,0.000,0.000,0,0,0,0,0,0:
+// @section=no-mine-footswitch
+1000 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0001 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0010 // @foot=R @pattern=footswitch
+1000 // @foot=L
+0100 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+0010 // @foot=L @pattern=footswitch
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+, // Footswitches with Mine Cue, +3FS
+// @section=mine-cued-footswitch
+1000 // @foot=L
+0100 // @foot=R
+M100 // @foot=L @pattern=footswitch
+0001 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+001M // @foot=R @pattern=footswitch
+1000 // @foot=L
+0100 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+M010 // @foot=L @pattern=footswitch
+0001 // @foot=R
+1000 // @foot=L
+0000
+, // Holdswitch begins at end of measure
+// @section=holdswitch
+0001 // @foot=R
+0000
+0000
+1000 // @foot=L
+0001 // @foot=R
+0000
+0100 // @foot=L
+0000
+0010 // @foot=R
+1000 // @foot=L
+0000
+0001 // @foot=R
+1000 // @foot=L
+0000
+0100 // @foot=R
+0020 // @foot=L
+,  // Holdswitches, +3FS
+0001 // @foot=R
+0000
+0030
+000M // Mine Cue
+0010 // @foot=R @pattern=holdswitch
+0000
+0200 // @foot=L
+0000
+0001 // @foot=R
+0000
+0300 // Hold Tail
+000M // Mine Cue
+0100 // @foot=R @pattern=holdswitch
+0000
+0020 // @foot=L
+0000
+0001 // @foot=R
+0000
+0030 // Hold Tail
+000M // Mine Cue
+0010 // @foot=R @pattern=holdswitch
+0000
+0100 // @foot=L
+0000
+0002 // @foot=R
+0000
+0000
+0000
+2003 // @foot=L
+0000
+0000
+0000
+,  // Jacks and Gallop Footswitch
+// @section=jack-gallop
+2000 // @foot=L
+0000
+0001 // @foot=R
+3001 // @foot=R @pattern=jack
+0020 // @foot=L
+0000
+0001 // @foot=R
+0031 // @foot=R @pattern=jack
+1000 // @foot=L
+0100 // @foot=R
+00M0 // Mine Cue
+0100 // @foot=L @pattern=footswitch
+0002 // @foot=R
+0000
+1003 // @foot=L
+0000 
+,  // Jack - Continuous Footswitch - Jack
+// @section=jack-continuous-footswitch
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0001 // @foot=R
+0000
+0000
+0000
+0010 // @foot=L
+0000
+0001 // @foot=R
+0000
+1000 // @foot=L
+0000
+1000 // @foot=L @pattern=jack
+0000
+0100 // @foot=R
+00M0 // Mine Cue
+0100 // @foot=L @pattern=footswitch
+0000
+0001 // @foot=R
+0000
+0001 // @foot=R @pattern=jack
+0000
+2000 // @foot=L
+0000
+0001 // @foot=R
+0000
+;

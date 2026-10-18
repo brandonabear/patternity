@@ -1,0 +1,69 @@
+// Minimal .sm template for pymania pattern fixtures.
+// End this preamble with a semicolon so headers parse as their own sections.
+//
+// How to use
+// ----------
+// 1. Copy this file (e.g. tests/fixtures/jack_down_down.sm).
+// 2. Set #TITLE / #CREDIT to name the example.
+// 3. Set #BPMS. NPS between 16ths is about BPM/15, between 8ths about BPM/30.
+//    Jack cutoff Δt < 0.176s (~5.7 NPS); FS cutoff Δt < 0.3s (~3.3 NPS).
+//    16ths clear the jack gate at BPM >= about 86; 8ths need BPM >= about 171 for jacks
+//    (or >= about 100 to still be FS-eligible with a mine cue).
+// 4. Replace the note rows in the chart body. Keep one chart unless you need more.
+// 5. Separate measures with a comma. End the chart with a semicolon
+//    (standard .sm). A trailing comma on the last measure is optional.
+//
+// Row format (dance-single) columns are Left, Down, Up, Right
+//   0 empty   1 tap   2 hold head   3 hold/roll tail   4 roll head
+//   M mine    F fake  L lift
+//
+// Quantization = number of rows in the measure (4=quarters, 8=8ths, 16=16ths, 32=32nds).
+// Mix measures freely, each measure sets its own quantization.
+//
+// Quick NPS cheat sheet (gap between consecutive pressable taps)
+//   16ths at 150 BPM ~ 10 NPS    16ths at 110 BPM ~ 7.3 NPS
+//   8ths  at 120 BPM ~  4 NPS    8ths  at 210 BPM ~ 7 NPS
+//   Intervening empty/mine rows widen the gap
+//   (D / mine / D on 16ths = 8th spacing).
+;
+
+#TITLE:Pattern Template;
+#SUBTITLE:;
+#ARTIST:;
+#CREDIT:pymania;
+#BANNER:;
+#BACKGROUND:;
+#MUSIC:;
+#OFFSET:0.000;
+#SAMPLESTART:0.000;
+#SAMPLELENGTH:0.000;
+#SELECTABLE:YES;
+#BPMS:0.000=150.000;
+#STOPS:;
+#BGCHANGES:;
+
+//--------------- dance-single ----------------
+#NOTES:
+     dance-single:
+     pymania:
+     Challenge:
+     1:
+     0.000,0.000,0.000,0.000,0.000,0,0,0,0,0,0:
+// measure 0 - 16th placeholder (edit / replace)
+1000
+0100
+0010
+0001
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+;

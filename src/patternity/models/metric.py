@@ -26,15 +26,25 @@ class BasicMetrics:
 
 
 @dataclass
+class PlayerMetrics:
+    shifts: int = 0
+    candles: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        return {f.name: getattr(self, f.name) for f in _fields(self)}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> BasicMetrics:
+        return cls(**{f.name: int(data.get(f.name, 0)) for f in _fields(cls)})
+
+
+@dataclass
 class TechMetrics:
     crossovers: int = 0
-    left_candles: int = 0
-    right_candles: int = 0
     footswitches: int = 0
     sideswitches: int = 0
     jacks: int = 0
     brackets: int = 0
-    facing_shifts: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {f.name: getattr(self, f.name) for f in _fields(self)}

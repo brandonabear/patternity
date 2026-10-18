@@ -1,0 +1,97 @@
+// Canonical bracket and jump counter-examples from docs/patterns.md.
+// 16-row measures are 16ths; 8-row measures are 8ths.
+;
+
+#TITLE:Brackets;
+#ARTIST:;
+#CREDIT:pymania;
+#OFFSET:0.000;
+#BPMS:0.000=120.000;
+#STOPS:;
+
+#NOTES:
+     dance-single:
+     Brackets:
+     Challenge:
+     1:
+     0.000,0.000,0.000,0.000,0.000:
+// @section=alternating-bracket
+1000 // @foot=L
+0001 // @foot=R
+1100 // @feet=L,L @pattern=bracket
+0001 // @foot=R
+1000 // @foot=L
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+,
+// @section=crossover-bracket
+1000 // @foot=L
+0100 // @foot=R
+0011 // @feet=L,L @pattern=bracket,crossover-bracket
+0100 // @foot=R
+1000 // @foot=L
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+,
+// UD cannot be a canonical bracket.
+// @section=ud-jump
+1000 // @foot=L
+0001 // @foot=R
+0110 // @feet=L,R @pattern=jump
+0001 // @foot=R
+0000
+0000
+0000
+0000
+,
+// A bracketable pair is still a jump when the surrounding phrase says so.
+// @section=bracketable-jump
+1000 // @foot=L
+0001 // @foot=R
+0101 // @feet=L,R @pattern=jump
+0001 // @foot=R
+1000 // @foot=L
+0000
+0000
+0000
+,
+// LR is never a canonical bracket.
+// @section=lr-jump
+1000 // @foot=L
+1001 // @feet=L,R @pattern=jump
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+1000 // @foot=L
+0000
+0000
+,
+// Brackets can be used to change player direction
+// @section=bracket-stream
+1000 // @foot=L
+0010 // @foot=R
+1100 // @feet=L,L @pattern=bracket
+0001 // @foot=R
+1010 // @feet=L,L
+0100 // @foot=R
+1000 // @foot=L
+0011 // @feet=R,R @pattern=bracket
+;
