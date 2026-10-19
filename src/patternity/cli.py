@@ -4,6 +4,7 @@ from pathlib import Path
 
 from rich.console import Console
 
+from patternity.analyzer import Analyzer
 from patternity.parser import StepmaniaFileParser
 from patternity.serializer import output_path, serialize
 
@@ -28,6 +29,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("data"),
         required=False,
     )
+    parser.add_argument(
+        "--analyze",
+        "-a",
+        help="Analyze the song.",
+        action="store_true",
+        default=False,
+        required=False,
+    )
     return parser
 
 def main(argv: list[str] | None = None) -> int:
@@ -45,6 +54,12 @@ def main(argv: list[str] | None = None) -> int:
 
     song = StepmaniaFileParser.parse(data)
     console.print(f"Parsed song: {song.header.title}")
+
+    if args.analyze:
+        for chart in song.charts:
+            analyzer = Analyzer()
+            analyzer.analyze(chart)
+            console.print(f"Basic metrics: {analyzer.basic_metrics.to_dict()}")
 
     if args.output:
         serialize(song, output_path(args.file, args.output))

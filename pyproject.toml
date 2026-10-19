@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-patternity = "patternity:main"
+patternity = "patternity.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
