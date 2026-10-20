@@ -22,6 +22,5 @@ class Analyzer:
         self.basic_metrics = BasicMetrics()
 
     def analyze(self, chart: Chart) -> dict[str, Any]:
-        # Iterate over charts
         for note_row in chart.notes:
             self.basic_metrics.add_note(note_row)

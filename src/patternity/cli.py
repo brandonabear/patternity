@@ -22,19 +22,26 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
     )
     parser.add_argument(
-        "--output",
-        "-o",
-        help="The directory to output the parsed song results to.",
-        type=Path,
-        default=Path("data"),
-        required=False,
-    )
-    parser.add_argument(
         "--analyze",
         "-a",
         help="Analyze the song.",
         action="store_true",
         default=False,
+        required=False,
+    )
+    parser.add_argument(
+        "--serialize",
+        "-s",
+        help="Serialize the parsed or analyzed song to disk.",
+        action="store_true",
+        default=False,
+        required=False,
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        help="The directory to output the parsed song results to.",
+        type=Path,
         required=False,
     )
     return parser
@@ -61,9 +68,10 @@ def main(argv: list[str] | None = None) -> int:
             analyzer.analyze(chart)
             console.print(f"Basic metrics: {analyzer.basic_metrics.to_dict()}")
 
-    if args.output:
-        serialize(song, output_path(args.file, args.output))
-        console.print(f"Serialized song to: {output_path(args.file, args.output)}")
+    if args.serialize:
+        out_dir = args.output or Path("data/")
+        serialize(song, output_path(args.file, out_dir))
+        console.print(f"Serialized song to: {output_path(args.file, out_dir)}")
     
     return 0
 
