@@ -64,8 +64,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.analyze:
         for chart in song.charts:
-            analyzer = Analyzer()
-            analyzer.analyze(chart)
+            analyzer = Analyzer(song.header, chart)
+            analyzer.analyze()
             console.print(f"Basic metrics: {analyzer.basic_metrics.to_dict()}")
 
     if args.serialize:
