@@ -17,3 +17,6 @@ wheels/
 
 # Output files
 data/
+
+# Local dev files
+.dev/

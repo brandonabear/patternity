@@ -1,3 +1,5 @@
+"""Command-line interface for Patternity library."""
+
 import argparse
 import sys
 from pathlib import Path
@@ -46,13 +48,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     return parser
 
+
 def main(argv: list[str] | None = None) -> int:
     console = Console()
     argument_parser = build_parser()
     args = argument_parser.parse_args(args=argv)
 
     if not args.file.suffix in [".sm", ".ssc"]:
-        console.print(f"Invalid extension: must be a .sm or .ssc file: {args.file.name}")
+        console.print(
+            f"Invalid extension: must be a .sm or .ssc file: {args.file.name}"
+        )
         return 1
 
     with open(args.file, "r") as f:
@@ -65,15 +70,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.analyze:
         for chart in song.charts:
             analyzer = Analyzer(song.header, chart)
-            analyzer.analyze()
-            console.print(f"Basic metrics: {analyzer.basic_metrics.to_dict()}")
+            console.print(analyzer.analyze())
 
     if args.serialize:
         out_dir = args.output or Path("data/")
         serialize(song, output_path(args.file, out_dir))
         console.print(f"Serialized song to: {output_path(args.file, out_dir)}")
-    
+
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
