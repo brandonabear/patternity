@@ -7,6 +7,7 @@ from patternity import cli
 # Minimal .sm with one empty measure so parse produces a single chart.
 MINIMAL_SIMFILE = """\
 #TITLE:foo;
+#ARTIST:bar;
 #NOTES:
      dance-single:
      :
