@@ -68,8 +68,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.serialize:
         out_dir = args.output or Path("data/")
-        serialize(song, output_path(args.file, out_dir))
-        console.print(f"Serialized song to: {output_path(args.file, out_dir)}")
+        resolved_path = serialize(song, output_path(args.file, out_dir))
+        console.print(f"Serialized song to: {resolved_path}")
 
     return 0
 
