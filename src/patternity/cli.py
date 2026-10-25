@@ -8,6 +8,7 @@ from rich.console import Console
 
 from patternity.analyzer import Analyzer
 from patternity.parser import StepmaniaFileParser
+from patternity.reader import read_simfile
 from patternity.serializer import output_path, serialize
 
 
@@ -54,14 +55,7 @@ def main(argv: list[str] | None = None) -> int:
     argument_parser = build_parser()
     args = argument_parser.parse_args(args=argv)
 
-    if not args.file.suffix in [".sm", ".ssc"]:
-        console.print(
-            f"Invalid extension: must be a .sm or .ssc file: {args.file.name}"
-        )
-        return 1
-
-    with open(args.file, "r") as f:
-        data = f.read()
+    data = read_simfile(args.file)
     console.print(f"Read file: {args.file.name}")
 
     song = StepmaniaFileParser.parse(data)
