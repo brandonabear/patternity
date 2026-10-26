@@ -20,6 +20,9 @@ patternity = "patternity.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "regression: read/parse/analyze against canonical fixtures",
+]
 
 [dependency-groups]
 dev = [

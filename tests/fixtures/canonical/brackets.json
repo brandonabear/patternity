@@ -1,0 +1,31 @@
+{
+    "fixture": "patterns/brackets.sm",
+    "analyzer": {
+        "min_jack_nps": 5.7,
+        "min_footswitch_nps": 3.3
+    },
+    "charts": [
+        {
+            "chart_index": 0,
+            "basic": {
+                "taps": 33,
+                "jumps": 8,
+                "hands": 0,
+                "holds": 0,
+                "rolls": 0,
+                "mines": 0,
+                "lifts": 0,
+                "fakes": 0,
+                "steps": 41
+            },
+            "tech": {
+                "crossovers": 1,
+                "jacks": 0,
+                "footswitches": 0,
+                "sideswitches": 0,
+                "brackets": 5,
+                "doublesteps": 0
+            }
+        }
+    ]
+}
