@@ -20,6 +20,7 @@
             },
             "tech": {
                 "crossovers": 1,
+                "crossover_presses": 3,
                 "jacks": 0,
                 "footswitches": 0,
                 "sideswitches": 0,
