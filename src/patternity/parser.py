@@ -1,7 +1,7 @@
 import re
 from collections.abc import Iterator
 
-from patternity.models.engine import NoteRow
+from patternity.models.engine import NoteRow, TimingEngine
 from patternity.models.song import (
     HEADER_SETTERS,
     Chart,
@@ -75,21 +75,23 @@ def _split_measures(notes: str) -> list[list[str]]:
     return measures
 
 
-def _rows_from_measures(measures: list[list[str]]) -> Iterator[NoteRow]:
+def _rows_from_measures(measures: list[list[str]], timing: TimingEngine) -> Iterator[NoteRow]:
     """First row of measure N is at beat N*4; rows are evenly spaced."""
     for measure_idx, rows in enumerate(measures):
         quantization = len(rows)
         for row_idx, row in enumerate(rows):
+            beat=round(measure_idx * 4 + row_idx * 4 / quantization, 4)
             yield NoteRow.from_str(
                 row,
                 quantization=quantization,
-                beat=round(measure_idx * 4 + row_idx * 4 / quantization, 4),
+                beat=beat,
                 measure=measure_idx,
+                timestamp=timing.convert_beat_to_seconds(beat)
             )
 
 
-def _parse_notedata(notes: str) -> list[NoteRow]:
-    return list(_rows_from_measures(_split_measures(notes)))
+def _parse_notedata(notes: str, timing: TimingEngine) -> list[NoteRow]:
+    return list(_rows_from_measures(_split_measures(notes), timing))
 
 
 def _parse_groove_radar(raw: str) -> GrooveRadar:
@@ -164,7 +166,8 @@ class StepmaniaFileParser:
             # Read chart metadata from SSC.
             if chart_fields is not None:
                 if head.startswith(("#NOTES:", "#NOTES2:")):
-                    song.charts.append(cls._chart_from_fields(chart_fields, section))
+                    timing = TimingEngine(bpms=song.header.bpms, stops=song.header.stops)
+                    song.charts.append(cls._chart_from_fields(chart_fields, section, timing))
                     chart_fields = None
                     continue
 
@@ -174,7 +177,8 @@ class StepmaniaFileParser:
                 continue
 
             if head.startswith("#NOTES:"):
-                song.charts.append(cls._chart_from_packed_notes(section))
+                timing = TimingEngine(bpms=song.header.bpms, stops=song.header.stops)
+                song.charts.append(cls._chart_from_packed_notes(section, timing))
                 continue
 
             key, value = _parse_header(section)
@@ -184,8 +188,8 @@ class StepmaniaFileParser:
         return song
 
     @classmethod
-    def _chart_from_fields(cls, fields: dict[str, str], section: str) -> Chart:
-        """Build a chart from tags collected after #NOTEDATA."""
+    def _chart_from_fields(cls, fields: dict[str, str], section: str, timing: TimingEngine) -> Chart:
+        """Build a chart from .ssc ``#NOTEDATA:`` tags."""
         return Chart(
             _build_chart_metadata(
                 mode=fields.get("#STEPSTYPE", ""),
@@ -198,7 +202,7 @@ class StepmaniaFileParser:
         )
 
     @classmethod
-    def _chart_from_packed_notes(cls, section: str) -> Chart:
+    def _chart_from_packed_notes(cls, section: str, timing: TimingEngine) -> Chart:
         """Build a chart from a .sm ``#NOTES:`` value."""
         parts = [part.strip() for part in section.split(":", 6)][1:]
         return Chart(
@@ -209,5 +213,5 @@ class StepmaniaFileParser:
                 rating=float(parts[3]),
                 radar_raw=parts[4],
             ),
-            _parse_notedata(parts[5]),
+            _parse_notedata(parts[5], timing),
         )

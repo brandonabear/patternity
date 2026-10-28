@@ -26,6 +26,7 @@ class NoteRow:
     quantization: int | None = None
     beat: float | None = None
     measure: int | None = None
+    timestamp: float | None = None
 
     @classmethod
     def from_str(cls, row: str, **kwargs: Any) -> NoteRow:
@@ -44,6 +45,7 @@ class NoteRow:
             quantization=data.get("quantization"),
             beat=data.get("beat"),
             measure=data.get("measure"),
+            timestamp=data.get("timestamp"),
         )
 
     def to_dict(self) -> dict[str, Any]:
