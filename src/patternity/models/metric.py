@@ -1,8 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dataclasses import fields as _fields
 from typing import Any
 
 from patternity.models.engine import NoteRow, NoteType
+from patternity.models.pattern import PatternKind, PatternSpan
 
 PRESSABLE_NOTES = {
     NoteType.TAP,
@@ -72,31 +73,68 @@ class BasicMetrics:
 
 @dataclass
 class TechMetrics:
-    """Tech metrics for community-defined patterns."""
+    """Tech pattern detections for a chart.
 
-    crossovers: int = 0
-    footswitches: int = 0
-    sideswitches: int = 0
-    jacks: int = 0
-    brackets: int = 0
-    doublesteps: int = 0
+    Spans are the source of truth; aggregate counts are derived for reports.
+    """
+
+    spans: list[PatternSpan] = field(default_factory=list)
+
+    def count(self, kind: PatternKind) -> int:
+        return sum(1 for span in self.spans if span.kind == kind)
+
+    @property
+    def crossovers(self) -> int:
+        return self.count(PatternKind.CROSSOVER) + self.count(
+            PatternKind.INVERTED_CROSSOVER
+        )
+
+    @property
+    def footswitches(self) -> int:
+        return self.count(PatternKind.FOOTSWITCH)
+
+    @property
+    def sideswitches(self) -> int:
+        return self.count(PatternKind.SIDESWITCH)
+
+    @property
+    def jacks(self) -> int:
+        return self.count(PatternKind.JACK)
+
+    @property
+    def brackets(self) -> int:
+        return self.count(PatternKind.BRACKET)
+
+    @property
+    def doublesteps(self) -> int:
+        return self.count(PatternKind.DOUBLESTEP)
 
     def to_dict(self) -> dict[str, Any]:
-        return {f.name: getattr(self, f.name) for f in _fields(self)}
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> TechMetrics:
-        return cls(**{f.name: int(data.get(f.name, 0)) for f in _fields(cls)})
+        return {
+            "crossovers": self.crossovers,
+            "footswitches": self.footswitches,
+            "sideswitches": self.sideswitches,
+            "jacks": self.jacks,
+            "brackets": self.brackets,
+            "doublesteps": self.doublesteps,
+        }
 
 
 @dataclass
 class MovementMetrics:
-    """Player movement metrics."""
+    """Player movement metrics from foot-path resolution."""
 
     direction_shifts: int = 0
     turns: int = 0
     candles: int = 0
     total_cost: float = 0.0
+    foot_path_feasible: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "total_cost": self.total_cost,
+            "foot_path_feasible": self.foot_path_feasible,
+        }
 
 
 @dataclass

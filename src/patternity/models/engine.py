@@ -38,6 +38,24 @@ class NoteRow:
     def column_active(cls, mask: int, col: int) -> bool:
         return bool(mask & cls.column_bit(col))
 
+    @property
+    def press_mask(self) -> int:
+        """4-bit mask of columns requiring a foot press on this row (TAP, HOLD head, ROLL head)."""
+        mask = 0
+        for col, note in enumerate((self.left, self.down, self.up, self.right)):
+            if note in (NoteType.TAP, NoteType.HOLD, NoteType.ROLL):
+                mask |= self.column_bit(col)
+        return mask
+
+    @property
+    def mine_mask(self) -> int:
+        """4-bit mask of columns containing a MINE on this row."""
+        mask = 0
+        for col, note in enumerate((self.left, self.down, self.up, self.right)):
+            if note == NoteType.MINE:
+                mask |= self.column_bit(col)
+        return mask
+
     @classmethod
     def from_str(cls, row: str, **kwargs: Any) -> NoteRow:
         if not row:
@@ -145,7 +163,7 @@ class TimingEngine:
 
         # Append elapsed time across stops.
         for stop_beat, stop_duration in self.stops:
-            if stop_beat <= target_beat:
+            if stop_beat < target_beat:
                 elapsed_time += stop_duration
             else:
                 break
