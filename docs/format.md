@@ -46,17 +46,17 @@ Song (one .sm / .ssc file)
 
 ## Code Model Mapping
 
-[`StepmaniaFileParser.parse`](../src/patternity/parser.py) reads a file string and returns a **`Song`**. Exhaustive SM/SSC tag lists live in the [OutFox SM support wiki](https://outfox.wiki/en/dev/mode-support/sm-support).
+[`StepmaniaFileParser.parse`](../src/patternity/simfile/parser.py) reads a file string and returns a **`Song`**. Exhaustive SM/SSC tag lists live in the [OutFox SM support wiki](https://outfox.wiki/en/dev/mode-support/sm-support).
 
 | Concept | Python type | Module |
 | --- | --- | --- |
-| Song (file) | `Song` | `patternity.models.song` |
-| Header | `Header` | `patternity.models.song` |
-| Chart | `Chart` | `patternity.models.song` |
-| Chart metadata | `ChartMetadata` | `patternity.models.song` |
-| Difficulty | `Difficulty` | `patternity.models.song` |
-| Groove Radar | `GrooveRadar` | `patternity.models.song` |
-| Note row (LDUR + derived timing) | `NoteRow` | `patternity.models.engine` |
-| Column symbol (`0`, `1`, `M`, …) | `NoteType` | `patternity.models.engine` |
+| Song (file) | `Song` | `patternity.simfile.song` |
+| Header | `Header` | `patternity.simfile.song` |
+| Chart | `Chart` | `patternity.simfile.song` |
+| Chart metadata | `ChartMetadata` | `patternity.simfile.song` |
+| Difficulty | `Difficulty` | `patternity.simfile.song` |
+| Groove Radar | `GrooveRadar` | `patternity.simfile.song` |
+| Note row (LDUR + derived timing) | `NoteRow` | `patternity.simfile.notes` |
+| Column symbol (`0`, `1`, `M`, …) | `NoteType` | `patternity.simfile.notes` |
 
-**Derived at parse time (not SM tags):** each `NoteRow` gets `measure`, `quantization`, and `beat` from measure boundaries and row index. **Analysis** metrics (`ChartAnalysisResult`, etc.) are computed later and are not part of the simfile; see `patternity.models.metric`.
+**Derived at parse time (not SM tags):** each `NoteRow` gets `measure`, `quantization`, and `beat` from measure boundaries and row index. **Analysis** metrics (`BasicMetrics`, `TechMetrics`, `MovementMetrics`) are computed later and are not part of the simfile; see `patternity.metrics` and [Architecture](architecture.md).
