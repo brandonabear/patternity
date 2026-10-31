@@ -1,6 +1,6 @@
 import pytest
 
-from patternity.reader import UnsupportedSimfileSuffix, read_simfile
+from patternity.simfile.reader import UnsupportedSimfileSuffix, read_simfile
 
 
 @pytest.mark.parametrize(
