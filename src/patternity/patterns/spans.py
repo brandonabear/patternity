@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
-from patternity.solver import ResolvedStep
+if TYPE_CHECKING:
+    from patternity.footing.resolve import ResolvedStep
 
 
 class PatternKind(StrEnum):

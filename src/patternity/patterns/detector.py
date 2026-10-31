@@ -1,167 +1,210 @@
-from patternity.models.metric import TechMetrics
-from patternity.models.pattern import PatternKind, PatternSpan
-from patternity.models.stance import FootMove, FootPlacement, PlayerOrientation
-from patternity.solver import ResolvedStep
+"""Tech pattern labels derived from a decoded foot path.
 
-# Column masks for distinguishing Up/Down footswitches from Left/Right sideswitches
-_UD_MASK = FootPlacement.D.mask | FootPlacement.U.mask  # 0b0110
-_LR_MASK = FootPlacement.L.mask | FootPlacement.R.mask  # 0b1001
+This is the only module that applies community / ITGMania timing cutoffs; the
+footing decoder never sees them.
+"""
+
+import math
+
+from patternity.footing.resolve import ResolvedStep
+from patternity.footing.stance import FootMove, PlayerOrientation
+from patternity.metrics import TechMetrics
+from patternity.patterns.spans import PatternKind, PatternSpan
+from patternity.simfile.notes import NoteType
+
+ITG_JACK_CUTOFF_SEC = 0.176
+# Inclusive of 90 BPM 8ths (exactly 1/3 s apart).
+ITG_FOOTSWITCH_CUTOFF_SEC = (1.0 / 3.0) + 1e-6
+
+_LR_COLS = frozenset({0, 3})
+_UD_COLS = frozenset({1, 2})
+_PRESS = frozenset({NoteType.TAP, NoteType.HOLD, NoteType.ROLL, NoteType.LIFT})
+_FEET = (FootMove.LEFT, FootMove.RIGHT)
 
 
-def _moving_placement(step: ResolvedStep) -> FootPlacement | None:
-    """Return the placement of the single foot that moved, or None if jump/none."""
-    moved = step.foot_row.moved
-    if moved == FootMove.LEFT:
-        return step.foot_row.stance.left
-    if moved == FootMove.RIGHT:
-        return step.foot_row.stance.right
+def _span(kind: PatternKind, steps: tuple[ResolvedStep, ...]) -> PatternSpan:
+    first, last = steps[0].note_row, steps[-1].note_row
+    return PatternSpan(
+        kind=kind,
+        start_beat=first.beat or 0.0,
+        end_beat=last.beat or 0.0,
+        start_measure=first.measure or 0,
+        end_measure=last.measure or 0,
+        steps=steps,
+    )
+
+
+def column_foot(step: ResolvedStep, col: int) -> FootMove | None:
+    """Foot acting on ``col``: the moving foot for a press, the hold owner for a tail."""
+    note = (
+        step.note_row.left,
+        step.note_row.down,
+        step.note_row.up,
+        step.note_row.right,
+    )[col]
+    fr = step.foot_row
+    bit = 1 << col
+    if note in _PRESS:
+        for foot in _FEET:
+            placement = fr.stance.left if foot == FootMove.LEFT else fr.stance.right
+            if fr.moved & foot and placement.mask & bit:
+                return foot
+        return None
+    if note == NoteType.TAIL:
+        return fr.hold_owner_for(col)
     return None
 
 
-def _detect_point_patterns(
-    active_steps: list[ResolvedStep],
-    *,
-    max_jack_dt: float = 0.25,
-    max_doublestep_dt: float = 0.35,
-) -> list[PatternSpan]:
-    """Detect single-row and 2-row transition patterns (brackets, jacks, doublesteps, switches)."""
-    spans: list[PatternSpan] = []
-
-    for i, curr in enumerate(active_steps):
-        curr_nr = curr.note_row
-        curr_fr = curr.foot_row
-        beat = curr_nr.beat or 0.0
-        measure = curr_nr.measure or 0
-
-        left_bracketed = (
-            bool(curr_fr.moved & FootMove.LEFT) and curr_fr.stance.left.is_bracket
-        )
-        right_bracketed = (
-            bool(curr_fr.moved & FootMove.RIGHT) and curr_fr.stance.right.is_bracket
-        )
-        if left_bracketed or right_bracketed:
-            spans.append(
-                PatternSpan(
-                    kind=PatternKind.BRACKET,
-                    start_beat=beat,
-                    end_beat=beat,
-                    start_measure=measure,
-                    end_measure=measure,
-                    steps=(curr,),
-                )
-            )
-
-        if i == 0:
-            continue
-
-        prev = active_steps[i - 1]
-        prev_nr = prev.note_row
-        prev_fr = prev.foot_row
-
-        prev_p = _moving_placement(prev)
-        curr_p = _moving_placement(curr)
-        if prev_p is None or curr_p is None:
-            continue
-
-        dt = (curr_nr.timestamp or 0.0) - (prev_nr.timestamp or 0.0)
-        p_beat = prev_nr.beat or 0.0
-        p_measure = prev_nr.measure or 0
-
-        if prev_fr.moved == curr_fr.moved:
-            if prev_p == curr_p and dt <= max_jack_dt:
-                spans.append(
-                    PatternSpan(
-                        kind=PatternKind.JACK,
-                        start_beat=p_beat,
-                        end_beat=beat,
-                        start_measure=p_measure,
-                        end_measure=measure,
-                        steps=(prev, curr),
-                    )
-                )
-            elif prev_p != curr_p and dt <= max_doublestep_dt:
-                spans.append(
-                    PatternSpan(
-                        kind=PatternKind.DOUBLESTEP,
-                        start_beat=p_beat,
-                        end_beat=beat,
-                        start_measure=p_measure,
-                        end_measure=measure,
-                        steps=(prev, curr),
-                    )
-                )
-        else:
-            shared_mask = prev_p.mask & curr_p.mask
-            if shared_mask and dt <= max_doublestep_dt:
-                kind = (
-                    PatternKind.SIDESWITCH
-                    if (shared_mask & _LR_MASK)
-                    else PatternKind.FOOTSWITCH
-                )
-                spans.append(
-                    PatternSpan(
-                        kind=kind,
-                        start_beat=p_beat,
-                        end_beat=beat,
-                        start_measure=p_measure,
-                        end_measure=measure,
-                        steps=(prev, curr),
-                    )
-                )
-
-    return spans
-
-
-def _detect_crossover_spans(active_steps: list[ResolvedStep]) -> list[PatternSpan]:
-    """Group contiguous non-neutral orientations with centerline cross into crossover spans."""
-    spans: list[PatternSpan] = []
-    n = len(active_steps)
-    i = 0
-
-    while i < n:
-        ori = active_steps[i].foot_row.stance.orientation
-        if ori == PlayerOrientation.NEUTRAL:
-            i += 1
-            continue
-
-        run_start = i
-        has_crossed = False
-        while i < n and active_steps[i].foot_row.stance.orientation == ori:
-            if active_steps[i].foot_row.stance.is_crossed:
-                has_crossed = True
-            i += 1
-
-        if has_crossed:
-            span_start = max(0, run_start - 1)
-            span_end = min(n - 1, i)
-            phrase_steps = tuple(active_steps[span_start : span_end + 1])
-
-            kind = (
-                PatternKind.INVERTED_CROSSOVER
-                if ori == PlayerOrientation.INVERTED
-                else PatternKind.CROSSOVER
-            )
-            spans.append(
-                PatternSpan(
-                    kind=kind,
-                    start_beat=phrase_steps[0].note_row.beat or 0.0,
-                    end_beat=phrase_steps[-1].note_row.beat or 0.0,
-                    start_measure=phrase_steps[0].note_row.measure or 0,
-                    end_measure=phrase_steps[-1].note_row.measure or 0,
-                    steps=phrase_steps,
-                )
-            )
-
-    return spans
+def _single_col(step: ResolvedStep) -> int | None:
+    mask = step.note_row.press_mask
+    return mask.bit_length() - 1 if mask.bit_count() == 1 else None
 
 
 def detect_tech_patterns(steps: list[ResolvedStep]) -> TechMetrics:
-    """Run pattern detectors on a resolved foot path; returns spans inside TechMetrics."""
-    active_steps = [s for s in steps if s.foot_row.moved != FootMove.NONE]
-    if not active_steps:
-        return TechMetrics()
+    """Label jacks, foot/side switches, doublesteps, brackets, and crossovers."""
+    spans: list[PatternSpan] = []
 
-    spans = _detect_point_patterns(active_steps)
-    spans.extend(_detect_crossover_spans(active_steps))
+    last_foot: list[FootMove | None] = [None] * 4
+    last_time = [-math.inf] * 4
+    mine_time: list[float | None] = [None] * 4
+    last_step: list[ResolvedStep | None] = [None] * 4
+    from_tail = [False] * 4
+    press_foot: list[FootMove | None] = [None] * 4
+    press_time = [-math.inf] * 4
+    press_step: list[ResolvedStep | None] = [None] * 4
+    any_mine_time = -math.inf
+    # Jacks and switches only pair a panel's event with the very next press
+    # row; a revisit after other steps (e.g. D-U-D in a stream) is neither.
+    press_rows = 0
+    event_epoch = [-1] * 4
+    press_epoch = [-1] * 4
+
+    prev_press: ResolvedStep | None = None
+    prev_row: ResolvedStep | None = None
+    active: list[ResolvedStep] = []
+    run_orientation: PlayerOrientation | None = None
+    run_start = 0
+    run_crossed = False
+
+    def close_run(end: int) -> None:
+        if run_orientation in (None, PlayerOrientation.NEUTRAL) or not run_crossed:
+            return
+        kind = (
+            PatternKind.INVERTED_CROSSOVER
+            if run_orientation == PlayerOrientation.INVERTED
+            else PatternKind.CROSSOVER
+        )
+        spans.append(_span(kind, tuple(active[max(0, run_start - 1) : end + 1])))
+
+    for step in steps:
+        row = step.note_row
+        fr = step.foot_row
+        now = row.timestamp or 0.0
+
+        for col in range(4):
+            if (1 << col) & row.mine_mask:
+                mine_time[col] = now
+                any_mine_time = now
+
+        epoch_before = press_rows
+        if fr.moved != FootMove.NONE:
+            press_rows += 1
+            for mover in _FEET:
+                placement = fr.stance.left if mover == FootMove.LEFT else fr.stance.right
+                if fr.moved & mover and (placement.mask & row.press_mask).bit_count() >= 2:
+                    spans.append(_span(PatternKind.BRACKET, (step,)))
+
+            press_col = _single_col(step)
+            released = (
+                prev_row.foot_row.released_since_press
+                if prev_row is not None
+                else FootMove.NONE
+            )
+            if (
+                prev_press is not None
+                and fr.moved in _FEET
+                and prev_press.foot_row.moved == fr.moved
+                and press_col is not None
+                and _single_col(prev_press) not in (None, press_col)
+                and not released & ~fr.moved
+            ):
+                spans.append(_span(PatternKind.DOUBLESTEP, (prev_press, step)))
+            prev_press = step
+
+            active.append(step)
+            position = len(active) - 1
+            orientation = fr.stance.orientation
+            if orientation != run_orientation:
+                close_run(position)
+                run_orientation = orientation
+                run_start = position
+                run_crossed = False
+            if fr.stance.is_crossed:
+                run_crossed = True
+
+        for col in range(4):
+            foot = column_foot(step, col)
+            if foot is None:
+                continue
+            is_press = (
+                row.left,
+                row.down,
+                row.up,
+                row.right,
+            )[col] in _PRESS
+            col_mine = mine_time[col]
+
+            if is_press:
+                prior_press = press_step[col]
+                prior_any = last_step[col]
+                if press_epoch[col] != epoch_before:
+                    prior_press = None
+                if event_epoch[col] != epoch_before:
+                    prior_any = None
+                if prior_press is not None and press_foot[col] == foot:
+                    ref_time = press_time[col]
+                    if col_mine is not None and col_mine > ref_time:
+                        ref_time = col_mine
+                    if (
+                        now - ref_time < ITG_JACK_CUTOFF_SEC
+                        and not (1 << col) & row.mine_mask
+                    ):
+                        spans.append(_span(PatternKind.JACK, (prior_press, step)))
+                elif prior_any is not None and last_foot[col] not in (None, foot):
+                    ref_time = last_time[col]
+                    used_mine_ref = col_mine is not None and col_mine > ref_time
+                    if used_mine_ref:
+                        ref_time = col_mine  # type: ignore[assignment]
+                    # A switch after a hold release (holdswitch) needs a mine cue.
+                    cued = not from_tail[col] or any_mine_time > last_time[col]
+                    kind = (
+                        PatternKind.SIDESWITCH
+                        if col in _LR_COLS
+                        else PatternKind.FOOTSWITCH
+                    )
+                    if (
+                        cued
+                        and now - ref_time < ITG_FOOTSWITCH_CUTOFF_SEC
+                        and not (
+                            kind == PatternKind.FOOTSWITCH
+                            and used_mine_ref
+                            and col in _UD_COLS
+                        )
+                    ):
+                        spans.append(_span(kind, (prior_any, step)))
+                press_foot[col] = foot
+                press_time[col] = now
+                press_step[col] = step
+                press_epoch[col] = press_rows
+                mine_time[col] = None
+
+            event_epoch[col] = press_rows
+            last_foot[col] = foot
+            last_time[col] = now
+            last_step[col] = step
+            from_tail[col] = not is_press
+        prev_row = step
+
+    close_run(len(active) - 1)
     spans.sort(key=lambda s: (s.start_beat, s.end_beat))
     return TechMetrics(spans=spans)
