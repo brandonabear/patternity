@@ -1,0 +1,12 @@
+# Charts used for training footing models
+patterns/footswitches.sm
+patterns/jacks.sm
+patterns/brackets.sm
+patterns/sideswitches.sm
+patterns/doublesteps.sm
+charts/burger.ssc
+charts/hoot.ssc
+charts/move_mint.ssc
+charts/too_much.ssc
+charts/shake_the_city.ssc
+charts/godspeed.ssc
