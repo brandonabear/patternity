@@ -1,7 +1,6 @@
 from collections.abc import Iterator
 
-from patternity.models.engine import NoteRow
-from patternity.models.stance import (
+from patternity.footing.stance import (
     ALL_PLACEMENTS,
     CARDINAL_PLACEMENTS,
     FootMove,
@@ -9,30 +8,109 @@ from patternity.models.stance import (
     FootRow,
     Stance,
 )
+from patternity.simfile.notes import NoteRow, NoteType
+
+_ANCHOR_HEADS = frozenset({NoteType.HOLD, NoteType.ROLL})
+
+
+def anchored_mask(row: NoteRow) -> int:
+    """Panels held or rolled through this row without a new press (tails included)."""
+    return (row.hold_active_mask | row.roll_active_mask) & ~row.press_mask
 
 
 def _holds_preserved(
-    prev_stance: Stance,
+    prev: FootRow,
     next_left: FootPlacement,
     next_right: FootPlacement,
-    ongoing_holds: int,
+    anchored: int,
     allow_mid_hold_switches: bool,
 ) -> bool:
-    """Check if ongoing holds remain covered (and stay on the same foot if switches are disallowed)."""
-    # 1. Together, the two feet must cover every ongoing hold
-    if ((next_left.mask | next_right.mask) & ongoing_holds) != ongoing_holds:
+    """Anchored panels stay covered, and by their owning foot unless switches are allowed."""
+    if ((next_left.mask | next_right.mask) & anchored) != anchored:
         return False
-
-    # 2. If mid-hold switches are disallowed, neither foot can abandon a hold it was already holding
-    if not allow_mid_hold_switches:
-        left_was_holding = prev_stance.left.mask & ongoing_holds
-        right_was_holding = prev_stance.right.mask & ongoing_holds
-        if (next_left.mask & left_was_holding) != left_was_holding:
+    for col, owner in prev.hold_owners:
+        bit = 1 << col
+        if not anchored & bit:
+            continue
+        placement = next_left if owner == FootMove.LEFT else next_right
+        other = next_right if owner == FootMove.LEFT else next_left
+        if not allow_mid_hold_switches and not placement.mask & bit:
             return False
-        if (next_right.mask & right_was_holding) != right_was_holding:
+        if other.is_bracket and other.mask & bit:
             return False
-
     return True
+
+
+def _single_press_col(press_mask: int) -> int | None:
+    if press_mask.bit_count() != 1:
+        return None
+    return press_mask.bit_length() - 1
+
+
+def _update_hold_owners(
+    prev: FootRow,
+    row: NoteRow,
+    stance: Stance,
+    moved: FootMove,
+    anchored: int,
+) -> tuple[tuple[int, FootMove], ...]:
+    owners: dict[int, FootMove] = {
+        col: foot for col, foot in prev.hold_owners if (1 << col) & anchored
+    }
+    panels = (row.left, row.down, row.up, row.right)
+    for col, note in enumerate(panels):
+        if note not in _ANCHOR_HEADS:
+            continue
+        bit = 1 << col
+        if moved & FootMove.LEFT and stance.left.mask & bit:
+            owners[col] = FootMove.LEFT
+        elif moved & FootMove.RIGHT and stance.right.mask & bit:
+            owners[col] = FootMove.RIGHT
+    return tuple(sorted(owners.items()))
+
+
+def _emit_foot_row(
+    prev: FootRow,
+    row: NoteRow,
+    *,
+    stance: Stance,
+    moved: FootMove,
+    anchored: int,
+) -> FootRow:
+    if moved == FootMove.NONE:
+        released = prev.released_since_press
+        panels = (row.left, row.down, row.up, row.right)
+        for col, owner in prev.hold_owners:
+            if panels[col] == NoteType.TAIL:
+                released |= owner
+        return FootRow(
+            stance=stance,
+            moved=moved,
+            mines_since_press=prev.mines_since_press | row.mine_mask,
+            last_press_col=prev.last_press_col,
+            last_press_foot=prev.last_press_foot,
+            hold_owners=_update_hold_owners(prev, row, stance, moved, anchored),
+            released_since_press=released,
+            last_repeat_jack=prev.last_repeat_jack,
+        )
+    press_col = _single_press_col(row.press_mask)
+    repeat_jack = None
+    if (
+        press_col is not None
+        and press_col == prev.last_press_col
+        and moved != FootMove.BOTH
+        and prev.last_press_foot in (FootMove.LEFT, FootMove.RIGHT)
+    ):
+        repeat_jack = moved == prev.last_press_foot
+    return FootRow(
+        stance=stance,
+        moved=moved,
+        mines_since_press=0,
+        last_press_col=press_col,
+        last_press_foot=moved,
+        hold_owners=_update_hold_owners(prev, row, stance, moved, anchored),
+        last_repeat_jack=repeat_jack,
+    )
 
 
 def iter_legal_transitions(
@@ -44,64 +122,56 @@ def iter_legal_transitions(
 ) -> Iterator[FootRow]:
     """Yield all physically legal next `FootRow` states for `row` given `prev`."""
     press_mask = row.press_mask
-    ongoing_holds = row.hold_active_mask & ~press_mask
-    now = row.timestamp or 0.0
+    anchored = anchored_mask(row)
 
-    # Case 1: No new presses on this row (e.g., tail-only or mine-only row)
     if press_mask == 0:
-        yield FootRow(
-            stance=prev.stance,
-            moved=FootMove.NONE,
-            left_time=prev.left_time,
-            right_time=prev.right_time,
+        yield _emit_foot_row(
+            prev, row, stance=prev.stance, moved=FootMove.NONE, anchored=anchored
         )
         return
 
     placements = ALL_PLACEMENTS if allow_brackets else CARDINAL_PLACEMENTS
     prev_stance = prev.stance
 
-    # Case 2: Single-foot moves (LEFT or RIGHT)
     for target in placements:
-        # A single moving foot must press ALL new notes on this row, and any extra panel
-        # in its bracket must be an ongoing hold (no bracketing empty panels for no reason).
         if (target.mask & press_mask) != press_mask:
             continue
-        if (target.mask & ~press_mask & ~ongoing_holds) != 0:
+        if (target.mask & ~press_mask & ~anchored) != 0:
             continue
 
-        # 2a. Move LEFT foot to `target`, keep RIGHT foot at `prev_stance.right`
         if _holds_preserved(
-            prev_stance, target, prev_stance.right, ongoing_holds, allow_mid_hold_switches
+            prev, target, prev_stance.right, anchored, allow_mid_hold_switches
         ):
-            yield FootRow(
-                stance=Stance.from_feet(target, prev_stance.right, prev_stance.orientation),
+            yield _emit_foot_row(
+                prev,
+                row,
+                stance=Stance.from_feet(
+                    target, prev_stance.right, prev_stance.orientation
+                ),
                 moved=FootMove.LEFT,
-                left_time=now,
-                right_time=prev.right_time,
+                anchored=anchored,
             )
 
-        # 2b. Move RIGHT foot to `target`, keep LEFT foot at `prev_stance.left`
         if _holds_preserved(
-            prev_stance, prev_stance.left, target, ongoing_holds, allow_mid_hold_switches
+            prev, prev_stance.left, target, anchored, allow_mid_hold_switches
         ):
-            yield FootRow(
-                stance=Stance.from_feet(prev_stance.left, target, prev_stance.orientation),
+            yield _emit_foot_row(
+                prev,
+                row,
+                stance=Stance.from_feet(
+                    prev_stance.left, target, prev_stance.orientation
+                ),
                 moved=FootMove.RIGHT,
-                left_time=prev.left_time,
-                right_time=now,
+                anchored=anchored,
             )
 
-    # Case 3: Two-foot moves (BOTH — Jumps, Hands, Quads)
     if press_mask.bit_count() >= 2:
-        allowed_panels = press_mask | ongoing_holds
+        allowed_panels = press_mask | anchored
         for left_p in placements:
-            # Left foot must hit at least one new press and only touch allowed panels
             if not (left_p.mask & press_mask) or (left_p.mask & ~allowed_panels):
                 continue
 
             for right_p in placements:
-                # Right foot must hit at least one new press, only touch allowed panels,
-                # and not overlap the left foot on a jump
                 if (
                     not (right_p.mask & press_mask)
                     or (right_p.mask & ~allowed_panels)
@@ -109,17 +179,17 @@ def iter_legal_transitions(
                 ):
                     continue
 
-                # Together they must press all new notes and preserve ongoing holds
                 if ((left_p.mask | right_p.mask) & press_mask) != press_mask:
                     continue
                 if not _holds_preserved(
-                    prev_stance, left_p, right_p, ongoing_holds, allow_mid_hold_switches
+                    prev, left_p, right_p, anchored, allow_mid_hold_switches
                 ):
                     continue
 
-                yield FootRow(
+                yield _emit_foot_row(
+                    prev,
+                    row,
                     stance=Stance.from_feet(left_p, right_p, prev_stance.orientation),
                     moved=FootMove.BOTH,
-                    left_time=now,
-                    right_time=now,
+                    anchored=anchored,
                 )
