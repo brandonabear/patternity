@@ -1,3 +1,19 @@
-from patternity.parser import StepmaniaFileParser
+"""Tech-pattern analysis for StepMania charts.
 
-__all__ = ["StepmaniaFileParser"]
+Pipeline: ``simfile`` (parse) -> ``footing`` (decode a foot path) -> ``patterns``
+(tag tech on that path) -> ``metrics``. ``training`` fits the footing weights.
+"""
+
+from patternity.analyzer import Analyzer
+from patternity.footing import FootingModel, resolve_chart
+from patternity.patterns.detector import detect_tech_patterns
+from patternity.simfile import StepmaniaFileParser, read_simfile
+
+__all__ = [
+    "Analyzer",
+    "FootingModel",
+    "StepmaniaFileParser",
+    "detect_tech_patterns",
+    "read_simfile",
+    "resolve_chart",
+]
