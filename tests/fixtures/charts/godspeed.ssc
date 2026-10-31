@@ -1,0 +1,1510 @@
+#VERSION:0.83;
+#TITLE:[6804] [12] Godspeed;
+#SUBTITLE:(Grum Remix);
+#ARTIST:BT, Grum;
+#TITLETRANSLIT:;
+#SUBTITLETRANSLIT:;
+#ARTISTTRANSLIT:;
+#GENRE:;
+#CREDIT:;
+#MUSIC:godspeed.ogg;
+#BANNER:godspeed.png;
+#BACKGROUND:;
+#CDTITLE:cdtitle.png;
+#SAMPLESTART:19.847;
+#SAMPLELENGTH:13.597;
+#SELECTABLE:YES;
+#OFFSET:-0.001;
+#BPMS:0.000=139.000;
+#STOPS:;
+#JACKET:;
+#DISCIMAGE:;
+#CDIMAGE:;
+#BGCHANGES:;
+#FGCHANGES:0.000=lua/default.lua=1.000=0=0=0=StretchNoLoop====;
+
+//--------------- dance-single - FX XMOD- BT+ ----------------
+#NOTEDATA:;
+#STEPSTYPE:dance-single;
+#DESCRIPTION:FX BT+;
+#DIFFICULTY:Challenge;
+#METER:12;
+#RADARVALUES:0,0,0,0,0;
+#CHARTNAME:2654 (P) + 4150 (S);
+#CHARTSTYLE:;
+#CREDIT:G. Rosewood;
+#METERF:12;
+#NOTES:
+// measure 0
+0000
+0000
+0000
+0000
+,  // measure 1
+0000
+0000
+0000
+0000
+,  // measure 2
+0000
+0000
+0000
+0000
+,  // measure 3
+0000
+0000
+0000
+0000
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+0100 // @foot=L
+,  // measure 4
+0012 // @feet=R,R @pattern=bracket
+0000
+1000 // @foot=L
+0000
+0010 // @foot=R
+0000
+1000 // @foot=L
+0010 // @foot=R
+0000
+1000 // @foot=L
+0013 // @foot=R
+0000
+1000 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+,  // measure 5
+0100 // @suggest=L @margin=165.1
+0000
+0010 // @suggest=R @margin=165.1
+0000
+1000 // @suggest=L @margin=200.4
+0000
+0001 // @suggest=R @margin=211.2
+1000 // @suggest=L @margin=143.8
+0000
+1000 // @suggest=L @margin=104.7
+0100 // @suggest=R @margin=147.4
+0000
+0010 // @suggest=L @margin=177.0
+0001 // @suggest=R @margin=194.8
+0010 // @suggest=L @margin=194.8
+0100 // @suggest=R @margin=194.8
+,  // measure 6
+2010 // @feet=L,L @pattern=bracket
+0000
+0001 // @foot=R
+0000
+0010 // @foot=L
+0000
+0001 // @foot=R
+0010 // @foot=L
+0000
+0001 // @foot=R
+3010 // @foot=L
+0000
+0001 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+,  // measure 7
+0100 // @suggest=R @margin=165.1
+0000
+0010 // @suggest=L @margin=165.1
+0000
+0001 // @suggest=R @margin=200.4
+0000
+1000 // @suggest=L @margin=211.2
+0001 // @suggest=R @margin=143.8
+0000
+0001 // @suggest=R @margin=104.7
+0100 // @suggest=L @margin=143.6
+0000
+0010 // @suggest=R @margin=143.6
+1000 // @suggest=L @margin=202.1
+0001 // @suggest=R @margin=212.1
+0100 // @suggest=L @margin=183.6
+,  // measure 8
+0021 // @feet=R,R @pattern=bracket
+0000
+1000 // @foot=L
+0000
+0001 // @foot=R
+0000
+1000 // @foot=L
+0001 // @foot=R
+0000
+1000 // @foot=L
+0031 // @foot=R
+0000
+1000 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+,  // measure 9
+0100 // @suggest=L @margin=165.1
+0000
+0010 // @suggest=R @margin=165.1
+0000
+1000 // @suggest=L @margin=200.4
+0000
+0001 // @suggest=R @margin=211.2
+1000 // @suggest=L @margin=143.8
+0000
+1000 // @suggest=L @margin=104.7
+0100 // @suggest=R @margin=147.4
+0000
+0010 // @suggest=L @margin=176.3
+0001 // @suggest=R @margin=176.3
+0010 // @suggest=L @margin=176.3
+0100 // @suggest=R @margin=176.3
+,  // measure 10
+1020 // @suggest=L @margin=101.4
+0000
+0001 // @suggest=R @margin=137.8
+0000
+1000 // @suggest=L @margin=126.6
+0000
+0001 // @suggest=R @margin=225.5
+1000 // @suggest=L @margin=174.2
+0000
+0001 // @suggest=R @margin=270.9
+1030 // @suggest=L @margin=174.2
+0000
+0001 // @suggest=R @margin=225.1
+1000 // @suggest=L @margin=303.7
+0001 // @suggest=R @margin=255.0
+0010 // @suggest=L @margin=165.1
+,  // measure 11
+0100 // @suggest=R @margin=165.1
+0000
+0010 // @suggest=L @margin=165.1
+0000
+0001 // @suggest=R @margin=200.4
+0000
+1000 // @suggest=L @margin=266.3
+0001 // @suggest=R @margin=288.4
+1000 // @suggest=L @margin=288.4
+0001 // @suggest=R @margin=255.0
+0100 // @suggest=L @margin=147.4
+0000
+0010 // @suggest=R @margin=194.7
+1000 // @suggest=L @margin=235.9
+0010 // @suggest=R @margin=255.0
+0100 // @suggest=L @margin=209.7
+,  // measure 12
+0012 // @suggest=R @margin=144.1
+0000
+1000 // @suggest=L @margin=444.5
+0000
+01M0 // @suggest=R @margin=231.3
+0000
+1000 // @suggest=L @margin=444.5
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=444.5
+0100 // @suggest=R @margin=149.6
+0013 // @suggest=L @margin=205.7
+0000
+0001 // @suggest=R @margin=256.0
+1000 // @suggest=L @margin=289.5
+0001 // @suggest=R @margin=255.0
+0100 // @suggest=L @margin=165.1
+,  // measure 13
+0010 // @suggest=R @margin=162.6
+0000
+1000 // @suggest=L @margin=182.1
+0000
+0001 // @suggest=R @margin=151.2
+0000
+0010 // @suggest=L @margin=95.3
+0100 // @suggest=R @margin=95.3
+1000 // @suggest=L @margin=95.3
+0000
+1000 // @suggest=L @margin=89.6
+0010 // @suggest=R @margin=161.9
+0100 // @suggest=L @margin=161.9
+0010 // @suggest=R @margin=161.9
+1000 // @suggest=L @margin=227.4
+0010 // @suggest=R @margin=227.4
+,  // measure 14
+2100 // @feet=L,L @pattern=bracket
+0000
+0001 // @foot=R
+0000
+0M10 // @foot=L
+0000
+0001 // @foot=R
+0010 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+3100 // @foot=R
+0000
+1000 // @suggest=L @margin=256.0
+0001 // @suggest=R @margin=289.5
+1000 // @suggest=L @margin=255.0
+0010 // @suggest=R @margin=165.1
+,  // measure 15
+0100 // @suggest=L @margin=162.6
+0000
+0001 // @suggest=R @margin=182.1
+0000
+1000 // @suggest=L @margin=170.7
+0000
+0100 // @suggest=R @margin=114.8
+0010 // @suggest=L @margin=114.8
+0001 // @suggest=R @margin=114.8
+0000
+0001 // @suggest=R @margin=109.1
+1000 // @suggest=L @margin=162.5
+0010 // @suggest=R @margin=162.5
+0100 // @suggest=L @margin=162.5
+0001 // @suggest=R @margin=224.4
+0010 // @suggest=L @margin=199.1
+,  // measure 16
+0102 // @suggest=R @margin=120.4
+0000
+1000 // @suggest=L @margin=414.4
+0000
+0M10 // @suggest=R @margin=207.7
+0000
+1000 // @suggest=L @margin=414.4
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=414.4
+0010 // @suggest=R @margin=149.6
+0103 // @suggest=L @margin=205.7
+0000
+0001 // @suggest=R @margin=256.0
+1000 // @suggest=L @margin=289.5
+0001 // @suggest=R @margin=255.0
+0010 // @suggest=L @margin=165.1
+,  // measure 17
+0100 // @suggest=R @margin=162.6
+0000
+1000 // @suggest=L @margin=182.1
+0000
+0001 // @suggest=R @margin=151.2
+0000
+0100 // @suggest=L @margin=95.3
+0010 // @suggest=R @margin=95.3
+1000 // @suggest=L @margin=95.3
+0000
+1000 // @suggest=L @margin=89.6
+0100 // @suggest=R @margin=161.9
+0010 // @suggest=L @margin=161.9
+0100 // @suggest=R @margin=161.9
+1000 // @suggest=L @margin=227.4
+0100 // @suggest=R @margin=227.4
+,  // measure 18
+2010 // @suggest=L @margin=120.4
+0000
+0001 // @suggest=R @margin=380.5
+0000
+01M0 // @suggest=L @margin=207.7
+0000
+0001 // @suggest=R @margin=380.5
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=380.5
+0100 // @suggest=L @margin=149.6
+3010 // @suggest=R @margin=172.4
+0000
+1000 // @suggest=L @margin=254.0
+0100 // @suggest=R @margin=241.8
+1000 // @suggest=L @margin=241.8
+0100 // @suggest=R @margin=222.4
+,  // measure 19
+0010 // @suggest=L @margin=162.6
+0000
+0001 // @suggest=R @margin=153.1
+0000
+1000 // @suggest=L @margin=232.3
+0100 // @suggest=R @margin=208.3
+1000 // @suggest=L @margin=218.0
+0000
+0001 // @suggest=R @margin=225.4
+0000
+0100 // @suggest=L @margin=176.9
+0010 // @suggest=R @margin=176.9
+0100 // @suggest=L @margin=176.9
+0000
+0010 // @suggest=R @margin=176.9
+0100 // @suggest=L @margin=176.9
+,  // measure 20
+0012 // @suggest=R @margin=144.1
+0000
+1000 // @suggest=L @margin=551.4
+0000
+01M0 // @suggest=R @margin=231.3
+0000
+1000 // @suggest=L @margin=551.4
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=551.4
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=551.4
+0000
+0M10 // @suggest=R @margin=551.4
+1000 // @suggest=L @margin=551.4
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=551.4
+,  // measure 21
+0010 // @suggest=R @margin=120.2
+0000
+1003 // @suggest=L @margin=551.4
+0000
+0001 // @suggest=R @margin=234.0
+0000
+0010 // @suggest=L @margin=146.8
+0100 // @suggest=R @margin=146.8
+1000 // @suggest=L @margin=152.5
+0000
+0010 // @suggest=R @margin=132.5
+0000
+0100 // @suggest=L @margin=132.5
+0000
+0010 // @suggest=R @margin=132.5
+0000
+,  // measure 22
+2100 // @suggest=L @margin=103.4
+0000
+0001 // @suggest=R @margin=532.5
+0000
+0M10 // @suggest=L @margin=190.6
+0000
+0001 // @suggest=R @margin=532.5
+0010 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=532.5
+0010 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=532.5
+0000
+01M0 // @suggest=L @margin=532.5
+0001 // @suggest=R @margin=532.5
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=532.5
+,  // measure 23
+0100 // @suggest=L @margin=120.2
+0000
+3001 // @suggest=R @margin=532.5
+0000
+1000 // @suggest=L @margin=234.0
+0000
+0100 // @suggest=R @margin=151.9
+0010 // @suggest=L @margin=183.3
+0001 // @suggest=R @margin=203.3
+0000
+0010 // @suggest=L @margin=174.7
+0000
+0100 // @suggest=R @margin=157.4
+0000
+0010 // @suggest=L @margin=170.2
+0000
+,  // measure 24
+0102 // @suggest=R @margin=103.4
+0000
+1000 // @suggest=L @margin=570.3
+0000
+0M10 // @suggest=R @margin=190.6
+0000
+1000 // @suggest=L @margin=570.3
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=570.3
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=570.3
+0000
+01M0 // @suggest=R @margin=570.3
+1000 // @suggest=L @margin=570.3
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=570.3
+,  // measure 25
+0100 // @suggest=R @margin=120.2
+0000
+1003 // @suggest=L @margin=570.3
+0000
+0001 // @suggest=R @margin=234.0
+0000
+0100 // @suggest=L @margin=146.8
+0010 // @suggest=R @margin=146.8
+1000 // @suggest=L @margin=152.5
+0000
+0100 // @suggest=R @margin=132.5
+0000
+0010 // @suggest=L @margin=132.5
+0000
+0100 // @suggest=R @margin=132.5
+0000
+,  // measure 26
+2010 // @suggest=L @margin=103.4
+0000
+0001 // @suggest=R @margin=532.5
+0000
+01M0 // @suggest=L @margin=190.6
+0000
+0001 // @suggest=R @margin=532.5
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=532.5
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=532.5
+0000
+0M10 // @suggest=L @margin=532.5
+0001 // @suggest=R @margin=532.5
+0010 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=532.5
+,  // measure 27
+0010 // @suggest=L @margin=120.2
+0000
+3001 // @suggest=R @margin=532.5
+0000
+1000 // @suggest=L @margin=234.0
+0000
+0010 // @suggest=R @margin=151.9
+0100 // @suggest=L @margin=183.3
+0001 // @suggest=R @margin=190.7
+0000
+0100 // @suggest=L @margin=169.5
+0000
+0010 // @suggest=R @margin=146.1
+0000
+0100 // @suggest=L @margin=146.1
+0000
+,  // measure 28
+0012 // @suggest=R @margin=79.2
+0000
+1000 // @suggest=L @margin=626.6
+0000
+0010 // @suggest=R @margin=72.1
+0000
+1100 // @suggest=L @margin=158.7
+0000
+0010 // @suggest=R @margin=72.1
+0000
+1000 // @suggest=L @margin=626.6
+0000
+01M0 // @suggest=R @margin=309.7
+1000 // @suggest=L @margin=626.6
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=626.6
+,  // measure 29
+0100 // @suggest=R @margin=112.6
+0000
+0010 // @suggest=L @margin=127.6
+0000
+0100 // @suggest=R @margin=69.5
+0000
+1000 // @suggest=L @margin=626.6
+0000
+0M10 // @suggest=R @margin=233.5
+0000
+1003 // @suggest=L @margin=626.6
+0000
+0001 // @suggest=R @margin=195.4
+0000
+0100 // @suggest=L @margin=152.8
+0010 // @suggest=R @margin=152.8
+,  // measure 30
+2100 // @suggest=L @margin=119.9
+0000
+0001 // @suggest=R @margin=600.6
+0000
+0100 // @suggest=L @margin=72.1
+0000
+0011 // @suggest=R @margin=158.7
+0000
+0100 // @suggest=L @margin=72.1
+0000
+0001 // @suggest=R @margin=600.6
+0000
+0M10 // @suggest=L @margin=309.7
+0001 // @suggest=R @margin=600.6
+0010 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=600.6
+,  // measure 31
+0010 // @suggest=L @margin=112.6
+0000
+0100 // @suggest=R @margin=127.6
+0000
+0010 // @suggest=L @margin=69.5
+0000
+0001 // @suggest=R @margin=600.6
+0000
+01M0 // @suggest=L @margin=233.5
+0000
+3001 // @suggest=R @margin=600.6
+0000
+1000 // @suggest=L @margin=234.0
+0000
+0100 // @suggest=R @margin=152.8
+0010 // @suggest=L @margin=152.8
+,  // measure 32
+0102 // @suggest=R @margin=119.9
+0000
+1000 // @suggest=L @margin=608.6
+0000
+0100 // @suggest=R @margin=72.1
+0000
+1010 // @suggest=L @margin=158.7
+0000
+0100 // @suggest=R @margin=72.1
+0000
+1000 // @suggest=L @margin=608.6
+0000
+0M10 // @suggest=R @margin=309.7
+1000 // @suggest=L @margin=608.6
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=608.6
+,  // measure 33
+0010 // @suggest=R @margin=112.6
+0000
+0100 // @suggest=L @margin=127.6
+0000
+0010 // @suggest=R @margin=69.5
+0000
+1000 // @suggest=L @margin=608.6
+0000
+01M0 // @suggest=R @margin=233.5
+0000
+1003 // @suggest=L @margin=608.6
+0000
+0001 // @suggest=R @margin=195.4
+0000
+0010 // @suggest=L @margin=152.8
+0100 // @suggest=R @margin=152.8
+,  // measure 34
+2010 // @suggest=L @margin=119.9
+0000
+0001 // @suggest=R @margin=391.0
+0000
+0010 // @suggest=L @margin=72.1
+0000
+0101 // @suggest=R @margin=158.7
+0000
+0010 // @suggest=L @margin=72.1
+0000
+0001 // @suggest=R @margin=391.0
+0000
+01M0 // @suggest=L @margin=309.7
+0001 // @suggest=R @margin=391.0
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=391.0
+,  // measure 35
+0100 // @suggest=L @margin=112.6
+0000
+3010 // @suggest=R @margin=129.5
+0000
+2100 // @suggest=L @margin=5.2
+0000
+0001 // @suggest=R @margin=280.6
+0100 // @suggest=L @margin=139.3
+0001 // @suggest=R @margin=280.6
+0000
+0100 // @suggest=L @margin=77.0
+0000
+3001 // @suggest=R @margin=280.6
+0100 // @suggest=L @margin=229.3
+0010 // @suggest=R @margin=224.7
+0100 // @suggest=L @margin=224.7
+,  // measure 36
+0012 // @suggest=R @margin=125.3
+1000 // @suggest=L @margin=1122.2
+0010 // @suggest=R @margin=120.2
+0000
+1000 // @suggest=L @margin=1122.2
+0000
+0010 // @suggest=R @margin=77.0
+0000
+1000 // @suggest=L @margin=1122.2
+0000
+0010 // @suggest=R @margin=77.0
+0000
+1000 // @suggest=L @margin=1122.2
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=1122.2
+0000
+,  // measure 37
+0010 // @suggest=R @margin=77.0
+0000
+1000 // @suggest=L @margin=1122.2
+0000
+0010 // @suggest=R @margin=77.0
+0000
+1000 // @suggest=L @margin=1122.2
+0000
+01M0 // @suggest=R @margin=722.4
+1000 // @suggest=L @margin=1122.2
+0100 // @suggest=R @margin=120.2
+0000
+1000 // @suggest=L @margin=1122.2
+0000
+0100 // @suggest=R @margin=77.0
+0000
+,  // measure 38
+1000 // @suggest=L @margin=1122.2
+0000
+0100 // @suggest=R @margin=77.0
+0000
+1000 // @suggest=L @margin=1122.2
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=1122.2
+0000
+0100 // @suggest=R @margin=77.0
+0000
+1000 // @suggest=L @margin=1122.2
+0000
+0100 // @suggest=R @margin=77.0
+0000
+1000 // @suggest=L @margin=1122.2
+0000
+,  // measure 39
+0100 // @suggest=R @margin=120.3
+1000 // @suggest=L @margin=1122.2
+0100 // @suggest=R @margin=120.2
+0000
+1000 // @suggest=L @margin=1122.2
+0000
+0100 // @suggest=R @margin=77.0
+0000
+1000 // @suggest=L @margin=1122.2
+0000
+0100 // @suggest=R @margin=77.0
+0000
+1003 // @suggest=L @margin=1122.2
+0000
+0010 // @suggest=R @margin=137.5
+0000
+,  // measure 40
+2100 // @suggest=L @margin=71.7
+0001 // @suggest=R @margin=559.1
+0100 // @suggest=L @margin=120.2
+0000
+0001 // @suggest=R @margin=559.1
+0000
+0100 // @suggest=L @margin=77.0
+0000
+0001 // @suggest=R @margin=559.1
+0000
+0100 // @suggest=L @margin=77.0
+0000
+0001 // @suggest=R @margin=559.1
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=559.1
+0000
+,  // measure 41
+0100 // @suggest=L @margin=77.0
+0000
+0001 // @suggest=R @margin=559.1
+0000
+0100 // @suggest=L @margin=77.0
+0000
+0001 // @suggest=R @margin=559.1
+0000
+0M10 // @suggest=L @margin=559.1
+0001 // @suggest=R @margin=559.1
+0010 // @suggest=L @margin=120.2
+0000
+0002 // @suggest=R @margin=559.1
+0000
+3003
+0000
+,  // measure 42
+2000 // @suggest=L @margin=169.7
+0000
+0000
+3200 // @suggest=R @margin=169.7
+0000
+0000
+0320 // @suggest=L @margin=169.7
+0000
+,  // measure 43
+0000
+0000
+0030
+0200 // @suggest=R @margin=229.8
+,  // measure 44
+2310 // @suggest=L @margin=229.8
+0000
+0000
+0000
+0001 // @suggest=R @margin=239.2
+0000
+0000
+0000
+0001 // @suggest=R @margin=239.2
+0000
+3010 // @suggest=L @margin=77.0
+0000
+0001 // @suggest=R @margin=195.2
+1000 // @suggest=L @margin=249.6
+0001 // @suggest=R @margin=249.6
+0010 // @suggest=L @margin=165.1
+,  // measure 45
+0100 // @suggest=R @margin=165.1
+0000
+0010 // @suggest=L @margin=165.1
+0000
+0001 // @suggest=R @margin=200.4
+0000
+1000 // @suggest=L @margin=211.2
+0001 // @suggest=R @margin=143.8
+0000
+0001 // @suggest=R @margin=104.7
+0100 // @suggest=L @margin=147.4
+0000
+0010 // @suggest=R @margin=177.0
+1000 // @suggest=L @margin=194.8
+0010 // @suggest=R @margin=194.8
+0100 // @suggest=L @margin=194.8
+,  // measure 46
+0012 // @suggest=R @margin=119.9
+0000
+1000 // @suggest=L @margin=270.3
+0000
+0010 // @suggest=R @margin=60.0
+0000
+0100 // @suggest=L @margin=60.0
+0010 // @suggest=R @margin=60.0
+0000
+0100 // @suggest=L @margin=60.0
+0013 // @suggest=R @margin=60.0
+0000
+1000 // @suggest=L @margin=178.2
+0001 // @suggest=R @margin=232.7
+1000 // @suggest=L @margin=232.7
+0010 // @suggest=R @margin=165.1
+,  // measure 47
+0100 // @suggest=L @margin=165.1
+0000
+0010 // @suggest=R @margin=165.1
+0000
+1000 // @suggest=L @margin=200.4
+0000
+0001 // @suggest=R @margin=211.2
+1000 // @suggest=L @margin=143.8
+0000
+1000 // @suggest=L @margin=104.7
+0100 // @suggest=R @margin=143.6
+0000
+0010 // @suggest=L @margin=143.6
+0001 // @suggest=R @margin=202.1
+1000 // @suggest=L @margin=245.7
+0100 // @suggest=R @margin=199.3
+,  // measure 48
+1020 // @suggest=L @margin=154.4
+0000
+0001 // @suggest=R @margin=246.4
+0000
+1000 // @suggest=L @margin=108.4
+0000
+0100 // @suggest=R @margin=244.6
+1000 // @suggest=L @margin=159.1
+0000
+0100 // @suggest=R @margin=244.6
+1030 // @suggest=L @margin=151.5
+0000
+0001 // @suggest=R @margin=250.7
+1000 // @suggest=L @margin=303.7
+0001 // @suggest=R @margin=255.0
+0010 // @suggest=L @margin=165.1
+,  // measure 49
+0100 // @suggest=R @margin=165.1
+0000
+0010 // @suggest=L @margin=165.1
+0000
+0001 // @suggest=R @margin=200.4
+0000
+1000 // @suggest=L @margin=211.2
+0001 // @suggest=R @margin=143.8
+0000
+0001 // @suggest=R @margin=104.7
+0100 // @suggest=L @margin=147.4
+0000
+0010 // @suggest=R @margin=177.0
+1000 // @suggest=L @margin=235.9
+0010 // @suggest=R @margin=245.7
+0100 // @suggest=L @margin=209.7
+,  // measure 50
+0021 // @suggest=R @margin=130.8
+0000
+1000 // @suggest=L @margin=246.4
+0000
+0001 // @suggest=R @margin=108.4
+0000
+0100 // @suggest=L @margin=268.2
+0001 // @suggest=R @margin=159.1
+0000
+0100 // @suggest=L @margin=268.2
+0031 // @suggest=R @margin=151.5
+0000
+1000 // @suggest=L @margin=250.7
+0001 // @suggest=R @margin=303.7
+1000 // @suggest=L @margin=255.0
+0010 // @suggest=R @margin=165.1
+,  // measure 51
+0100 // @suggest=L @margin=165.1
+0000
+0010 // @suggest=R @margin=165.1
+0000
+1000 // @suggest=L @margin=200.4
+0000
+0001 // @suggest=R @margin=266.3
+1000 // @suggest=L @margin=288.4
+0001 // @suggest=R @margin=288.4
+1000 // @suggest=L @margin=255.0
+0100 // @suggest=R @margin=147.4
+0000
+0010 // @suggest=L @margin=194.7
+0001 // @suggest=R @margin=235.9
+0010 // @suggest=L @margin=255.0
+0100 // @suggest=R @margin=209.7
+,  // measure 52
+2010 // @suggest=L @margin=144.1
+0000
+0001 // @suggest=R @margin=344.9
+0000
+01M0 // @suggest=L @margin=231.3
+0000
+0001 // @suggest=R @margin=344.9
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=344.9
+0100 // @suggest=L @margin=126.5
+3010 // @suggest=R @margin=126.5
+0000
+2100 // @suggest=L @margin=5.2
+0001 // @suggest=R @margin=231.5
+0100 // @suggest=L @margin=161.2
+0001 // @suggest=R @margin=231.5
+,  // measure 53
+0M10 // @suggest=L @margin=231.5
+0000
+0001 // @suggest=R @margin=231.5
+0000
+3010 // @suggest=L @margin=69.5
+0000
+0100 // @suggest=R @margin=109.4
+1000 // @suggest=L @margin=126.5
+0001 // @suggest=R @margin=126.5
+0000
+0001 // @suggest=R @margin=104.7
+0010 // @suggest=L @margin=177.0
+0100 // @suggest=R @margin=177.0
+0010 // @suggest=L @margin=177.0
+0001 // @suggest=R @margin=242.5
+0010 // @suggest=L @margin=242.5
+,  // measure 54
+0102 // @suggest=R @margin=120.4
+0000
+1000 // @suggest=L @margin=320.4
+0000
+0M10 // @suggest=R @margin=207.7
+0000
+1000 // @suggest=L @margin=320.4
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=320.4
+0010 // @suggest=R @margin=126.5
+0103 // @suggest=L @margin=126.5
+0000
+0012 // @suggest=R @margin=5.2
+1000 // @suggest=L @margin=231.5
+0010 // @suggest=R @margin=161.2
+1000 // @suggest=L @margin=231.5
+,  // measure 55
+01M0 // @suggest=R @margin=231.5
+0000
+1000 // @suggest=L @margin=231.5
+0000
+0103 // @suggest=R @margin=69.5
+0000
+0010 // @suggest=L @margin=109.4
+0001 // @suggest=R @margin=159.9
+1000 // @suggest=L @margin=159.9
+0000
+1000 // @suggest=L @margin=138.1
+0001 // @suggest=R @margin=224.9
+0100 // @suggest=L @margin=184.4
+0010 // @suggest=R @margin=231.0
+1000 // @suggest=L @margin=259.5
+0010 // @suggest=R @margin=259.8
+,  // measure 56
+2100 // @suggest=L @margin=120.4
+0000
+0001 // @suggest=R @margin=344.6
+0000
+0M10 // @suggest=L @margin=207.7
+0000
+0001 // @suggest=R @margin=344.6
+0010 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=344.6
+0010 // @suggest=L @margin=126.5
+3100 // @suggest=R @margin=126.5
+0000
+2010 // @suggest=L @margin=5.2
+0001 // @suggest=R @margin=231.5
+0010 // @suggest=L @margin=161.2
+0001 // @suggest=R @margin=231.5
+,  // measure 57
+01M0 // @suggest=L @margin=231.5
+0000
+0001 // @suggest=R @margin=231.5
+0000
+3100 // @suggest=L @margin=69.5
+0000
+0010 // @suggest=R @margin=109.4
+1000 // @suggest=L @margin=159.9
+0001 // @suggest=R @margin=159.9
+0000
+0001 // @suggest=R @margin=138.1
+1000 // @suggest=L @margin=224.9
+0010 // @suggest=R @margin=184.4
+0100 // @suggest=L @margin=231.0
+0001 // @suggest=R @margin=259.5
+0100 // @suggest=L @margin=259.8
+,  // measure 58
+0012 // @suggest=R @margin=120.4
+0000
+1000 // @suggest=L @margin=344.6
+0000
+01M0 // @suggest=R @margin=207.7
+0000
+1000 // @suggest=L @margin=344.6
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=344.6
+0100 // @suggest=R @margin=126.5
+0013 // @suggest=L @margin=126.5
+0000
+0102 // @suggest=R @margin=5.2
+1000 // @suggest=L @margin=231.5
+0100 // @suggest=R @margin=161.2
+1000 // @suggest=L @margin=231.5
+,  // measure 59
+0M10 // @suggest=R @margin=231.5
+0000
+1000 // @suggest=L @margin=231.5
+0000
+0013 // @suggest=R @margin=69.5
+0000
+0100 // @suggest=L @margin=109.4
+0001 // @suggest=R @margin=159.9
+1000 // @suggest=L @margin=159.9
+0000
+1000 // @suggest=L @margin=138.1
+0001 // @suggest=R @margin=217.9
+0010 // @suggest=L @margin=190.7
+0100 // @suggest=R @margin=190.7
+0010 // @suggest=L @margin=190.7
+0100 // @suggest=R @margin=190.7
+,  // measure 60
+2010 // @suggest=L @margin=125.3
+0000
+0001 // @suggest=R @margin=584.0
+0010 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=584.0
+0000
+01M0 // @suggest=L @margin=414.0
+0001 // @suggest=R @margin=584.0
+0100 // @suggest=L @margin=120.2
+0000
+0001 // @suggest=R @margin=584.0
+0000
+0M10 // @suggest=L @margin=584.0
+0001 // @suggest=R @margin=584.0
+0010 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=584.0
+,  // measure 61
+0010 // @suggest=L @margin=120.2
+0000
+3001 // @suggest=R @margin=584.0
+0000
+1000 // @suggest=L @margin=234.0
+0000
+0010 // @suggest=R @margin=146.8
+0100 // @suggest=L @margin=146.8
+0001 // @suggest=R @margin=152.5
+0000
+0010 // @suggest=L @margin=113.7
+0000
+0100 // @suggest=R @margin=113.7
+0000
+0010 // @suggest=L @margin=113.7
+0000
+,  // measure 62
+0102 // @suggest=R @margin=84.6
+0000
+1000 // @suggest=L @margin=532.5
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=532.5
+0000
+0M10 // @suggest=R @margin=373.4
+1000 // @suggest=L @margin=532.5
+0010 // @suggest=R @margin=120.2
+0000
+1000 // @suggest=L @margin=532.5
+0000
+01M0 // @suggest=R @margin=532.5
+1000 // @suggest=L @margin=532.5
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=532.5
+,  // measure 63
+0100 // @suggest=R @margin=120.2
+0000
+1003 // @suggest=L @margin=532.5
+0000
+0001 // @suggest=R @margin=234.0
+0000
+0100 // @suggest=L @margin=151.9
+0010 // @suggest=R @margin=183.3
+1000 // @suggest=L @margin=196.1
+0000
+0010 // @suggest=R @margin=174.7
+0000
+0100 // @suggest=L @margin=151.5
+0000
+0010 // @suggest=R @margin=151.5
+0000
+,  // measure 64
+2100 // @suggest=L @margin=84.6
+0000
+0001 // @suggest=R @margin=570.3
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=570.3
+0000
+0M10 // @suggest=L @margin=373.4
+0001 // @suggest=R @margin=570.3
+0010 // @suggest=L @margin=120.2
+0000
+0001 // @suggest=R @margin=570.3
+0000
+01M0 // @suggest=L @margin=570.3
+0001 // @suggest=R @margin=570.3
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=570.3
+,  // measure 65
+0100 // @suggest=L @margin=120.2
+0000
+3001 // @suggest=R @margin=570.3
+0000
+1000 // @suggest=L @margin=234.0
+0000
+0100 // @suggest=R @margin=146.8
+0010 // @suggest=L @margin=146.8
+0001 // @suggest=R @margin=152.5
+0000
+0100 // @suggest=L @margin=113.7
+0000
+0010 // @suggest=R @margin=113.7
+0000
+0100 // @suggest=L @margin=113.7
+0000
+,  // measure 66
+0012 // @suggest=R @margin=84.6
+0000
+1000 // @suggest=L @margin=532.5
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=532.5
+0000
+01M0 // @suggest=R @margin=373.4
+1000 // @suggest=L @margin=532.5
+0100 // @suggest=R @margin=120.2
+0000
+1000 // @suggest=L @margin=532.5
+0000
+0M10 // @suggest=R @margin=532.5
+1000 // @suggest=L @margin=532.5
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=532.5
+,  // measure 67
+0010 // @suggest=R @margin=120.2
+0000
+1003 // @suggest=L @margin=532.5
+0000
+0001 // @suggest=R @margin=234.0
+0000
+0010 // @suggest=L @margin=151.9
+0100 // @suggest=R @margin=183.3
+1000 // @suggest=L @margin=190.7
+0000
+0100 // @suggest=R @margin=169.5
+0000
+0010 // @suggest=L @margin=146.1
+0000
+0100 // @suggest=R @margin=146.1
+0000
+,  // measure 68
+2010 // @suggest=L @margin=79.2
+0000
+0001 // @suggest=R @margin=566.9
+0000
+0010 // @suggest=L @margin=72.1
+0000
+0101 // @suggest=R @margin=145.5
+0000
+0010 // @suggest=L @margin=72.1
+0000
+0001 // @suggest=R @margin=566.9
+0000
+0010 // @suggest=L @margin=120.3
+0001 // @suggest=R @margin=566.9
+0010 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=566.9
+,  // measure 69
+0010 // @suggest=L @margin=120.2
+0000
+0001 // @suggest=R @margin=566.9
+0000
+01M0 // @suggest=L @margin=566.9
+0000
+0001 // @suggest=R @margin=566.9
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=566.9
+0000
+3100 // @suggest=L @margin=77.0
+0000
+0001 // @suggest=R @margin=123.0
+0010 // @suggest=L @margin=170.8
+0100 // @suggest=R @margin=170.8
+0010 // @suggest=L @margin=170.8
+,  // measure 70
+0102 // @suggest=R @margin=119.9
+0000
+1000 // @suggest=L @margin=548.1
+0000
+0100 // @suggest=R @margin=72.1
+0000
+1010 // @suggest=L @margin=145.5
+0000
+0100 // @suggest=R @margin=72.1
+0000
+1000 // @suggest=L @margin=548.1
+0000
+0100 // @suggest=R @margin=120.3
+1000 // @suggest=L @margin=548.1
+0100 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=548.1
+,  // measure 71
+0100 // @suggest=R @margin=120.2
+0000
+1000 // @suggest=L @margin=548.1
+0000
+0M10 // @suggest=R @margin=548.1
+0000
+1000 // @suggest=L @margin=548.1
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=548.1
+0000
+0013 // @suggest=R @margin=77.0
+0000
+1000 // @suggest=L @margin=150.5
+0010 // @suggest=R @margin=150.5
+0100 // @suggest=L @margin=150.5
+0010 // @suggest=R @margin=150.5
+,  // measure 72
+2100 // @suggest=L @margin=119.9
+0000
+0001 // @suggest=R @margin=546.6
+0000
+0100 // @suggest=L @margin=72.1
+0000
+0011 // @suggest=R @margin=145.5
+0000
+0100 // @suggest=L @margin=72.1
+0000
+0001 // @suggest=R @margin=546.6
+0000
+0100 // @suggest=L @margin=120.3
+0001 // @suggest=R @margin=546.6
+0100 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=546.6
+,  // measure 73
+0100 // @suggest=L @margin=120.2
+0000
+0001 // @suggest=R @margin=546.6
+0000
+0M10 // @suggest=L @margin=546.6
+0000
+0001 // @suggest=R @margin=546.6
+0010 // @suggest=L @margin=163.4
+0001 // @suggest=R @margin=546.6
+0000
+3010 // @suggest=L @margin=77.0
+0000
+0001 // @suggest=R @margin=123.0
+0100 // @suggest=L @margin=170.8
+0010 // @suggest=R @margin=170.8
+0100 // @suggest=L @margin=170.8
+,  // measure 74
+0012 // @suggest=R @margin=119.9
+0000
+1000 // @suggest=L @margin=544.2
+0000
+0010 // @suggest=R @margin=72.1
+0000
+1100 // @suggest=L @margin=145.5
+0000
+0010 // @suggest=R @margin=72.1
+0000
+1000 // @suggest=L @margin=544.2
+0000
+0010 // @suggest=R @margin=120.3
+1000 // @suggest=L @margin=544.2
+0010 // @suggest=R @margin=163.4
+1000 // @suggest=L @margin=544.2
+,  // measure 75
+0010 // @suggest=R @margin=120.2
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+1000 // @suggest=L @margin=544.2
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+01M0 // @suggest=R @margin=519.8
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0003
+1000 // @suggest=L @margin=177.4
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0100 // @suggest=R @margin=157.1
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0010 // @suggest=L @margin=194.7
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0001 // @suggest=R @margin=198.5
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0010 // @suggest=L @margin=198.5
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0100 // @suggest=R @margin=133.5
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+,  // measure 76
+1010 // @suggest=L @margin=71.3
+0000
+0001 // @suggest=R @margin=194.0
+0000
+0100 // @suggest=L @margin=132.1
+0000
+0001 // @suggest=R @margin=211.7
+1000 // @suggest=L @margin=244.3
+0001 // @suggest=R @margin=201.0
+0100 // @suggest=L @margin=104.7
+0010 // @suggest=R @margin=104.7
+0000
+0010 // @suggest=R @margin=104.7
+1000 // @suggest=L @margin=178.7
+0001 // @suggest=R @margin=210.7
+0100 // @suggest=L @margin=199.3
+,  // measure 77
+0011 // @suggest=R @margin=88.3
+0000
+1000 // @suggest=L @margin=207.7
+0000
+0100 // @suggest=R @margin=132.1
+0000
+1000 // @suggest=L @margin=211.7
+0001 // @suggest=R @margin=244.3
+1000 // @suggest=L @margin=201.0
+0100 // @suggest=R @margin=104.7
+0010 // @suggest=L @margin=104.7
+0000
+0010 // @suggest=L @margin=104.7
+0001 // @suggest=R @margin=178.7
+1000 // @suggest=L @margin=210.7
+0100 // @suggest=R @margin=199.3
+,  // measure 78
+1010 // @suggest=L @margin=88.3
+0000
+0001 // @suggest=R @margin=207.7
+0000
+0100 // @suggest=L @margin=132.1
+0000
+0001 // @suggest=R @margin=211.7
+1000 // @suggest=L @margin=244.3
+0001 // @suggest=R @margin=201.0
+0100 // @suggest=L @margin=104.7
+0010 // @suggest=R @margin=104.7
+0000
+0010 // @suggest=R @margin=104.7
+1000 // @suggest=L @margin=178.7
+0001 // @suggest=R @margin=210.7
+0100 // @suggest=L @margin=199.3
+,  // measure 79
+0011 // @suggest=R @margin=88.3
+0000
+1000 // @suggest=L @margin=207.7
+0000
+0100 // @suggest=R @margin=132.1
+0000
+1000 // @suggest=L @margin=211.7
+0001 // @suggest=R @margin=238.4
+1000 // @suggest=L @margin=195.1
+0100 // @suggest=R @margin=98.8
+0010 // @suggest=L @margin=98.8
+0000
+0000
+0000
+0000
+0000
+;

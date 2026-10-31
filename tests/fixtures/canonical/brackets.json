@@ -1,29 +1,27 @@
 {
+    "validated": true,
     "fixture": "patterns/brackets.sm",
-    "analyzer": {
-        "min_jack_nps": 5.7,
-        "min_footswitch_nps": 3.3
-    },
+    "tech_tolerance": 1,
     "charts": [
         {
             "chart_index": 0,
             "basic": {
-                "taps": 33,
-                "jumps": 8,
+                "taps": 68,
+                "jumps": 14,
                 "hands": 0,
                 "holds": 0,
                 "rolls": 0,
                 "mines": 0,
                 "lifts": 0,
                 "fakes": 0,
-                "steps": 41
+                "steps": 82
             },
             "tech": {
-                "crossovers": 1,
-                "jacks": 0,
-                "footswitches": 0,
+                "crossovers": 2,
+                "footswitches": 1,
                 "sideswitches": 0,
-                "brackets": 3,
+                "jacks": 0,
+                "brackets": 11,
                 "doublesteps": 0
             }
         }

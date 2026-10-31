@@ -56,8 +56,8 @@
 0010 // @foot=L
 10M0 // @foot=L @pattern=doublestep
 0001 // @foot=R
-0000
-0000
+0010 // @foot=L
+0001 // @foot=R
 ,
 // @section=hold-cue-doublestep
 2000 // @foot=L
@@ -66,6 +66,6 @@
 0010 // @foot=L
 1003 // @foot=L @pattern=doublestep
 0001 // @foot=R
-0000
-0000
+1000 // @foot=L
+0100 // @foot=R
 ;

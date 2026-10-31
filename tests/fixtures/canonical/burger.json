@@ -1,0 +1,28 @@
+{
+    "validated": true,
+    "fixture": "charts/burger.ssc",
+    "charts": [
+        {
+            "chart_index": 0,
+            "basic": {
+                "taps": 587,
+                "jumps": 14,
+                "hands": 14,
+                "holds": 135,
+                "rolls": 5,
+                "mines": 20,
+                "lifts": 0,
+                "fakes": 0,
+                "steps": 601
+            },
+            "tech": {
+                "crossovers": 0,
+                "footswitches": 60,
+                "sideswitches": 0,
+                "jacks": 0,
+                "brackets": 14,
+                "doublesteps": 20
+            }
+        }
+    ]
+}

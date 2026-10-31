@@ -69,294 +69,294 @@
 0000
 0000
 ,  // measure 4
-0002
+0002 // @foot=R
 0000
 0000
-1000
+1000 // @foot=L
 0000
 0000
-0103
+0103 // @foot=L @pattern=doublestep
 0000
 0000
-0002
+0002 // @foot=R
 0000
-1000
+1000 // @foot=L
 0000
 0000
-0100
+0100 // @foot=L @pattern=doublestep
 0000
 ,  // measure 5
-2003
+2003 // @foot=L @pattern=doublestep
 0000
 0000
-0001
+0001 // @foot=R
 0000
 0000
-3100
+3100 // @foot=R @pattern=doublestep
 0000
 0000
-2000
+2000 // @foot=L
 0000
-0001
+0001 // @foot=R
 0000
 0000
-0100
+0100 // @foot=R @pattern=doublestep
 0000
 ,  // measure 6
-3002
+3002 // @suggest=R @margin=585.9
 0000
 0000
-1000
+1000 // @foot=L
 0000
 0000
-0013
+0013 // @foot=L @pattern=doublestep
 0000
 0000
-0002
+0002 // @foot=R
 0000
-1000
+1000 // @foot=L
 0000
 0000
-0010
+0010 // @foot=L @pattern=doublestep
 0000
 ,  // measure 7
-2003
+2003 // @foot=L @pattern=doublestep
 0000
 0000
-0001
+0001 // @foot=R
 0000
 0000
-3010
+3010 // @foot=R @pattern=doublestep
 0000
 0000
-1000
-0001
-0010
-0100
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0100 // @foot=R
 0000
-1000
+1000 // @foot=L
 0000
 ,  // measure 8
-0001
+0001 // @foot=R
 0000
 0000
-1000
-0001
+1000 // @foot=L
+0001 // @foot=R
 0000
-0100
+0100 // @foot=L
 0000
-0010
-1000
+0010 // @foot=R
+1000 // @foot=L
 0000
-0001
-1000
+0001 // @foot=R
+1000 // @foot=L
 0000
-0100
-0020
+0100 // @foot=R
+0020 // @foot=L
 ,  // measure 9
-0001
+0001 // @foot=R
 0000
 0030
 000M
-0010
+0010 // @foot=R @pattern=doublestep,footswitch
 0000
-0200
+0200 // @foot=L
 0000
-0001
+0001 // @foot=R
 0000
 0300
 000M
-0100
+0100 // @foot=R @pattern=doublestep,footswitch
 0000
-0020
+0020 // @foot=L
 0000
-0001
+0001 // @foot=R
 0000
 0030
 000M
-0010
+0010 // @foot=R @pattern=doublestep,footswitch
 0000
-0100
+0100 // @foot=L
 0000
-0002
+0002 // @foot=R
 0000
 0000
 0000
-2003
+2003 // @foot=L
 0000
 0000
 0000
 ,  // measure 10
-3100
+3100 // @suggest=R @margin=208.5
 0000
 0000
-1000
-0001
+1000 // @suggest=L @margin=297.4
+0001 // @suggest=R @margin=285.2
 0000
-0020
+0020 // @suggest=L @margin=224.6
 0000
-0130
-1000
+0130 // @suggest=R @margin=224.6
+1000 // @suggest=L @margin=251.3
 0000
-0001
-0100
+0001 // @suggest=R @margin=267.1
+0100 // @suggest=L @margin=171.8
 0000
-0010
+0010 // @suggest=R @margin=171.8
 0000
 ,  // measure 11
-1000
+1000 // @suggest=L @margin=235.1
 0000
 0000
-0100
-0010
+0100 // @suggest=R @margin=139.8
+0010 // @suggest=L @margin=139.8
 0000
-0001
+0001 // @suggest=R @margin=184.9
 0000
-1000
-0010
-0100
-0001
-1000
+1000 // @suggest=L @margin=338.4
+0010 // @suggest=R @margin=210.9
+0100 // @suggest=L @margin=210.9
+0001 // @suggest=R @margin=299.9
+1000 // @suggest=L @margin=386.9
 0000
-0100
+0100 // @suggest=R @margin=206.1
 0000
 ,  // measure 12
-1000
+1000 // @suggest=L @margin=284.4
 0000
-0001
-1000
-0010
+0001 // @suggest=R @margin=406.7
+1000 // @suggest=L @margin=333.0
+0010 // @suggest=R @margin=197.4
 0000
-0100
+0100 // @suggest=L @margin=170.6
 0000
-0001
-1000
-0100
-0010
-0001
+0001 // @suggest=R @margin=291.6
+1000 // @suggest=L @margin=303.5
+0100 // @suggest=R @margin=186.3
+0010 // @suggest=L @margin=186.3
+0001 // @suggest=R @margin=240.1
 0000
-0100
-0020
+0100 // @foot=L
+0020 // @foot=R
 ,  // measure 13
-1000
+1000 // @foot=L
 0000
 0030
 M000
-0010
+0010 // @foot=L @pattern=doublestep,footswitch
 0000
-0200
+0200 // @foot=R
 0000
-1000
+1000 // @foot=L
 0000
 0300
 M000
-0100
+0100 // @foot=L @pattern=doublestep,footswitch
 0000
-0020
+0020 // @foot=R
 0000
-1000
+1000 // @foot=L
 0000
 0030
 M000
-0010
+0010 // @foot=L @pattern=doublestep,footswitch
 0000
-0100
+0100 // @foot=R
 0000
-2000
+2000 // @foot=L
 0000
 0000
 0000
-3002
+3002 // @foot=R
 0000
 0000
 0000
 ,  // measure 14
-1003
+1003 // @suggest=L @margin=438.1
 0000
-0100
-0010
-0001
+0100 // @suggest=R @margin=167.8
+0010 // @suggest=L @margin=167.8
+0001 // @suggest=R @margin=230.0
 0000
-0200
+0200 // @suggest=L @margin=171.5
 0000
-0310
-1000
-0001
-0010
-0100
+0310 // @suggest=R @margin=171.5
+1000 // @suggest=L @margin=220.1
+0001 // @suggest=R @margin=341.8
+0010 // @suggest=L @margin=224.6
+0100 // @suggest=R @margin=224.6
 0000
-0010
+0010 // @suggest=L @margin=224.6
 0000
 ,  // measure 15
-0002
+0002 // @suggest=R @margin=495.5
 0000
-1003
-0010
-0100
+1003 // @suggest=L @margin=495.5
+0010 // @suggest=R @margin=238.7
+0100 // @suggest=L @margin=238.7
 0000
-0020
+0020 // @suggest=R @margin=238.7
 0000
-1030
-0001
-0010
-0100
-0010
-0001
-1000
-0002
+1030 // @suggest=L @margin=291.6
+0001 // @suggest=R @margin=360.2
+0010 // @suggest=L @margin=243.0
+0100 // @suggest=R @margin=243.0
+0010 // @suggest=L @margin=243.0
+0001 // @suggest=R @margin=388.5
+1000 // @suggest=L @margin=425.1
+0002 // @foot=R
 ,  // measure 16
 0000
-0100
+0100 // @foot=L
 0000
-2003
+2003 // @foot=L @pattern=doublestep
 0000
-0100
+0100 // @foot=R
 0000
-3002
+3002 // @foot=R @pattern=doublestep
 0000
-0203
+0203 // @foot=L
 0000
-2300
+2300 // @foot=R @pattern=crossover
 0000
-3200
+3200 // @foot=L
 0000
 0000
 ,  // measure 17
-0301
+0301 // @foot=R
 0000
 0000
 0000
-2000
+2000 // @suggest=L @margin=255.7
 0000
-3200
+3200 // @suggest=R @margin=203.3
 0000
-0320
+0320 // @suggest=L @margin=203.3
 0000
 0000
 0000
-0031
-0100
-0010
-2000
+0031 // @suggest=R @margin=251.8
+0100 // @suggest=L @margin=121.4
+0010 // @suggest=R @margin=121.4
+2000 // @foot=L
 ,  // measure 18
 0000
-0100
+0100 // @foot=R
 0000
-3002
+3002 // @foot=R @pattern=doublestep
 0000
-0100
+0100 // @foot=L
 0000
-2003
+2003 // @foot=L @pattern=doublestep
 0000
-3200
+3200 // @foot=R
 0000
-0302
+0302 // @foot=L @pattern=crossover
 0000
-0203
+0203 // @foot=R
 0000
 0000
 ,  // measure 19
-1300
+1300 // @foot=L
 0000
 0000
 0000
@@ -366,354 +366,354 @@ M000
 0000
 0000
 0000
-0200
+0200 // @foot=R
 0000
-0320
+0320 // @foot=L
 0000
 0000
 0030
 ,  // measure 20
-1001
+1001 // @feet=L,R @pattern=jump
 0000
 0000
 0000
-0001
+0001 // @foot=R
 0000
-0100
-0001
-1000
-1000
-0100
-0010
-0001
-0001
-2000
-0100
+0100 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+1000 // @foot=L @pattern=jack
+0100 // @foot=R
+0010 // @foot=L
+0001 // @foot=R
+0001 // @foot=R @pattern=jack
+2000 // @foot=L
+0100 // @foot=R
 ,  // measure 21
-3001
+3001 // @foot=R @pattern=doublestep
 0000
 0000
 0000
-1000
+1000 // @foot=L
 0000
-0100
-1000
-0001
-0001
-0100
-0010
-1000
-1000
-0002
-0100
+0100 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0001 // @foot=R @pattern=jack
+0100 // @foot=L
+0010 // @foot=R
+1000 // @foot=L
+1000 // @foot=L @pattern=jack
+0002 // @foot=R
+0100 // @foot=L
 ,  // measure 22
-1003
+1003 // @foot=L @pattern=doublestep
 0000
 0000
 0000
-0001
+0001 // @suggest=R @margin=269.3
 0000
-0010
-0100
-1000
-1000
-0010
-0100
-0001
-0001
-2000
-0100
+0010 // @suggest=L @margin=139.6
+0100 // @suggest=R @margin=139.6
+1000 // @suggest=L @margin=139.6
+1000 // @suggest=L @margin=77.4
+0010 // @suggest=R @margin=109.6
+0100 // @suggest=L @margin=109.6
+0001 // @suggest=R @margin=109.6
+0001 // @suggest=R @margin=117.6
+2000 // @suggest=L @margin=464.9
+0100 // @suggest=R @margin=6.0
 ,  // measure 23
-3001
+3001 // @suggest=R @margin=464.9
 0000
-1000
+1000 // @suggest=L @margin=125.0
 0000
-1000
+1000 // @suggest=L @margin=103.5
 0000
-0010
-0100
-0001
-0001
-0010
-0100
-1000
-1000
-0002
-0100
+0010 // @suggest=R @margin=113.9
+0100 // @suggest=L @margin=113.9
+0001 // @suggest=R @margin=113.9
+0001 // @suggest=R @margin=77.4
+0010 // @suggest=L @margin=109.6
+0100 // @suggest=R @margin=109.6
+1000 // @suggest=L @margin=109.6
+1000 // @suggest=L @margin=117.6
+0002 // @suggest=R @margin=468.4
+0100 // @suggest=L @margin=3.9
 ,  // measure 24
-1003
+1003 // @suggest=L @margin=468.4
 0000
 0000
 0000
-0001
+0001 // @suggest=R @margin=326.0
 0000
-1000
-0001
-0100
-0100
-0001
-1000
-0010
-0010
-2000
-0001
+1000 // @suggest=L @margin=371.3
+0001 // @suggest=R @margin=316.6
+0100 // @suggest=L @margin=145.9
+0100 // @suggest=L @margin=145.9
+0001 // @suggest=R @margin=263.0
+1000 // @suggest=L @margin=327.9
+0010 // @suggest=R @margin=145.9
+0010 // @suggest=R @margin=145.9
+2000 // @suggest=L @margin=305.1
+0001 // @suggest=R @margin=305.1
 ,  // measure 25
-3100
+3100 // @suggest=L @margin=15.4
 0000
 0000
 0000
-1000
+1000 // @suggest=L @margin=221.5
 0000
-0001
-1000
-0100
-0100
-1000
-0001
-0010
-0010
-0002
+0001 // @suggest=R @margin=353.6
+1000 // @suggest=L @margin=316.6
+0100 // @suggest=R @margin=145.9
+0100 // @suggest=R @margin=145.9
+1000 // @suggest=L @margin=263.0
+0001 // @suggest=R @margin=327.9
+0010 // @suggest=L @margin=145.9
+0010 // @suggest=L @margin=145.9
+0002 // @suggest=R @margin=318.0
 0000
 ,  // measure 26
-1000
+1000 // @suggest=L @margin=318.0
 0000
-0103
+0103 // @suggest=L @margin=18.3
 0000
-0001
+0001 // @suggest=R @margin=234.4
 0000
-1000
-0001
-0100
-0100
-0001
-1000
-0100
-0100
-2000
-0001
+1000 // @foot=L
+0001 // @foot=R
+0100 // @foot=L
+0100 // @foot=L @pattern=jack
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+0100 // @foot=R @pattern=jack
+2000 // @foot=L
+0001 // @foot=R
 ,  // measure 27
-3100
+3100 // @foot=R @pattern=doublestep
 0000
 0000
 0000
-1000
-0001
-1000
-0001
-0010
-0010
-0001
-1000
-0010
-0010
-2000
-0100
+1000 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0010 // @foot=L @pattern=jack
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+0010 // @foot=R @pattern=jack
+2000 // @foot=L
+0100 // @foot=R
 ,  // measure 28
-3002
+3002 // @foot=R @pattern=doublestep
 0000
 0000
-1000
-1000
+1000 // @foot=L
+1000 // @foot=L @pattern=jack
 0000
-0103
+0103 // @foot=L @pattern=doublestep
 0000
 0000
-0002
+0002 // @foot=R
 0000
-1000
-1000
+1000 // @foot=L
+1000 // @foot=L @pattern=jack
 0000
-0100
+0100 // @foot=L @pattern=doublestep
 0000
 ,  // measure 29
-2003
+2003 // @foot=L @pattern=doublestep
 0000
 0000
-0001
+0001 // @foot=R
 0000
 0000
-3100
+3100 // @foot=R @pattern=doublestep
 0000
 0000
-2000
+2000 // @foot=L
 0000
-0001
-0001
+0001 // @foot=R
+0001 // @foot=R @pattern=jack
 0000
-3200
-0010
+3200 // @foot=L
+0010 // @foot=R
 ,  // measure 30
-2300
+2300 // @foot=L
 0000
 0000
-0001
-0001
+0001 // @foot=R
+0001 // @foot=R @pattern=jack
 0000
-3010
+3010 // @foot=R @pattern=doublestep
 0000
 0000
-2000
+2000 // @suggest=L @margin=697.8
 0000
-0001
-0001
+0001 // @suggest=R @margin=697.8
+0001 // @suggest=R @margin=697.8
 0000
-0010
+0010 // @suggest=L @margin=189.3
 0000
 ,  // measure 31
-3002
+3002 // @suggest=R @margin=697.8
 0000
 0000
-1000
+1000 // @suggest=L @margin=697.8
 0000
 0000
-0013
+0013 // @suggest=L @margin=18.2
 0000
 0000
-0002
+0002 // @suggest=R @margin=519.4
 0000
-1000
-1000
+1000 // @suggest=L @margin=519.4
+1000 // @suggest=L @margin=519.4
 0000
-0023
-0100
+0023 // @suggest=R @margin=204.0
+0100 // @suggest=L @margin=204.0
 ,  // measure 32
-0032
+0032 // @foot=R
 0000
-1000
-1003
-0020
+1000 // @foot=L
+1003 // @foot=L @pattern=jack
+0020 // @foot=R
 0000
-1000
-1030
-0001
-0100
+1000 // @foot=L
+1030 // @foot=L @pattern=jack
+0001 // @foot=R
+0100 // @foot=L
 00M0
-0100
-1000
+0100 // @foot=R @pattern=footswitch
+1000 // @foot=L
 0000
-0001
-0001
+0001 // @foot=R
+0001 // @foot=R @pattern=jack
 ,  // measure 33
-2000
+2000 // @foot=L
 0000
-0001
-3001
-0020
+0001 // @foot=R
+3001 // @foot=R @pattern=jack
+0020 // @foot=L
 0000
-0001
-0031
-1000
-0100
+0001 // @foot=R
+0031 // @foot=R @pattern=jack
+1000 // @foot=L
+0100 // @foot=R
 00M0
-0100
-0002
+0100 // @foot=L @pattern=footswitch
+0002 // @foot=R
 0000
-1003
-0100
+1003 // @foot=L
+0100 // @foot=R
 ,  // measure 34
-0010
-0100
-0100
-1000
-0001
+0010 // @foot=L
+0100 // @foot=R
+0100 // @foot=R @pattern=jack
+1000 // @foot=L
+0001 // @foot=R
 0000
-0010
+0010 // @suggest=L @margin=226.2
 0000
-0001
-0100
+0001 // @suggest=R @margin=266.1
+0100 // @suggest=L @margin=209.7
 00M0
-0100
-1000
+0100 // @suggest=R @margin=160.4
+1000 // @suggest=L @margin=236.6
 0000
-0001
-0100
+0001 // @suggest=R @margin=212.9
+0100 // @suggest=L @margin=117.6
 ,  // measure 35
-0010
-0100
-0100
-0001
-1000
+0010 // @suggest=R @margin=117.6
+0100 // @suggest=L @margin=117.6
+0100 // @suggest=L @margin=117.6
+0001 // @suggest=R @margin=231.3
+1000 // @suggest=L @margin=365.4
 0000
-0010
+0010 // @suggest=R @margin=226.2
 0000
-1000
-0100
+1000 // @suggest=L @margin=259.7
+0100 // @suggest=R @margin=122.7
 00M0
-0100
-0001
+0100 // @suggest=L @margin=122.7
+0001 // @suggest=R @margin=122.7
 0000
-0200
-0010
+0200 // @suggest=L @margin=73.4
+0010 // @suggest=R @margin=73.4
 ,  // measure 36
-0302
+0302 // @suggest=R @margin=345.1
 0000
-1000
-1003
-0200
+1000 // @suggest=L @margin=345.1
+1003 // @suggest=L @margin=345.1
+0200 // @suggest=R @margin=318.8
 0000
-1000
-1300
-0001
-0010
+1000 // @suggest=L @margin=136.3
+1300 // @suggest=L @margin=137.6
+0001 // @suggest=R @margin=268.8
+0010 // @suggest=L @margin=152.1
 0M00
-0010
-1000
+0010 // @suggest=R @margin=160.4
+1000 // @suggest=L @margin=344.2
 0000
-0001
-0001
+0001 // @suggest=R @margin=244.8
+0001 // @suggest=R @margin=186.1
 ,  // measure 37
-2000
+2000 // @suggest=L @margin=704.0
 0000
-0001
-3001
-0200
+0001 // @suggest=R @margin=704.0
+3001 // @suggest=R @margin=704.0
+0200 // @suggest=L @margin=318.8
 0000
-0001
-0301
-1000
-0010
+0001 // @suggest=R @margin=136.3
+0301 // @suggest=R @margin=137.6
+1000 // @suggest=L @margin=268.8
+0010 // @suggest=R @margin=152.1
 0M00
-0010
-0001
-2000
+0010 // @suggest=L @margin=152.1
+0001 // @suggest=R @margin=334.2
+2000 // @suggest=L @margin=300.0
 0000
-3100
+3100 // @suggest=R @margin=158.0
 ,  // measure 38
-0010
-0100
-0100
-1000
-0001
+0010 // @suggest=L @margin=158.0
+0100 // @suggest=R @margin=139.1
+0100 // @suggest=R @margin=117.6
+1000 // @suggest=L @margin=174.6
+0001 // @suggest=R @margin=386.9
 0000
-0100
+0100 // @suggest=L @margin=226.2
 0000
-0001
-0010
+0001 // @suggest=R @margin=266.1
+0010 // @suggest=L @margin=209.7
 0M00
-0010
-1000
+0010 // @suggest=R @margin=160.4
+1000 // @suggest=L @margin=305.1
 0000
-0001
-0100
+0001 // @suggest=R @margin=273.4
+0100 // @suggest=L @margin=117.6
 ,  // measure 39
-0010
-0100
-0100
-0001
-1000
+0010 // @suggest=R @margin=117.6
+0100 // @suggest=L @margin=117.6
+0100 // @suggest=L @margin=117.6
+0001 // @suggest=R @margin=174.6
+1000 // @suggest=L @margin=386.9
 0000
-0100
+0100 // @suggest=R @margin=226.2
 0000
-1000
-0010
+1000 // @suggest=L @margin=266.1
+0010 // @suggest=R @margin=207.0
 0M00
-0010
-0001
+0010 // @suggest=L @margin=183.9
+0001 // @suggest=R @margin=207.0
 0000
-0100
-0010
+0100 // @suggest=L @margin=41.7
+0010 // @suggest=R @margin=41.7
 ,  // measure 40
-1001
+1001 // @feet=L,R @pattern=jump
 0000
 0000
 0000
@@ -721,32 +721,32 @@ M000
 0000
 0000
 0000
-1000
+1000 // @foot=L
 0000
 0000
 0000
-0010
+0010 // @foot=R
 0000
-1000
+1000 // @foot=L
 0000
-0001
+0001 // @foot=R
 0000
-0001
+0001 // @foot=R @pattern=jack
 0000
-0100
+0100 // @foot=L
 00M0
-0100
+0100 // @foot=R @pattern=footswitch
 0000
-1000
+1000 // @foot=L
 0000
-1000
+1000 // @foot=L @pattern=jack
 0000
-0002
+0002 // @foot=R
 0000
-1000
+1000 // @foot=L
 0000
 ,  // measure 41
-0013
+0013 // @foot=L @pattern=doublestep
 0000
 0000
 0000
@@ -754,32 +754,32 @@ M000
 0000
 0000
 0000
-0001
+0001 // @suggest=R @margin=251.1
 0000
 0000
 0000
-0010
+0010 // @suggest=L @margin=289.4
 0000
-0001
+0001 // @suggest=R @margin=333.0
 0000
-1000
+1000 // @suggest=L @margin=198.2
 0000
-1000
+1000 // @suggest=L @margin=117.6
 0000
-0100
+0100 // @suggest=R @margin=153.5
 00M0
-0100
+0100 // @suggest=L @margin=153.5
 0000
-0001
+0001 // @suggest=R @margin=153.5
 0000
-0001
+0001 // @suggest=R @margin=117.6
 0000
-2000
+2000 // @suggest=L @margin=305.7
 0000
-0001
+0001 // @suggest=R @margin=305.7
 0000
 ,  // measure 42
-3010
+3010 // @suggest=R @margin=8.1
 0000
 0000
 0000
@@ -787,65 +787,65 @@ M000
 0000
 0000
 0000
-1000
+1000 // @suggest=L @margin=124.4
 0000
 0000
 0000
-0100
+0100 // @suggest=R @margin=146.8
 0000
-0010
+0010 // @suggest=L @margin=146.8
 0000
-0001
+0001 // @suggest=R @margin=146.8
 0000
-0001
+0001 // @suggest=R @margin=145.9
 0000
-0010
+0010 // @suggest=L @margin=181.9
 0M00
-0010
+0010 // @suggest=R @margin=159.9
 0000
-1000
+1000 // @suggest=L @margin=181.9
 0000
-1000
+1000 // @suggest=L @margin=117.6
 0000
-0002
+0002 // @suggest=R @margin=333.1
 0000
-1000
+1000 // @suggest=L @margin=333.1
 0000
 ,  // measure 43
-0013
+0013 // @suggest=L @margin=18.9
 0000
 0000
 0000
-0001
+0001 // @suggest=R @margin=18.9
 0000
 0000
 0000
-0001
+0001 // @suggest=R @margin=70.3
 0000
 0000
 0000
-0100
+0100 // @suggest=L @margin=146.8
 0000
-0010
+0010 // @suggest=R @margin=146.8
 0000
-1000
+1000 // @suggest=L @margin=146.8
 0000
-1000
+1000 // @suggest=L @margin=145.9
 0000
-0010
+0010 // @suggest=R @margin=181.9
 0M00
-0010
+0010 // @suggest=L @margin=159.9
 0000
-0001
+0001 // @suggest=R @margin=181.9
 0000
-0001
+0001 // @suggest=R @margin=117.6
 0000
-2000
+2000 // @suggest=L @margin=337.8
 0000
-0001
+0001 // @suggest=R @margin=337.8
 0000
 ,  // measure 44
-3010
+3010 // @suggest=L @margin=15.4
 0000
 0000
 0000
@@ -853,32 +853,32 @@ M000
 0000
 0000
 0000
-1000
+1000 // @suggest=L @margin=221.5
 0000
 0000
 0000
-0001
+0001 // @suggest=R @margin=353.6
 0000
-1000
+1000 // @suggest=L @margin=290.4
 0000
-0010
+0010 // @suggest=R @margin=119.6
 0000
-0010
+0010 // @suggest=L @margin=2.1
 0000
-0100
+0100 // @suggest=R @margin=2.1
 M000
-0100
+0100 // @suggest=L @margin=2.1
 0000
-0010
+0010 // @suggest=R @margin=2.1
 0000
-0010
+0010 // @suggest=L @margin=93.2
 0000
-0002
+0002 // @suggest=R @margin=204.0
 0000
-0100
+0100 // @suggest=R @margin=36.2
 0000
 ,  // measure 45
-0013
+0013 // @suggest=L @margin=40.9
 0000
 0000
 0000
@@ -886,65 +886,65 @@ M000
 0000
 0000
 0000
-0001
+0001 // @suggest=R @margin=207.4
 0000
 0000
 0000
-1000
+1000 // @suggest=L @margin=379.1
 0000
-0001
+0001 // @suggest=R @margin=290.4
 0000
-0100
+0100 // @suggest=L @margin=119.6
 0000
-0100
+0100 // @suggest=R @margin=2.1
 0000
-0010
+0010 // @suggest=L @margin=2.1
 000M
-0010
+0010 // @suggest=R @margin=2.1
 0000
-0100
+0100 // @suggest=L @margin=2.1
 0000
-0100
+0100 // @suggest=R @margin=119.6
 0000
-2000
+2000 // @suggest=L @margin=197.6
 0000
 0000
 0000
 ,  // measure 46
-0100
+0100 // @suggest=R @margin=120.0
 0000
 0000
 0000
-3010
+3010 // @suggest=R @margin=41.8
 0000
 0000
 0000
-1000
+1000 // @suggest=L @margin=201.1
 0000
 0000
 0000
-0001
+0001 // @suggest=R @margin=338.2
 0000
-1000
+1000 // @suggest=L @margin=290.4
 0000
-0010
+0010 // @suggest=R @margin=119.6
 0000
-0010
+0010 // @suggest=L @margin=2.1
 0000
-0100
+0100 // @suggest=R @margin=2.1
 M000
-0100
+0100 // @suggest=L @margin=2.1
 0000
-0010
+0010 // @suggest=R @margin=2.1
 0000
-0010
+0010 // @suggest=L @margin=93.2
 0000
-0002
+0002 // @suggest=R @margin=205.0
 0000
-0100
+0100 // @suggest=R @margin=36.2
 0000
 ,  // measure 47
-0013
+0013 // @suggest=L @margin=40.9
 0000
 0000
 0000
@@ -952,100 +952,100 @@ M000
 0000
 0000
 0000
-0001
+0001 // @suggest=R @margin=229.3
 0000
-1000
+1000 // @suggest=L @margin=457.0
 0000
-0001
+0001 // @suggest=R @margin=401.5
 0000
-1000
+1000 // @suggest=L @margin=290.4
 0000
-0100
+0100 // @suggest=R @margin=119.6
 0000
-0100
+0100 // @suggest=L @margin=2.1
 0000
-0010
+0010 // @suggest=R @margin=2.1
 000M
-0010
+0010 // @suggest=L @margin=2.1
 0000
-0100
+0100 // @suggest=R @margin=2.1
 0000
-0100
+0100 // @suggest=L @margin=56.9
 0000
-0002
+0002 // @suggest=R @margin=587.9
 0000
-0010
+0010 // @suggest=L @margin=33.0
 0000
 ,  // measure 48
-2003
+2003 // @suggest=L @margin=587.9
 0000
 0000
-0001
-0001
+0001 // @suggest=R @margin=587.9
+0001 // @suggest=R @margin=587.9
 0000
-3010
+3010 // @suggest=R @margin=10.7
 0000
 0000
-2000
+2000 // @suggest=L @margin=708.1
 0000
-0001
-0001
+0001 // @suggest=R @margin=708.1
+0001 // @suggest=R @margin=708.1
 0000
-0010
+0010 // @suggest=L @margin=189.3
 0000
 ,  // measure 49
-3002
+3002 // @suggest=R @margin=708.1
 0000
 0000
-1000
+1000 // @suggest=L @margin=708.1
 0000
 0000
-0013
+0013 // @suggest=L @margin=18.2
 0000
 0000
-0002
+0002 // @suggest=R @margin=519.4
 0000
-1000
-1000
+1000 // @suggest=L @margin=519.4
+1000 // @suggest=L @margin=519.4
 0000
-0023
-0100
+0023 // @suggest=R @margin=161.1
+0100 // @suggest=L @margin=161.1
 ,  // measure 50
-0032
+0032 // @suggest=R @margin=379.7
 0000
 0000
-1000
-1000
+1000 // @suggest=L @margin=379.7
+1000 // @suggest=L @margin=379.7
 0000
-0103
+0103 // @suggest=L @margin=0.4
 0000
 0000
-0002
+0002 // @suggest=R @margin=697.8
 0000
-1000
-1000
+1000 // @suggest=L @margin=697.8
+1000 // @suggest=L @margin=697.8
 0000
-0100
+0100 // @suggest=R @margin=189.3
 0000
 ,  // measure 51
-2003
+2003 // @suggest=L @margin=697.8
 0000
 0000
-0001
+0001 // @suggest=R @margin=697.8
 0000
 0000
-3100
+3100 // @suggest=R @margin=18.2
 0000
 0000
-2000
+2000 // @suggest=L @margin=519.4
 0000
-0001
-0001
+0001 // @suggest=R @margin=519.4
+0001 // @suggest=R @margin=519.4
 0000
-3200
-0010
+3200 // @suggest=L @margin=169.6
+0010 // @suggest=R @margin=169.6
 ,  // measure 52
-2300
+2300 // @suggest=L @margin=169.6
 0000
 3000
 0000

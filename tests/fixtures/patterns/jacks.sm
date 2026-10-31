@@ -28,7 +28,7 @@
 //   (D / mine / D on 16ths = 8th spacing).
 ;
 
-#TITLE:Jacks Pattern Example;
+#TITLE:Jacks;
 #SUBTITLE:;
 #ARTIST:;
 #CREDIT:pymania;
@@ -51,17 +51,17 @@
      1:
      0.000,0.000,0.000,0.000,0.000,0,0,0,0,0,0:
 // Standard 12th jacks
-1000
-0100
-0010
-0001
-0100
-0100
-0001
-1000
-0001
-0001
-1000
-0100
+1000 // @foot=L
+0100 // @foot=R
+0010 // @foot=L
+0001 // @foot=R
+0100 // @foot=L
+0100 // @foot=L @pattern=jack
+0001 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0001 // @foot=R @pattern=jack
+1000 // @foot=L
+0100 // @foot=R
 ,
 ;

@@ -2763,23 +2763,23 @@
 0100
 0001
 ,  // measure 168
-2000
+2000 // @foot=L
 0000
-3100
-0100
-0100
-0100
-0100
-0100
+3100 // @foot=R
+0100 // @foot=R @pattern=jack
+0100 // @foot=R @pattern=jack
+0100 // @foot=R @pattern=jack
+0100 // @foot=R @pattern=jack
+0100 // @foot=R @pattern=jack
 ,  // measure 169
-0020
-0031
-2000
-3010
-0200
-0301
-0200
-0301
+0020 // @foot=L
+0031 // @foot=R
+2000 // @foot=L
+3010 // @foot=R
+0200 // @foot=L
+0301 // @foot=R
+0200 // @foot=L
+0301 // @foot=R
 ,  // measure 170
 2000
 0000

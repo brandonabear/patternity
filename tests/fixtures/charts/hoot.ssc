@@ -1,0 +1,1293 @@
+#VERSION:0.83;
+#TITLE:[12] HOOT;
+#SUBTITLE:;
+#ARTIST:Party Favor & SKYXXX;
+#TITLETRANSLIT:;
+#SUBTITLETRANSLIT:;
+#ARTISTTRANSLIT:;
+#GENRE:;
+#CREDIT:;
+#MUSIC:HOOT - Party Favor & SKYXXX.ogg;
+#BANNER:hoot-bn.png;
+#BACKGROUND:hoot-bg.png;
+#CDTITLE:;
+#SAMPLESTART:35.997;
+#SAMPLELENGTH:12.000;
+#SELECTABLE:YES;
+#OFFSET:0.014;
+#BPMS:0.000=160.000;
+#STOPS:;
+#SPEEDS:0.000=1.000=0.000=0;
+#SCROLLS:0.000=1.000;
+#TICKCOUNTS:0.000=4;
+#TIMESIGNATURES:0.000=4=4;
+#LABELS:0.000=Song Start;
+#COMBOS:0.000=1;
+#ORIGIN:;
+#PREVIEWVID:;
+#JACKET:;
+#CDIMAGE:;
+#DISCIMAGE:;
+#BGCHANGES:;
+#FGCHANGES:;
+
+#NOTEDATA:;
+#STEPSTYPE:dance-single;
+#DESCRIPTION:FS+ SS BR JA;
+#DIFFICULTY:Challenge;
+#METER:12;
+#RADARVALUES:1.035055,1.067519,0.072615,0.072615,1.270766,898,889,9,9,50,0,0,0,0,1.035055,1.067519,0.072615,0.072615,1.270766,898,889,9,9,50,0,0,0,0;
+#CHARTNAME:6109 pts;
+#CHARTSTYLE:;
+#CREDIT:Tony S.;
+#NOTES:
+// measure 0
+0000
+0000
+0000
+0000
+,  // measure 1
+0000
+0000
+0000
+0000
+,  // measure 2
+0000
+0000
+0000
+0000
+,  // measure 3
+0000
+0000
+0000
+0000
+,  // measure 4
+1000 // @foot=L
+0000
+1000 // @foot=L @pattern=jack
+0000
+0010 // @foot=R
+0000
+0100 // @foot=L
+0001 // @foot=R
+0100 // @foot=L
+0010 // @foot=R
+1000 // @foot=L
+0000
+0001 // @foot=R
+0000
+0010 // @foot=L
+0100 // @foot=R
+,  // measure 5
+1000 // @foot=L
+0000
+1000 // @foot=L @pattern=jack
+0000
+0010
+0000
+0100
+0001
+1000
+0001
+0010
+0000
+0100
+0000
+1000
+0001
+,  // measure 6
+0100
+0000
+0100
+0000
+0010
+0000
+1000
+0100
+1000
+0001
+0100
+0000
+0010
+0000
+1000
+0001
+,  // measure 7
+0010
+0000
+0010
+0000
+0100
+0000
+1000
+0001
+1000
+0010
+0100
+0010
+1000
+0001
+0010
+0100
+,  // measure 8
+1000
+0000
+1000
+0000
+0010
+0000
+0100
+0001
+1000
+0001
+0010
+0000
+0100
+0000
+1000
+0001
+,  // measure 9
+0100
+0000
+0100
+0000
+0010
+0000
+1000
+0001
+1000
+0100
+0010
+0000
+0001
+0000
+0100
+0010
+,  // measure 10
+1000
+0000
+1000
+0000
+0001
+0000
+0010
+0100
+0010
+0001
+1000
+0000
+0010
+0000
+1000
+0001
+,  // measure 11
+0010
+0000
+0010
+0000
+0001
+0000
+0100
+0010
+0100
+0001
+1000
+0001
+0010
+0100
+1000
+0001
+,  // measure 12
+0100
+0000
+0100
+0000
+0010
+0000
+1000
+0001
+1000
+0100
+0010
+0000
+0001
+0000
+0100
+0010
+,  // measure 13
+1000
+0000
+1000
+0000
+0100
+0000
+1000
+0001
+0010
+0001
+1000
+0000
+0010
+0000
+1000
+0001
+,  // measure 14
+0010
+0000
+0010
+0000
+0100
+0000
+1000
+0001
+1000
+0010
+0100
+0000
+0001
+0000
+1000
+0001
+,  // measure 15
+0100 // @foot=L
+0000
+0100 // @foot=L @pattern=jack
+0000
+0010 // @foot=R
+0000
+1000 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+0020 // @foot=L
+0000
+0001 // @foot=R
+0000
+0130 // @foot=R @pattern=doublestep
+0000
+,  // measure 16
+1000 // @foot=L
+0000
+0001
+0100
+0001
+0000
+1000
+0100
+1000
+0001
+0100
+0000
+0010
+1000
+0001
+0010
+,  // measure 17
+0100
+0000
+1000
+0001
+1000
+0000
+0010
+0100
+0010
+1000
+0001
+0000
+0010
+0100
+1000
+0001
+,  // measure 18
+0100
+0000
+0010
+1000
+0010
+0000
+0100
+0001
+1000
+0100
+0010
+0000
+0001
+1000
+0001
+0100
+,  // measure 19
+0010
+0000
+1000
+0100
+1000
+0000
+0001
+0100
+0001
+1000
+0100
+0000
+0010
+0100
+1000
+0001
+,  // measure 20
+0100
+0010
+0100
+0001
+1000
+0001
+0010
+0100
+,  // measure 21
+1000
+0010
+1000
+0001
+1000
+0100
+0010
+0001
+,  // measure 22
+1000
+0010
+1000
+0001
+0100
+0001
+0010
+0100
+1000
+0001
+1000
+0010
+0100
+0001
+1000
+0100
+,  // measure 23
+0010 // @foot=L
+0100 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0100 // @foot=L
+0000
+0010 // @foot=R
+1000 // @foot=L
+,  // measure 24
+0100 // @foot=R
+M000
+0100 // @foot=L @pattern=footswitch
+0010 // @foot=R
+0001 // @foot=L @pattern=crossover
+00M0
+0001 // @foot=R @pattern=sideswitch
+0000
+0100 // @foot=L
+00M0
+0100 // @foot=R @pattern=footswitch
+1000 // @foot=L
+0001 // @foot=R
+0100 // @foot=L
+0010 // @foot=R
+0000
+,  // measure 25
+0100 // @foot=L
+00M0
+0100 // @foot=R @pattern=footswitch
+0010 // @foot=L
+1000 // @foot=R @pattern=crossover
+0M00
+1000 // @foot=L @pattern=sideswitch
+0000
+0100 // @foot=R7
+00M0
+0100 // @foot=L @pattern=footswitch
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+0100 // @foot=L
+0000
+,  // measure 26
+0010
+0M00
+0010
+0100
+0001
+00M0
+0001
+0000
+0010
+0M00
+0010
+1000
+0001
+1000
+0100
+0000
+,  // measure 27
+0010
+0M00
+0010
+0100
+1000
+0M00
+1000
+0000
+0010
+0M00
+0010
+0001
+0100
+0001
+1000
+0000
+,  // measure 28
+0100
+M000
+0100
+0010
+0001
+00M0
+0001
+0000
+0100
+00M0
+0100
+1000
+0001
+1000
+0010
+0000
+,  // measure 29
+0100
+00M0
+0100
+0010
+1000
+0M00
+1000
+0000
+0100
+00M0
+0100
+0001
+1000
+0010
+0100
+0000
+,  // measure 30
+0010
+0M00
+0010
+0100
+0001
+00M0
+0001
+0000
+0010
+0M00
+0010
+1000
+0100
+00M0
+0100
+0000
+,  // measure 31
+0001
+0100
+0001
+0010
+0100
+0000
+1000
+0001
+,  // measure 32
+0100
+0000
+0010
+1000
+0001
+0000
+0010
+0100
+0010
+0001
+1000
+0000
+0010
+0000
+0100
+0001
+,  // measure 33
+0100
+0000
+0010
+1000
+0001
+0000
+1000
+0100
+0010
+0100
+1000
+0000
+0001
+0000
+0100
+0010
+,  // measure 34
+0100
+0000
+0001
+1000
+0100
+0000
+0010
+0001
+1000
+0001
+0100
+0000
+0010
+0000
+1000
+0001
+,  // measure 35
+1000 // @foot=L
+0000
+0100 // @foot=R
+0010 // @foot=L
+0001 // @foot=R
+0000
+1000 // @foot=L
+0010 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0000
+0100 // @foot=R
+00M0
+0100 // @foot=L @pattern=footswitch
+0000
+,  // measure 36
+0001 // @foot=R
+0000
+1000
+0010
+0100
+0000
+0001
+1000
+0001
+0010
+0100
+0000
+1000
+0000
+0010
+0100
+,  // measure 37
+0010
+0000
+1000
+0001
+0010
+0000
+0100
+1000
+0001
+1000
+0010
+0000
+0100
+0000
+0001
+1000
+,  // measure 38
+0001
+0000
+0100
+0010
+1000
+0000
+0001
+0010
+0100
+0000
+1000
+0001
+0100
+0000
+0010
+1000
+,  // measure 39
+0001
+0010
+0100
+1000
+0010
+0000
+0100
+0001
+,  // measure 40
+1001 // @feet=L,R @pattern=jump
+0000
+0000
+0000
+1000 // @foot=L
+0000
+0000
+0000
+0011 // @feet=R,R @pattern=bracket
+0100 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0100 // @foot=L
+,  // measure 41
+0001 // @foot=R
+0010 // @foot=L
+0100 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0101 // @feet=R,R @pattern=bracket
+1000 // @foot=L
+0010 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0100 // @foot=L
+0010 // @foot=R
+1000 // @foot=L
+,  // measure 42
+0001 // @foot=R
+0000 
+0010 // @foot=L
+0000
+0100 // @foot=R
+00M0
+0100 // @foot=L @pattern=footswitch
+0000
+0011 // @feet=R,R @pattern=bracket
+1000 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+0010 // @foot=L
+0001 // @foot=R
+0100 // @foot=L
+,  // measure 43
+0010 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+0100 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+0010 // @foot=L
+0101 // @feet=R,R @pattern=bracket
+1000 // @foot=L
+0010 // @foot=R
+0010 // @foot=L @pattern=footswitch
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+,  // measure 44
+0001
+0000
+1000
+0000
+0010
+0000
+0100
+0000
+0011
+1000
+0100
+1000
+0001
+0100
+0001
+1000
+,  // measure 45
+0100
+0010
+0001
+0100
+0001
+1000
+0100
+0010
+0101
+1000
+0001
+1000
+0010
+0100
+0010
+1000
+,  // measure 46
+0001 // @foot=R
+0000
+0010 // @foot=L
+0000
+0100 // @foot=R
+00M0
+0100 // @foot=L @pattern=footswitch
+0001 // @foot=R
+1100 // @feet=L,L @pattern=bracket
+0010 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+,  // measure 47
+0100
+0010
+1000
+0100
+0010
+0100
+1000
+0001
+1100
+0000
+0000
+0000
+0010
+0M00
+0010
+0000
+,  // measure 48
+0001
+0000
+0001
+0000
+1000
+0000
+0100
+1000
+0001
+1000
+0020
+0000
+0130
+0000
+0001
+1000
+,  // measure 49
+0100
+0000
+0100
+0000
+0010
+0000
+0001
+1000
+0001
+0100
+0020
+0000
+1030
+0000
+0001
+0010
+,  // measure 50
+0100
+0000
+0100
+0000
+1000
+0000
+0010
+0100
+0010
+1000
+0002
+0000
+0013
+0000
+0100
+1000
+,  // measure 51
+0001
+0000
+0100
+0000
+0010
+0000
+0000
+1000
+0001
+1000
+0100
+0000
+0010
+0001
+1000
+0001
+,  // measure 52
+0100
+0000
+0100
+0000
+0010
+0000
+1000
+0001
+1000
+0100
+0020
+0000
+0031
+0000
+1000
+0010
+,  // measure 53
+0100
+0000
+0100
+0000
+0001
+0000
+0010
+0100
+0010
+0001
+2000
+0000
+3010
+0000
+0100
+0001
+,  // measure 54
+1000
+0100
+1000
+0100
+0010
+0001
+0010
+0001
+,  // measure 55
+1000
+1000
+0010
+0010
+0100
+0001
+1000
+0100
+,  // measure 56
+0010
+0000
+0001
+1000
+0010
+0000
+0100
+0001
+1000
+0001
+0020
+0000
+0130
+0000
+1000
+0001
+,  // measure 57
+0100
+0000
+0010
+1000
+0001
+0000
+0010
+0100
+0010
+0001
+2000
+0000
+3010
+0000
+0100
+0001
+,  // measure 58
+1000
+0000
+0100
+1000
+0001
+0000
+0100
+0010
+0100
+0001
+1000
+0000
+0100
+0000
+0010
+0001
+,  // measure 59
+1000
+0000
+0010
+0100
+0001
+0000
+1000
+0100
+1000
+0001
+0100
+0000
+0010
+0000
+1000
+0001
+,  // measure 60
+0010
+0000
+0100
+1000
+0001
+0000
+0100
+0010
+1000
+0000
+0001
+0010
+0100
+0000
+1000
+0001
+,  // measure 61
+0100
+0000
+0010
+1000
+0001
+0000
+0010
+0100
+1000
+0000
+0001
+0100
+0010
+0000
+1000
+0001
+,  // measure 62
+0010
+0100
+0010
+0100
+1000
+0001
+1000
+0001
+,  // measure 63
+0100
+0100
+0010
+1000
+0001
+0000
+1000
+0001
+,  // measure 64
+0010 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+0100 // @foot=L
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0010 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+0100 // @foot=L
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+,  // measure 65
+0010 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+0100 // @foot=L
+0100 // @foot=R @pattern=footswitchf
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0010 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0010 // @foot=R
+0100 // @foot=L
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+,  // measure 66
+1000
+0000
+0010
+1000
+0001
+0000
+0010
+0100
+1000
+0000
+1000
+0001
+0100
+0000
+0010
+0000
+,  // measure 67
+1000
+0000
+0010
+0000
+1000
+0100
+0010
+0001
+1000
+0000
+0010
+0100
+0001
+0000
+1000
+0000
+,  // measure 68
+0010 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+0010 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+,  // measure 69
+0010 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+0010 // @foot=R
+1000 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+,  // measure 70
+0010 // @foot=R
+0000
+1000
+0001
+0010
+0000
+0100
+1000
+0001
+0000
+0001
+1000
+0010
+0000
+0100
+0000
+,  // measure 71
+0001
+0000
+0010
+0000
+0001
+1000
+0010
+0100
+0001
+0000
+1000
+0100
+0010
+0100
+1000
+0000
+,  // measure 72
+0001 // @foot=R
+0100 // @foot=L
+0001 // @foot=R
+0010 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+M001 // @foot=R
+M100 // @foot=L
+M001 // @foot=R
+M010 // @foot=L
+M100 // @foot=R
+M100 // @foot=L @pattern=footswitch
+M100 // @foot=R @pattern=footswitch
+M100 // @foot=L @pattern=footswitch
+,  // measure 73
+M001 // @foot=R
+M100 // @foot=L
+M001 // @foot=R
+M010 // @foot=L
+M100 // @foot=R
+M100 // @foot=L @pattern=footswitch
+M100 // @foot=R @pattern=footswitch
+M100 // @foot=L @pattern=footswitch
+M001 // @foot=R
+M100 // @foot=L
+M001 // @foot=R
+M010 // @foot=L
+M100 // @foot=R
+M100 // @foot=L @pattern=footswitch
+M100 // @foot=R @pattern=footswitch
+M100 // @foot=L @pattern=footswitch
+,  // measure 74
+0001 // @foot=R
+0000
+1000
+0010
+0100
+0000
+0010
+1000
+0001
+0000
+0001
+0010
+0100
+0000
+1000
+0000
+,  // measure 75
+0010
+0000
+1000
+0000
+0001
+0010
+0100
+1000
+0010
+0000
+0100
+0001
+1000
+0100
+0010
+0000
+,  // measure 76
+0001 // @foot=R
+0100 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+0001 // @foot=R
+0100 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+,  // measure 77
+0001 // @foot=R
+0100 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+0001 // @foot=R
+0100 // @foot=L
+0001 // @foot=R
+1000 // @foot=L
+0100 // @foot=R
+0100 // @foot=L @pattern=footswitch
+0100 // @foot=R @pattern=footswitch
+0100 // @foot=L @pattern=footswitch
+,  // measure 78
+0001 // @foot=R
+0000
+0010
+0100
+1000
+0000
+0010
+1000
+0001
+0000
+0001
+0010
+0100
+0000
+1000
+0000
+,  // measure 79
+0001
+0001
+0100
+0010
+1000
+0000
+0100
+0010
+,  // measure 80
+0002
+0000
+0000
+0003
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+;

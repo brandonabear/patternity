@@ -1,0 +1,28 @@
+{
+    "validated": true,
+    "fixture": "patterns/footswitches.sm",
+    "charts": [
+        {
+            "chart_index": 0,
+            "basic": {
+                "taps": 74,
+                "jumps": 0,
+                "hands": 0,
+                "holds": 9,
+                "rolls": 0,
+                "mines": 8,
+                "lifts": 0,
+                "fakes": 0,
+                "steps": 74
+            },
+            "tech": {
+                "crossovers": 0,
+                "footswitches": 11,
+                "sideswitches": 0,
+                "jacks": 4,
+                "brackets": 0,
+                "doublesteps": 0
+            }
+        }
+    ]
+}
