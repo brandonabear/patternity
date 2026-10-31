@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 from dataclasses import dataclass
 from enum import IntFlag, StrEnum
@@ -111,7 +113,6 @@ def compute_orientation(
     return PlayerOrientation.INVERTED
 
 
-# Reduce memory footprint during pattern analysis
 @dataclass(frozen=True, slots=True)
 class Stance:
     """Combined physical posture of both feet and derived hip orientation."""
@@ -165,12 +166,29 @@ class FootMove(IntFlag):
 
 @dataclass(frozen=True, slots=True)
 class FootRow:
-    """Spatiotemporal snapshot of stance and foot placement in a given NoteRow."""
+    """Trellis node: stance plus the minimal history transition features read.
+
+    We include all fields so node merge in Viterbi occurs only when two nodes 
+    have identical scores.
+
+    stance: The position of the player at the current FootRow
+    moved: The footing used to obtain the current position.
+    mines_since_press: 
+    last_press_col: The most recently pressed column
+    last_press_foot: The most recent footing of the last pressed column
+    hold_owners: Foot/Feet currently anchored by a hold or roll
+    released_since_press:
+    last_repeat_jack: Flag indicating if last press repeated the preceding panel/foot
+    """
 
     stance: Stance
     moved: FootMove
-    left_time: float = -math.inf
-    right_time: float = -math.inf
+    mines_since_press: int = 0
+    last_press_col: int | None = None
+    last_press_foot: FootMove | None = None
+    hold_owners: tuple[tuple[int, FootMove], ...] = ()
+    released_since_press: FootMove = FootMove.NONE
+    last_repeat_jack: bool | None = None
 
     @classmethod
     def initial(cls) -> FootRow:
@@ -180,10 +198,11 @@ class FootRow:
             moved=FootMove.NONE,
         )
 
-    @property
-    def state_key(self) -> tuple[Stance, FootMove]:
-        """Equivalence key for Viterbi / Beam Search state deduplication at a row."""
-        return (self.stance, self.moved)
+    def hold_owner_for(self, col: int) -> FootMove | None:
+        for owned_col, foot in self.hold_owners:
+            if owned_col == col:
+                return foot
+        return None
 
     def active_columns_mask(self) -> int:
         """4-bit mask of panels actively pressed on this specific row."""
@@ -193,4 +212,3 @@ class FootRow:
         if self.moved & FootMove.RIGHT:
             mask |= self.stance.right.mask
         return mask
- 
