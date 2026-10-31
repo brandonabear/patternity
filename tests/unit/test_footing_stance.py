@@ -1,4 +1,4 @@
-from patternity.models.stance import FootPlacement, PlayerOrientation, Stance
+from patternity.footing.stance import FootPlacement, PlayerOrientation, Stance
 
 
 def test_foot_placement_mask_and_coords() -> None:

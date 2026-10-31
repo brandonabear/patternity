@@ -1,5 +1,5 @@
-from patternity.models.metric import TechMetrics
-from patternity.models.pattern import PatternKind, PatternSpan
+from patternity.metrics import TechMetrics
+from patternity.patterns import PatternKind, PatternSpan
 
 
 def _span(kind: PatternKind) -> PatternSpan:
