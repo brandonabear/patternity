@@ -2,29 +2,19 @@ from dataclasses import dataclass, field
 from dataclasses import fields as _fields
 from typing import Any
 
-from patternity.models.engine import NoteRow, NoteType
-from patternity.models.pattern import PatternKind, PatternSpan
-
-PRESSABLE_NOTES = {
-    NoteType.TAP,
-    NoteType.HOLD,
-    NoteType.ROLL,
-    NoteType.LIFT,
-}
+from patternity.patterns.spans import PatternKind, PatternSpan
+from patternity.simfile.notes import NoteRow, NoteType
 
 
 @dataclass
 class BasicMetrics:
-    """Basic metrics for a song.
+    """Basic metrics for a chart."""
 
-    Basic metrics are counts of standard note types and steps.
-    """
-
-    taps: int = 0
-    jumps: int = 0
+    taps: int = 0  # Count of pressable rows (jumps/hands = 1)
+    jumps: int = 0 # Count of pressable notes
     hands: int = 0
-    holds: int = 0
-    rolls: int = 0
+    holds: int = 0 
+    rolls: int = 0 
     mines: int = 0
     lifts: int = 0
     fakes: int = 0
@@ -32,8 +22,10 @@ class BasicMetrics:
 
     def add_note(self, note_row: NoteRow) -> None:
         panels = (note_row.left, note_row.down, note_row.up, note_row.right)
+        heads = 0
         for panel in panels:
-            if panel in (NoteType.EMPTY, NoteType.TAIL):
+            # Skip empty rows early
+            if panel == NoteType.EMPTY:
                 continue
             match panel:
                 case NoteType.MINE:
@@ -44,23 +36,23 @@ class BasicMetrics:
                     self.lifts += 1
                 case NoteType.ROLL:
                     self.rolls += 1
+                    heads += 1
                 case NoteType.HOLD:
                     self.holds += 1
+                    heads += 1
+                case NoteType.TAP:
+                    heads += 1
                 case _:
                     continue
 
-        active_panels = [p for p in panels if p in PRESSABLE_NOTES]
-        self.steps += len(active_panels)
-        match len(active_panels):
-            case 0:
-                pass
-            case 1:
-                self.taps += 1
-            case 2:
-                self.taps += 1
+        self.steps += heads
+        if heads:
+            self.taps += 1
+            if heads >= 2:
                 self.jumps += 1
-            case n if n >= 3:
-                self.taps += 1
+            ongoing_holds = note_row.hold_active_mask & ~note_row.press_mask
+            covered_panels = (note_row.press_mask | ongoing_holds).bit_count()
+            if covered_panels >= 3:
                 self.hands += 1
 
     def to_dict(self) -> dict[str, Any]:
@@ -68,7 +60,8 @@ class BasicMetrics:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> BasicMetrics:
-        return cls(**{f.name: int(data.get(f.name, 0)) for f in _fields(cls)})
+        kwargs = {f.name: int(data.get(f.name, 0)) for f in _fields(cls)}
+        return cls(**kwargs)
 
 
 @dataclass
@@ -135,13 +128,3 @@ class MovementMetrics:
             "total_cost": self.total_cost,
             "foot_path_feasible": self.foot_path_feasible,
         }
-
-
-@dataclass
-class StreamMetrics:
-    """Stream metrics for a song."""
-
-    measures: int = 0
-    avg_nps: float = 0.0
-    max_nps: float = 0.0
-    longest_stream_measures: float = 0.0
