@@ -16,7 +16,7 @@ wheels/
 .vscode/
 
 # Output files
-data/
+/data/
 
 # Local dev files
 .dev/
