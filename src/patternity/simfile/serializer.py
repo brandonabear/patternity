@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from patternity.models.song import Song
+from patternity.simfile.song import Song
 
 
 def serialize(song: Song, output: Path) -> Path:

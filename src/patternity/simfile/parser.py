@@ -1,8 +1,8 @@
 import re
 from collections.abc import Iterator
 
-from patternity.models.engine import AnchorTracker, NoteRow, TimingEngine
-from patternity.models.song import (
+from patternity.simfile.notes import AnchorTracker, NoteRow
+from patternity.simfile.song import (
     HEADER_SETTERS,
     Chart,
     ChartMetadata,
@@ -11,8 +11,9 @@ from patternity.models.song import (
     Header,
     Song,
 )
+from patternity.simfile.timing import TimingEngine
 
-_HEADER_RE = re.compile(r"^(#[A-Z][A-Z0-9]*)\s*:\s*(.*)$")
+_HEADER_RE = re.compile(r"^(#[A-Z][A-Z0-9]*)\s*:\s*(.*)$", re.DOTALL)
 _SSC_CHART_TAGS = frozenset(
     {
         "#STEPSTYPE",
@@ -27,7 +28,7 @@ _SSC_CHART_TAGS = frozenset(
 )
 
 
-def _strip_leading_comments(section: str) -> str:
+def strip_leading_comments(section: str) -> str:
     """Strip leading comments from a section.
 
     There is often a decorative comment before the note data section.
@@ -191,7 +192,7 @@ class StepmaniaFileParser:
         chart_fields: dict[str, str] | None = None
 
         for raw_section in data.split(";"):
-            section = _strip_leading_comments(raw_section)
+            section = strip_leading_comments(raw_section)
             if not section:
                 continue
             head = section.upper()

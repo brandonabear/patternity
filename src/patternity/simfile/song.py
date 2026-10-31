@@ -8,7 +8,7 @@ from dataclasses import fields as _fields
 from enum import StrEnum
 from typing import Any
 
-from patternity.models.engine import NoteRow
+from patternity.simfile.notes import NoteRow
 
 HEADER_SETTERS = {
     "#TITLE": "set_title",
