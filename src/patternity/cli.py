@@ -7,9 +7,9 @@ from pathlib import Path
 from rich.console import Console
 
 from patternity.analyzer import Analyzer
-from patternity.parser import StepmaniaFileParser
-from patternity.reader import read_simfile
-from patternity.serializer import output_path, serialize
+from patternity.simfile.parser import StepmaniaFileParser
+from patternity.simfile.reader import read_simfile
+from patternity.simfile.serializer import output_path, serialize
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -63,7 +63,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.analyze:
         for chart in song.charts:
-            analyzer = Analyzer(song.header, chart)
+            analyzer = Analyzer(chart)
             console.print(analyzer.analyze())
 
     if args.serialize:
