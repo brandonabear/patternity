@@ -14,7 +14,7 @@ Each row of the chart has a set of possible states. A state (`footing/stance.py`
 | `moved` | Which foot or feet pressed on this row (`LEFT`, `RIGHT`, `BOTH`, `NONE`). |
 | `last_press_col`, `last_press_foot` | Needed to recognize same-panel repeats (jack vs switch) and same-foot repeats. |
 | `mines_since_press` | Mines between presses act as footswitch cues. |
-| `hold_owners` | Which foot is holding which hold/roll, so it must stay there. |
+| `hold_owners` | Which foot is holding which hold/roll, so it must stay there (until it releases inside the grace window). |
 | `released_since_press` | Which foot just released a hold (a re-press after a release is not a doublestep). |
 | `last_repeat_jack` | Whether the previous same-panel repeat was a jack or a switch, so a run that changes technique midway can be costed. |
 
@@ -28,6 +28,8 @@ Every field takes part in equality and hashing. Two paths only merge in the sear
 - held and rolled panels stay covered by the foot that owns them, and the other foot can't bracket onto them;
 - placements are single panels or legal two-panel brackets (Left+Down, Left+Up, Right+Down, Right+Up).
 
+The one exception to the hold rule is the **grace window** (`footing/holds.py`): from `HOLD_GRACE_SEC` (0.32 s) before a hold's tail, or `ROLL_GRACE_SEC` (0.35 s) before a roll's, through the tail row itself, the owning foot may leave. That foot is then free, and the release is costed by `hold_release` and `early_release` instead of being forbidden. The windows follow StepMania / ITG hold and roll life. They describe how long a hold survives without a foot, not a tech-pattern cutoff.
+
 In `footing.search.build_trellis`, a state that leaves a foot on a mine during a press row is also removed. If a row has *no* legal state (rare, usually a malformed chart or an impossible annotation), it is kept with a large penalty (`RELAXED_PENALTY = 1000`) and reported as relaxed.
 
 ### Cost: features × weights
@@ -37,7 +39,7 @@ Each transition is described by a small feature vector (`featurize` in `footing/
 | Feature | Fires when |
 |---------|-----------|
 | `same_foot`, `same_foot_speed` | The same foot presses twice in a row (any panels). |
-| `same_foot_after_release` | Same, but the other foot just released a hold (natural after a hold). |
+| `same_foot_after_release` | Same, but the other foot just released a hold, including a grace-window release on this row (natural after a hold). |
 | `jack`, `jack_speed`, `jack_speed_sq` | Same foot, same panel, consecutive presses. The squared term lets fast jacks cost disproportionately more. |
 | `switch`, `switch_speed` | Other foot, same panel, consecutive presses. |
 | `repeat_change` | A same-panel run changes technique midway (jack then switch, or the reverse). |
@@ -52,6 +54,8 @@ Each transition is described by a small feature vector (`featurize` in `footing/
 | `hold_bracket_tap` | A foot that owns a hold brackets to tap another panel. |
 | `mine_cued_switch`, `mine_cued_same_foot` | A switch / same-foot repeat with a mine cue since the last press. |
 | `cued_foot_moves`, `cued_foot_stays` | A foot standing on a mine-cued panel moves off it / stays on it. |
+| `hold_release` | A foot leaves a hold or roll it owns during the grace window (tail row included). |
+| `early_release` | Same, scaled by how early: seconds left to the tail / grace window (0 on the tail row, up to 1). |
 
 The cost of a move is `weights · features`. The cost of a path is the sum over its moves.
 
@@ -74,7 +78,7 @@ For each annotated chart, in shuffled order, every epoch (`training.trainer.trai
 1. **Predict** the cheapest path with the current weights, using **cost-augmented decoding**: a path that disagrees with an annotation gets a `margin` (default 5) discount. The real annotated path must therefore win by at least that margin, not merely tie.
 2. If any annotated row is wrong, find the **gold path**: the cheapest path that agrees with every annotation. Annotations only say which foot moved, not every detail of the stance, so the gold path's remaining details are filled in by the decoder under the current weights (a "latent-variable" perceptron). This is also why charts can be **partially annotated**: untagged rows are simply left to the decoder.
 3. Update: `w ← w − step × (features(gold) − features(predicted))`. Features the gold path uses more often get cheaper, and features the wrong path relied on get more expensive.
-4. **Clip** a few weights at zero (`NONNEGATIVE` in `training/trainer.py`): travel, inverted, crossover entry, facing flip, technique change, jack speed², bracket speed. Physically these can only add effort; with little data the perceptron could otherwise learn to reward them.
+4. **Clip** a few weights at zero (`NONNEGATIVE` in `training/trainer.py`): travel, inverted, crossover entry, facing flip, technique change, jack speed², bracket speed, hold release, early release. Physically these can only add effort; with little data the perceptron could otherwise learn to reward them.
 
 `step` is scaled per chart by `mean annotated rows / this chart's annotated rows`, so a long, fully annotated chart cannot drown out a 12-row pattern fixture.
 
@@ -96,6 +100,7 @@ Prefer adding annotated data. Add a feature only when two annotated passages nee
 - `same_foot_after_release`: re-pressing after a hold release was being costed like a doublestep.
 - `repeat_change`: the model played a same-panel run as "jack twice, then switch", which resolved the same way as the annotated pure jack or pure switch, so nothing penalized it.
 - `jack_speed_sq`: fast 16th runs (switch) and slower 8th runs (jack) needed a cost that grows faster than linearly with speed.
+- `hold_release`: once the grace window let a foot leave a hold on its tail row, that release had no cost. The model began uncrossing out of holds (burger) where players doublestep, and it could not also learn that a foot stepping off its own tail is natural (too_much).
 
 To add one:
 

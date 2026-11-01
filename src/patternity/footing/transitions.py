@@ -24,13 +24,17 @@ def _holds_preserved(
     next_right: FootPlacement,
     anchored: int,
     allow_mid_hold_switches: bool,
+    grace: int,
 ) -> bool:
     """Anchored panels stay covered, and by their owning foot unless switches are allowed."""
-    if ((next_left.mask | next_right.mask) & anchored) != anchored:
+    required = anchored & ~grace
+    if ((next_left.mask | next_right.mask) & required) != required:
         return False
     for col, owner in prev.hold_owners:
         bit = 1 << col
         if not anchored & bit:
+            continue
+        if grace & bit:
             continue
         placement = next_left if owner == FootMove.LEFT else next_right
         other = next_right if owner == FootMove.LEFT else next_left
@@ -53,10 +57,16 @@ def _update_hold_owners(
     stance: Stance,
     moved: FootMove,
     anchored: int,
+    grace: int,
 ) -> tuple[tuple[int, FootMove], ...]:
     owners: dict[int, FootMove] = {
         col: foot for col, foot in prev.hold_owners if (1 << col) & anchored
     }
+    for col, foot in list(owners.items()):
+        bit = 1 << col
+        placement = stance.left if foot == FootMove.LEFT else stance.right
+        if grace & bit and not placement.mask & bit:
+            del owners[col]
     panels = (row.left, row.down, row.up, row.right)
     for col, note in enumerate(panels):
         if note not in _ANCHOR_HEADS:
@@ -76,6 +86,7 @@ def _emit_foot_row(
     stance: Stance,
     moved: FootMove,
     anchored: int,
+    grace: int,
 ) -> FootRow:
     if moved == FootMove.NONE:
         released = prev.released_since_press
@@ -89,7 +100,9 @@ def _emit_foot_row(
             mines_since_press=prev.mines_since_press | row.mine_mask,
             last_press_col=prev.last_press_col,
             last_press_foot=prev.last_press_foot,
-            hold_owners=_update_hold_owners(prev, row, stance, moved, anchored),
+            hold_owners=_update_hold_owners(
+                prev, row, stance, moved, anchored, grace
+            ),
             released_since_press=released,
             last_repeat_jack=prev.last_repeat_jack,
         )
@@ -108,7 +121,7 @@ def _emit_foot_row(
         mines_since_press=0,
         last_press_col=press_col,
         last_press_foot=moved,
-        hold_owners=_update_hold_owners(prev, row, stance, moved, anchored),
+        hold_owners=_update_hold_owners(prev, row, stance, moved, anchored, grace),
         last_repeat_jack=repeat_jack,
     )
 
@@ -119,6 +132,7 @@ def iter_legal_transitions(
     *,
     allow_brackets: bool = True,
     allow_mid_hold_switches: bool = False,
+    grace: int = 0,
 ) -> Iterator[FootRow]:
     """Yield all physically legal next `FootRow` states for `row` given `prev`."""
     press_mask = row.press_mask
@@ -126,7 +140,12 @@ def iter_legal_transitions(
 
     if press_mask == 0:
         yield _emit_foot_row(
-            prev, row, stance=prev.stance, moved=FootMove.NONE, anchored=anchored
+            prev,
+            row,
+            stance=prev.stance,
+            moved=FootMove.NONE,
+            anchored=anchored,
+            grace=grace,
         )
         return
 
@@ -140,7 +159,12 @@ def iter_legal_transitions(
             continue
 
         if _holds_preserved(
-            prev, target, prev_stance.right, anchored, allow_mid_hold_switches
+            prev,
+            target,
+            prev_stance.right,
+            anchored,
+            allow_mid_hold_switches,
+            grace,
         ):
             yield _emit_foot_row(
                 prev,
@@ -150,10 +174,16 @@ def iter_legal_transitions(
                 ),
                 moved=FootMove.LEFT,
                 anchored=anchored,
+                grace=grace,
             )
 
         if _holds_preserved(
-            prev, prev_stance.left, target, anchored, allow_mid_hold_switches
+            prev,
+            prev_stance.left,
+            target,
+            anchored,
+            allow_mid_hold_switches,
+            grace,
         ):
             yield _emit_foot_row(
                 prev,
@@ -163,6 +193,7 @@ def iter_legal_transitions(
                 ),
                 moved=FootMove.RIGHT,
                 anchored=anchored,
+                grace=grace,
             )
 
     if press_mask.bit_count() >= 2:
@@ -182,7 +213,12 @@ def iter_legal_transitions(
                 if ((left_p.mask | right_p.mask) & press_mask) != press_mask:
                     continue
                 if not _holds_preserved(
-                    prev, left_p, right_p, anchored, allow_mid_hold_switches
+                    prev,
+                    left_p,
+                    right_p,
+                    anchored,
+                    allow_mid_hold_switches,
+                    grace,
                 ):
                     continue
 
@@ -192,4 +228,5 @@ def iter_legal_transitions(
                     stance=Stance.from_feet(left_p, right_p, prev_stance.orientation),
                     moved=FootMove.BOTH,
                     anchored=anchored,
+                    grace=grace,
                 )

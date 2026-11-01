@@ -6,12 +6,14 @@ references tech-pattern timing cutoffs; those live in ``patternity.patterns.dete
 
 from __future__ import annotations
 
+from patternity.footing.holds import HOLD_GRACE_SEC, ROLL_GRACE_SEC, Remaining
 from patternity.footing.stance import (
     FootMove,
     FootPlacement,
     FootRow,
     PlayerOrientation,
 )
+from patternity.footing.transitions import anchored_mask
 from patternity.simfile.notes import NoteRow
 
 FEATURE_NAMES: tuple[str, ...] = (
@@ -41,6 +43,8 @@ FEATURE_NAMES: tuple[str, ...] = (
     "mine_cued_same_foot",
     "cued_foot_moves",
     "cued_foot_stays",
+    "hold_release",
+    "early_release",
 )
 FEATURE_INDEX: dict[str, int] = {name: i for i, name in enumerate(FEATURE_NAMES)}
 
@@ -79,7 +83,11 @@ def hits_mine(curr: FootRow, mine_mask: int) -> bool:
 
 
 def featurize(
-    prev: FootRow, curr: FootRow, row: NoteRow, dt: float | None
+    prev: FootRow,
+    curr: FootRow,
+    row: NoteRow,
+    dt: float | None,
+    grace_remaining: Remaining = (None, None, None, None),
 ) -> dict[str, float]:
     """Feature values for moving from ``prev`` to ``curr`` on ``row``."""
     moved = curr.moved
@@ -97,8 +105,24 @@ def featurize(
     prev_foot = prev.last_press_foot
     cue = prev.mines_since_press | row.mine_mask
 
+    anchored = anchored_mask(row)
+    kept = {col for col, _ in curr.hold_owners}
+    released_now = FootMove.NONE
+    for col, foot in prev.hold_owners:
+        bit = 1 << col
+        if not anchored & bit or col in kept:
+            continue
+        released_now |= foot
+        add("hold_release")
+        rem = grace_remaining[col]
+        if rem:
+            window = ROLL_GRACE_SEC if row.roll_active_mask & bit else HOLD_GRACE_SEC
+            add("early_release", rem / window)
+
+    release_context = prev.released_since_press | released_now
+
     if single and prev_foot == moved:
-        if prev.released_since_press & ~moved:
+        if release_context & ~moved:
             add("same_foot_after_release")
         else:
             add("same_foot")

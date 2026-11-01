@@ -24,7 +24,18 @@ from patternity.training.annotations import AnnotatedChart, parse_annotated_sm
 # Physically these can only add effort; with little data the perceptron could
 # otherwise learn to reward them.
 NONNEGATIVE: frozenset[str] = frozenset(
-    {"travel", "travel_speed", "inverted", "facing_flip", "cross_entry", "repeat_change", "jack_speed_sq", "bracket_speed"}
+    {
+        "travel",
+        "travel_speed",
+        "inverted",
+        "facing_flip",
+        "cross_entry",
+        "repeat_change",
+        "jack_speed_sq",
+        "bracket_speed",
+        "hold_release",
+        "early_release",
+    }
 )
 
 

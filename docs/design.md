@@ -11,7 +11,7 @@ These are the rules the codebase follows, and why. How the pieces work is descri
 
 - **Footing is learned from annotated charts.** Costs are a weighted sum of features, and the weights come from training. Nobody adjusts a bonus or penalty to make one example come out right; a footing that is wrong gets fixed by annotating it (and, if needed, by adding a feature that describes what the player is physically doing).
 - **Features are pattern-agnostic.** They describe what the feet do (same foot again, travel, crossing, speed, mine cues), never named patterns, and never ITG timing cutoffs.
-- **Hard rules only for physics.** `footing/transitions.py` forbids what is impossible (leaving a hold, stepping off a panel you must press). Everything that is merely unusual is a cost.
+- **Hard rules only for physics.** `footing/transitions.py` forbids what is impossible (leaving a hold, stepping off a panel you must press). Everything that is merely unusual is a cost. Leaving a hold is only impossible outside its grace window before the tail; inside the window it is a cost (`hold_release`, `early_release`).
 - **The search is exact.** Viterbi with a complete state, no beam, so the result is the true minimum for the weights, and a wrong footing always means a wrong cost, never a search shortcut.
 
 ## Counting is separate from footing

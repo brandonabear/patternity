@@ -3,6 +3,7 @@ import random
 
 from patternity.footing import FootingModel, ResolvedStep
 from patternity.footing.features import FEATURE_NAMES, featurize, hits_mine
+from patternity.footing.holds import hold_grace
 from patternity.footing.search import build_trellis, row_confidence, viterbi
 from patternity.footing.stance import FootMove, FootRow
 from patternity.footing.transitions import iter_legal_transitions
@@ -24,6 +25,8 @@ def _chart(rows: list[str], bpm: float = 120.0) -> str:
 def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
     best = math.inf
 
+    grace_rows = hold_grace(rows)
+
     def walk(i: int, prev: FootRow, cost: float, last_press: float | None) -> None:
         nonlocal best
         if i == len(rows):
@@ -32,10 +35,11 @@ def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
         row = rows[i]
         now = row.timestamp or 0.0
         dt = now - last_press if row.press_mask and last_press is not None else None
-        for curr in iter_legal_transitions(prev, row):
+        grace_mask, grace_remaining = grace_rows[i]
+        for curr in iter_legal_transitions(prev, row, grace=grace_mask):
             if row.press_mask and row.mine_mask and hits_mine(curr, row.mine_mask):
                 continue
-            feats = featurize(prev, curr, row, dt)
+            feats = featurize(prev, curr, row, dt, grace_remaining=grace_remaining)
             edge = sum(weights[FEATURE_NAMES.index(k)] * v for k, v in feats.items())
             walk(i + 1, curr, cost + edge, now if row.press_mask else last_press)
 

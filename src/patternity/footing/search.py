@@ -17,6 +17,7 @@ from patternity.footing.features import (
     featurize,
     hits_mine,
 )
+from patternity.footing.holds import hold_grace
 from patternity.footing.stance import FootMove, FootRow
 from patternity.footing.transitions import iter_legal_transitions
 from patternity.simfile.notes import NoteRow
@@ -78,6 +79,7 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
     relaxed: list[int] = []
     states = [FootRow.initial()]
     last_press_time: float | None = None
+    grace_rows = hold_grace(rows)
 
     for row_index, row in enumerate(rows):
         now = row.timestamp or 0.0
@@ -86,14 +88,17 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
             if row.press_mask and last_press_time is not None
             else None
         )
+        grace_mask, grace_remaining = grace_rows[row_index]
         layer = Layer()
         blocked: list[tuple[int, FootRow, int]] = []
         check_mines = bool(row.mine_mask and row.press_mask)
         for prev_i, prev in enumerate(states):
             for curr in iter_legal_transitions(
-                prev, row, allow_brackets=allow_brackets
+                prev, row, allow_brackets=allow_brackets, grace=grace_mask
             ):
-                feat_id = intern(featurize(prev, curr, row, dt))
+                feat_id = intern(
+                    featurize(prev, curr, row, dt, grace_remaining=grace_remaining)
+                )
                 if check_mines and hits_mine(curr, row.mine_mask):
                     blocked.append((prev_i, curr, feat_id))
                     continue
