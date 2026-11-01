@@ -20,7 +20,7 @@ These are the rules the codebase follows, and why. How the pieces work is descri
 
 ## Ground truth comes from people
 
-- **Annotations are never generated from model output.** `scripts/suggest_annotations.py` writes `@suggest=` tags that a person must accept by renaming them; `@foot` tags are only written by hand.
+- **Annotations are never generated from model output.** `scripts/suggest_annotations.py` writes `@suggest_foot=` / `@suggest_feet=` / `@suggest_pattern=` tags that a person must review and accept by dropping the `suggest_` prefix; the script itself never writes `@foot`, `@feet`, or `@pattern`.
 - **Canonical counts are hand-counted.** `tests/fixtures/canonical/*.json` must not be filled from analyzer output.
 - **Partial and ambiguous annotations are allowed.** Untagged rows are left to the model; genuinely ambiguous passages should stay untagged.
 

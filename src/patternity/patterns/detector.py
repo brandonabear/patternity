@@ -97,20 +97,9 @@ def detect_tech_patterns(steps: list[ResolvedStep]) -> TechMetrics:
     # Each foot's previous press, for candles (the other foot's presses in
     # between don't matter).
     foot_press: dict[FootMove, ResolvedStep] = {}
-    active: list[ResolvedStep] = []
-    run_orientation: PlayerOrientation | None = None
-    run_start = 0
-    run_crossed = False
-
-    def close_run(end: int) -> None:
-        if run_orientation in (None, PlayerOrientation.NEUTRAL) or not run_crossed:
-            return
-        kind = (
-            PatternKind.INVERTED_CROSSOVER
-            if run_orientation == PlayerOrientation.INVERTED
-            else PatternKind.CROSSOVER
-        )
-        spans.append(_span(kind, tuple(active[max(0, run_start - 1) : end + 1])))
+    # Orientation of the current crossed stance, or None while uncrossed. A new
+    # crossover starts when the legs cross, or turn while staying crossed.
+    crossed_orientation: PlayerOrientation | None = None
 
     for step in steps:
         row = step.note_row
@@ -153,18 +142,18 @@ def detect_tech_patterns(steps: list[ResolvedStep]) -> TechMetrics:
                 and not released & ~fr.moved
             ):
                 spans.append(_span(PatternKind.DOUBLESTEP, (prev_press, step)))
-            prev_press = step
 
-            active.append(step)
-            position = len(active) - 1
-            orientation = fr.stance.orientation
-            if orientation != run_orientation:
-                close_run(position)
-                run_orientation = orientation
-                run_start = position
-                run_crossed = False
-            if fr.stance.is_crossed:
-                run_crossed = True
+            orientation = fr.stance.orientation if fr.stance.is_crossed else None
+            if orientation is not None and orientation != crossed_orientation:
+                kind = (
+                    PatternKind.INVERTED_CROSSOVER
+                    if orientation == PlayerOrientation.INVERTED
+                    else PatternKind.CROSSOVER
+                )
+                entry = (step,) if prev_press is None else (prev_press, step)
+                spans.append(_span(kind, entry))
+            crossed_orientation = orientation
+            prev_press = step
 
         for col in range(4):
             foot = column_foot(step, col)
@@ -229,6 +218,5 @@ def detect_tech_patterns(steps: list[ResolvedStep]) -> TechMetrics:
             from_tail[col] = not is_press
         prev_row = step
 
-    close_run(len(active) - 1)
     spans.sort(key=lambda s: (s.start_beat, s.end_beat))
     return TechMetrics(spans=spans)

@@ -50,6 +50,7 @@
      1:
      0.000,0.000,0.000,0.000,0.000,0,0,0,0,0,0:
 // @section=crossover-left-to-right
+// measure 0
 1000 // @foot=L
 0100 // @foot=R
 0001 // @foot=L @pattern=crossover,candle
@@ -58,7 +59,7 @@
 0000
 0000
 0000
-,
+,  // measure 1
 // @section=crossover-right-to-left
 0001 // @foot=R
 0100 // @foot=L
@@ -68,7 +69,7 @@
 0000
 0000
 0000
-,
+,  // measure 2
 // @section=crossunder-left-to-right
 1000 // @foot=L
 0010 // @foot=R
@@ -78,7 +79,7 @@
 0000
 0000
 0000
-,
+,  // measure 3
 // @section=crossunder-right-to-left
 0001 // @foot=R
 0010 // @foot=L
@@ -88,14 +89,14 @@
 0000
 0000
 0000
-,
+,  // measure 4
 // @section=crossover-lateral
 1000 // @foot=L
 0100 // @foot=R
 0001 // @foot=L @pattern=crossover,candle
 1000 // @foot=R @pattern=crossover
 0010 // @foot=L @pattern=crossover
-0001 // @foot=R @pattern=crossover,candle
+0001 // @foot=R @pattern=candle
 1000 // @foot=L
 0000
 ;

@@ -39,7 +39,7 @@ If the footing printed here is what a player would do, the problem is in labelin
 
 ### Using the suggestion script as a viewer
 
-For a chart with no footing tags yet, `scripts/suggest_annotations.py` writes `@suggest` and `@margin` on every press row; on a partially tagged chart it only adds rows that are untagged or where the model disagrees with your `@foot` / `@feet`. That is often the fastest way to read footing in an editor. It edits the file in place, so run it on a copy or revert the file afterwards if you don't intend to keep the suggestions. See [Training workflow → Bootstrapping a new chart](training.md#bootstrapping-a-new-chart).
+For a chart with no footing tags yet, `scripts/suggest_annotations.py` writes `@suggest_foot` / `@suggest_feet` and `@margin` on every press row, plus `@suggest_pattern` wherever the decoder finds a pattern; on a partially tagged chart it only adds rows that are untagged or where the model disagrees with your `@foot` / `@feet` / `@pattern`. That is often the fastest way to read footing and detected patterns in an editor. It edits the file in place, so run it on a copy or revert the file afterwards if you don't intend to keep the suggestions. See [Training workflow → Bootstrapping a new chart](training.md#bootstrapping-a-new-chart).
 
 ## Compare the model with annotations
 

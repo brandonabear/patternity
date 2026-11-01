@@ -43,6 +43,7 @@
      1:
      0.000,0.000,0.000,0.000,0.000,0,0,0,0,0,0:
 // @section=no-mine-footswitch
+// measure 0
 1000 // @foot=L
 0100 // @foot=R
 0100 // @foot=L @pattern=footswitch
@@ -59,7 +60,7 @@
 0001 // @foot=R
 1000 // @foot=L
 0010 // @foot=R
-, // Footswitches with Mine Cue, +3FS
+,  // measure 1
 // @section=mine-cued-footswitch
 1000 // @foot=L
 0100 // @foot=R @pattern=candle
@@ -77,7 +78,7 @@ M010 // @foot=L @pattern=footswitch
 0001 // @foot=R
 1000 // @foot=L
 0000
-, // Holdswitch begins at end of measure
+,  // measure 2
 // @section=holdswitch
 0001 // @foot=R
 0000
@@ -95,7 +96,7 @@ M010 // @foot=L @pattern=footswitch
 0000
 0100 // @foot=R
 0020 // @foot=L
-,  // Holdswitches, +3FS
+,  // measure 3
 0001 // @foot=R
 0000
 0030
@@ -128,7 +129,7 @@ M010 // @foot=L @pattern=footswitch
 0000
 0000
 0000
-,  // Jacks and Gallop Footswitch
+,  // measure 4
 // @section=jack-gallop
 2000 // @foot=L
 0000
@@ -146,7 +147,7 @@ M010 // @foot=L @pattern=footswitch
 0000
 1003 // @foot=L
 0000 
-,  // Jack - Continuous Footswitch - Jack
+,  // measure 5
 // @section=jack-continuous-footswitch
 0000
 0000

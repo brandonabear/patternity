@@ -15,9 +15,10 @@
      1:
      0.000,0.000,0.000,0.000,0.000:
 // @section=mine-cued-sideswitch
+// measure 0
 1000 // @foot=L
 0100 // @foot=R
-0001 // @foot=L @pattern=candle
+0001 // @foot=L @pattern=crossover,candle
 0M00 // mine cues the right-right switch
 0001 // @foot=R @pattern=sideswitch
 0100 // @foot=L
@@ -32,7 +33,7 @@
 0000
 0000
 0000
-,
+,  // measure 1
 // @section=counter-not-sideswitch
 0001 // @foot=R
 1000 // @foot=L

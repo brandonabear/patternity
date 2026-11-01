@@ -76,7 +76,7 @@ src/patternity/
 | `training/evaluation.py` | Per-row footing accuracy, per-pattern precision/recall, and disagreement reports against annotations. |
 | `training/__main__.py` | `python -m patternity.training`: retrains and writes the packaged weights. |
 | `scripts/evaluate.py` | Prints evaluation reports for the training corpus (optionally leave-one-chart-out). |
-| `scripts/suggest_annotations.py` | Writes model suggestions into a chart as `@suggest=` tags for human review. |
+| `scripts/suggest_annotations.py` | Writes model foot and pattern suggestions into a chart as `@suggest_foot=` / `@suggest_feet=` / `@suggest_pattern=` tags for human review. |
 
 ### Tests
 
@@ -100,7 +100,7 @@ Jacks and switches only pair a panel with the **very next press row**, as in ITG
 | Sideswitch | Same as a footswitch, on the Left or Right panel. |
 | Doublestep | Two consecutive single-panel presses by the same foot on different panels, unless the other foot released a hold in between. |
 | Bracket | One foot presses two panels on the same row. |
-| Crossover | A run of crossed-orientation steps (one foot past the other), including the step before and after. Inverted (fully backwards) runs are counted too. |
+| Crossover | Each time the legs become crossed (left foot strictly right of the right foot), or turn to a different orientation while staying crossed, anchored on that first crossed step. Stepping to an uncrossed stance ends it even if the player stays turned (Up, Left then Up, Down then Right, Down is two crossovers). Inverted (fully backwards) crossovers are counted too. |
 | Candle | A foot's press lands on the panel opposite its own previous press (Up↔Down or Left↔Right), whatever the other foot did in between. A bracket that keeps one of its panels (for example LU to LD) is not a candle. Examples: Up, Right, Down in a stream (the left foot goes Up to Down); the crossover Left, Down, Right; the left foot anchored on Left while the right foot hits Up then Down. |
 
 ## Movement metrics

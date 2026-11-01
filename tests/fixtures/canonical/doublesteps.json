@@ -22,6 +22,9 @@
                 "jacks": 0,
                 "brackets": 0,
                 "doublesteps": 4
+            },
+            "movement": {
+                "direction_shifts": 0
             }
         }
     ]

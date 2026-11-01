@@ -23,6 +23,9 @@
                 "brackets": 0,
                 "doublesteps": 0,
                 "candles": 1
+            },
+            "movement": {
+                "direction_shifts": 0
             }
         }
     ]

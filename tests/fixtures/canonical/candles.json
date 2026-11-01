@@ -24,6 +24,9 @@
                 "brackets": 0,
                 "doublesteps": 2,
                 "candles": 5
+            },
+            "movement": {
+                "direction_shifts": 3
             }
         }
     ]

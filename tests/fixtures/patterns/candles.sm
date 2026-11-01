@@ -50,6 +50,7 @@
      1:
      0.000,0.000,0.000,0.000,0.000,0,0,0,0,0,0:
 // @section=candle-stream
+// measure 0
 1000 // @foot=L
 0010 // @foot=R
 0100 // @foot=L
@@ -66,7 +67,7 @@
 0001 // @foot=R
 1000 // @foot=L
 0001 // @foot=R
-,
+,  // measure 1
 // @section=hold-candle
 2000 // @foot=L
 0010 // @foot=R

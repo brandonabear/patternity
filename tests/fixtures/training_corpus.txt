@@ -10,5 +10,4 @@ charts/burger.ssc
 charts/hoot.ssc
 charts/move_mint.ssc
 charts/too_much.ssc
-charts/shake_the_city.ssc
 charts/godspeed.ssc

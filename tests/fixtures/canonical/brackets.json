@@ -11,7 +11,7 @@
                 "hands": 0,
                 "holds": 1,
                 "rolls": 0,
-                "mines": 0,
+                "mines": 1,
                 "lifts": 0,
                 "fakes": 0,
                 "steps": 93
@@ -24,6 +24,9 @@
                 "brackets": 11,
                 "doublesteps": 0,
                 "candles": 7
+            },
+            "movement": {
+                "direction_shifts": 1
             }
         }
     ]

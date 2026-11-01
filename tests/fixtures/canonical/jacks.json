@@ -5,24 +5,27 @@
         {
             "chart_index": 0,
             "basic": {
-                "taps": 12,
-                "jumps": 0,
+                "taps": 20,
+                "jumps": 1,
                 "hands": 0,
                 "holds": 0,
                 "rolls": 0,
                 "mines": 0,
                 "lifts": 0,
                 "fakes": 0,
-                "steps": 12
+                "steps": 21
             },
             "tech": {
                 "crossovers": 0,
                 "footswitches": 0,
                 "sideswitches": 0,
-                "jacks": 2,
+                "jacks": 4,
                 "brackets": 0,
                 "doublesteps": 0,
-                "candles": 1
+                "candles": 2
+            },
+            "movement": {
+                "direction_shifts": 1
             }
         }
     ]

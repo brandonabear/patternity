@@ -50,6 +50,7 @@
      1:
      0.000,0.000,0.000,0.000,0.000,0,0,0,0,0,0:
 // @section=mine-cue-doublestep
+// measure 0
 1000 // @foot=L
 0100 // @foot=R
 0M01 // @foot=R @pattern=doublestep
@@ -58,7 +59,7 @@
 0001 // @foot=R
 0010 // @foot=L
 0001 // @foot=R
-,
+,  // measure 1
 // @section=hold-cue-doublestep
 2000 // @foot=L
 0100 // @foot=R

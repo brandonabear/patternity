@@ -16,6 +16,7 @@
      1:
      0.000,0.000,0.000,0.000,0.000:
 // @section=alternating-bracket-ld
+// measure 0
 1000 // @foot=L
 0001 // @foot=R
 1100 // @feet=L,L @pattern=bracket
@@ -32,7 +33,7 @@
 0000
 0000
 0000
-,
+,  // measure 1
 // @section=alternating-bracket-lu
 1000 // @foot=L
 0001 // @foot=R
@@ -50,7 +51,7 @@
 0000
 0000
 0000
-,
+,  // measure 2
 // @section=alternating-bracket-rd
 0001 // @foot=R
 1000 // @foot=L
@@ -68,7 +69,7 @@
 0000
 0000
 0000
-,
+,  // measure 3
 // @section=alternating-bracket-ru
 0001 // @foot=R
 1000 // @foot=L
@@ -86,11 +87,11 @@
 0000
 0000
 0000
-,
+,  // measure 4
 // @section=crossover-bracket-ur
 1000 // @foot=L
 0100 // @foot=R
-0011 // @feet=L,L @pattern=bracket,crossover-bracket,candle
+0011 // @feet=L,L @pattern=bracket,crossover,candle
 0100 // @foot=R
 1000 // @foot=L @pattern=candle
 0000
@@ -104,11 +105,11 @@
 0000
 0000
 0000
-,
+,  // measure 5
 // @section=crossover-bracket-lu
 0001 // @foot=R
 0100 // @foot=L
-1010 // @feet=R,R @pattern=bracket,crossover-bracket,candle
+1010 // @feet=R,R @pattern=bracket,crossover,candle
 0100 // @foot=L
 0001 // @foot=R @pattern=candle
 0000
@@ -122,7 +123,7 @@
 0000
 0000
 0000
-,
+,  // measure 6
 // UD cannot be a canonical bracket.
 // @section=ud-jump
 1000 // @foot=L
@@ -133,7 +134,7 @@
 0000
 0000
 0000
-,
+,  // measure 7
 // LR cannot be a canonical bracket.
 // @section=lr-jump
 1000 // @foot=L
@@ -144,7 +145,7 @@
 1000 // @foot=L
 0000
 0000
-,
+,  // measure 8
 // A bracketable pair is still a jump when the surrounding phrase says so.
 // @section=bracketable-jump
 1000 // @foot=L
@@ -155,7 +156,7 @@
 0000
 0000
 0000
-,
+,  // measure 9
 // LR is never a canonical bracket.
 // @section=lr-jump
 1000 // @foot=L
@@ -166,7 +167,7 @@
 1000 // @foot=L
 0000
 0000
-,
+,  // measure 10
 // Brackets can be used to change player direction
 // @section=bracket-stream
 1000 // @foot=L
@@ -177,7 +178,7 @@
 0100 // @foot=R
 1000 // @foot=L
 0011 // @feet=R,R @pattern=bracket,candle
-,
+,  // measure 11
 // Brackets can lead to footswitches
 // @section=bracket-footswitch
 1000 // @foot=L
@@ -185,7 +186,7 @@
 0100 // @foot=L
 0001 // @foot=R
 1010 // @feet=L,L @pattern=bracket,candle
-0010 // @foot=R @pattern=footswitch
+M010 // @foot=R @pattern=footswitch
 1000 // @foot=L
 0001 // @foot=R
 1000 // @foot=L
@@ -196,7 +197,7 @@
 0000
 0010 // @foot=R
 0000
-,
+,  // measure 12
 1200 // @feet=L,L @pattern=bracket
 0000
 0000
@@ -213,7 +214,7 @@
 0000
 0000
 0000
-,
+,  // measure 13
 0301 // @foot=R
 0000
 0000

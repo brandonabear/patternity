@@ -30,7 +30,8 @@ Annotations are `//` comments on note rows in a fixture chart under `tests/fixtu
 | `@feet=L,L` / `@feet=R,R` | Both panels pressed by one foot (a bracket). |
 | `@pattern=…` | The tech pattern that **ends** on this row: `jack`, `footswitch`, `holdswitch` (scored as a footswitch), `sideswitch`, `doublestep`, `bracket`, `candle`. Comma-separate several. Only scored, never trained on. |
 | `@section=name` | Groups following rows under a name (informational). |
-| `@suggest=…  @margin=…` | Written by the suggestion script. Ignored by training until you rename it to `@foot` / `@feet`. |
+| `@suggest_foot=…` / `@suggest_feet=…`  `@margin=…` | Foot suggestion written by the suggestion script. Ignored by training until you drop the `suggest_` prefix. |
+| `@suggest_pattern=…` | Pattern suggestion written by the suggestion script (`none` means the decoder found no pattern on a row you tagged). Ignored until you drop the `suggest_` prefix. |
 
 Rules and conventions:
 
@@ -48,9 +49,13 @@ To annotate a long chart faster, let the model propose footing and review it:
 uv run python scripts/suggest_annotations.py tests/fixtures/charts/my_chart.ssc
 ```
 
-This writes `@suggest=L @margin=12.3` on every untagged press row and on rows where the model disagrees with your tag, adds 0-based `// measure 0` before the first note row and `// measure N` on comma lines (measure starts after each comma), and prints the lowest-margin rows with `mN` in the log. It never changes `@foot` tags, preserves line endings, and replaces its own previous suggestions and measure markers on rerun.
+This writes `@suggest_foot=L @margin=12.3` (or `@suggest_feet=L,R` for jumps and brackets) on every untagged press row and on rows where the model disagrees with your tag. It also runs the tech pattern detector on the decoded path and writes `@suggest_pattern=…` where the detected patterns differ from the row's `@pattern` tag: `jack`, `doublestep`, `footswitch`, `sideswitch`, `bracket`, `crossover` (normal and inverted), and `candle`. `holdswitch` counts as `footswitch`, and other tags such as `jump` are left alone. Patterns come from the model's own footing, as in `evaluate.py`, not from your `@foot` tags.
 
-Review **low margins first**: those are rows where the model is unsure, so your answer teaches it the most. High-margin rows mostly confirm what it already does. Accept a suggestion by renaming `@suggest` to `@foot` (or `@feet` for jumps and brackets); a leftover `@margin=` is ignored, but deleting it keeps the file tidy. Never bulk-accept suggestions: the model can't be its own ground truth.
+The script adds 0-based `// measure 0` before the first note row and `// measure N` on comma lines (measure starts after each comma), and prints the lowest-margin foot rows and the pattern suggestions with `mN` in the log. It never changes existing tags, preserves line endings, and replaces its own previous suggestions (including legacy `@suggest=` tags) and measure markers on rerun.
+
+Review **low margins first**: those are rows where the model is unsure, so your answer teaches it the most. High-margin rows mostly confirm what it already does. Accept a suggestion by dropping the `suggest_` prefix (`@suggest_foot` → `@foot`, `@suggest_pattern` → `@pattern`); accept `@suggest_pattern=none` by deleting the row's `@pattern` tag. A leftover `@margin=` is ignored, but deleting it keeps the file tidy.
+
+On a new, untagged chart whose output you've reviewed and found correct, a find/replace of `@suggest_` with `@` accepts everything at once. Don't do this on a partially tagged chart: disagreeing rows would end up with two `@foot` or `@pattern` tags, and the parser keeps the first (yours). Never bulk-accept suggestions you haven't reviewed: the model can't be its own ground truth.
 
 Optional flags: `--weights path/to.json` (default: packaged weights), `--list N` (print the `N` lowest-margin rows; default 25).
 
@@ -64,11 +69,11 @@ Example: you added [`tests/fixtures/charts/shake_the_city.ssc`](../tests/fixture
    uv run python scripts/suggest_annotations.py tests/fixtures/charts/shake_the_city.ssc
    ```
 
-   On a chart with no `@foot` / `@feet` yet, every press row gets `@suggest` and `@margin`. On a partially tagged chart, only **untagged** rows and rows where the model **disagrees** with your tag get suggestions.
+   On a chart with no `@foot` / `@feet` yet, every press row gets `@suggest_foot` / `@suggest_feet` and `@margin`, and every row where the decoder finds a pattern gets `@suggest_pattern`. On a partially tagged chart, only **untagged** rows and rows where the model **disagrees** with your tag get suggestions.
 
-2. **Accept tags by hand.** Rename `@suggest` → `@foot` / `@feet` where you agree; delete suggestions you do not need. Partial annotation is fine—keep only interesting or decisive passages tagged. Leave ambiguous rows untagged.
+2. **Accept tags by hand.** Drop the `suggest_` prefix where you agree; delete suggestions you do not need. Partial annotation is fine—keep only interesting or decisive passages tagged. Leave ambiguous rows untagged.
 
-3. **Add `@pattern` yourself.** The suggestion script never writes pattern tags. Put `@pattern=…` on the anchor row (pattern end) for rows you want in evaluation; see the tag table above.
+3. **Check `@pattern` tags.** Accepted `@suggest_pattern` tags only reflect what the detector already finds. Add or fix `@pattern=…` on the anchor row (pattern end) wherever a player would read the pattern differently; see the tag table above.
 
 4. **Evaluate before training.** You do not need a line in `training_corpus.txt` to score a fixture:
 
