@@ -4,6 +4,8 @@ patterns/jacks.sm
 patterns/brackets.sm
 patterns/sideswitches.sm
 patterns/doublesteps.sm
+patterns/candles.sm
+patterns/crossovers.sm
 charts/burger.ssc
 charts/hoot.ssc
 charts/move_mint.ssc
