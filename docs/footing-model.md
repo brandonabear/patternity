@@ -28,7 +28,7 @@ Every field takes part in equality and hashing. Two paths only merge in the sear
 - held and rolled panels stay covered by the foot that owns them, and the other foot can't bracket onto them;
 - placements are single panels or legal two-panel brackets (Left+Down, Left+Up, Right+Down, Right+Up).
 
-The one exception to the hold rule is the **grace window** (`footing/holds.py`): from `HOLD_GRACE_SEC` (0.32 s) before a hold's tail, or `ROLL_GRACE_SEC` (0.35 s) before a roll's, through the tail row itself, the owning foot may leave. That foot is then free, and the release is costed by `hold_release` and `early_release` instead of being forbidden. The windows follow StepMania / ITG hold and roll life. They describe how long a hold survives without a foot, not a tech-pattern cutoff.
+The one exception to the hold rule is the **grace window** (`footing/grace.py`): from `HOLD_GRACE_SEC` (0.32 s) before a hold's tail, or `ROLL_GRACE_SEC` (0.35 s) before a roll's, through the tail row itself, the owning foot may leave. That foot is then free, and the release is costed by `hold_release` and `early_release` instead of being forbidden. The windows follow StepMania / ITG hold and roll life. They describe how long a hold survives without a foot, not a tech-pattern cutoff.
 
 In `footing.search.build_trellis`, a state that leaves a foot on a mine during a press row is also removed. If a row has *no* legal state (rare, usually a malformed chart or an impossible annotation), it is kept with a large penalty (`RELAXED_PENALTY = 1000`) and reported as relaxed.
 

@@ -17,7 +17,7 @@ from patternity.footing.features import (
     featurize,
     hits_mine,
 )
-from patternity.footing.holds import hold_grace
+from patternity.footing.grace import hold_grace
 from patternity.footing.stance import FootMove, FootRow
 from patternity.footing.transitions import iter_legal_transitions
 from patternity.simfile.notes import NoteRow

@@ -35,7 +35,7 @@ src/patternity/
   __init__.py  cli.py
   analysis/    analyzer, metrics
   simfile/     reader, parser, song, notes, timing, serializer
-  footing/     stance, transitions, features, search, model, resolve
+  footing/     stance, transitions, grace, features, search, model, resolve
   patterns/    spans, detector
   movement/    detector
   training/    __main__, annotations, trainer, corpus, evaluation
@@ -54,6 +54,7 @@ src/patternity/
 | `simfile/serializer.py` | Song ⇄ JSON. |
 | `footing/stance.py` | Foot geometry: `FootPlacement` (a panel or a two-panel bracket), `Stance` (both feet plus orientation), `FootMove`, and `FootRow` (the search state). |
 | `footing/transitions.py` | Hard physical rules: every legal next `FootRow` from a given one on a given row. |
+| `footing/grace.py` | Grace windows before hold/roll tails, during which the owning foot may leave early. |
 | `footing/features.py` | `FEATURE_NAMES` and `featurize`: what the feet do on each transition. |
 | `footing/search.py` | Trellis construction, Viterbi, per-row confidence. |
 | `footing/model.py` | `FootingModel` (weights) and the packaged-weights path. |

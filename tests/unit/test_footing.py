@@ -3,7 +3,7 @@ import random
 
 from patternity.footing import FootingModel, ResolvedStep
 from patternity.footing.features import FEATURE_NAMES, featurize, hits_mine
-from patternity.footing.holds import hold_grace
+from patternity.footing.grace import hold_grace
 from patternity.footing.search import build_trellis, row_confidence, viterbi
 from patternity.footing.stance import FootMove, FootRow
 from patternity.footing.transitions import iter_legal_transitions

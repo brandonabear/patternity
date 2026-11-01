@@ -6,7 +6,7 @@ references tech-pattern timing cutoffs; those live in ``patternity.patterns.dete
 
 from __future__ import annotations
 
-from patternity.footing.holds import HOLD_GRACE_SEC, ROLL_GRACE_SEC, Remaining
+from patternity.footing.grace import HOLD_GRACE_SEC, ROLL_GRACE_SEC, Remaining
 from patternity.footing.stance import (
     FootMove,
     FootPlacement,

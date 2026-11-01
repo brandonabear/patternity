@@ -1,5 +1,5 @@
 from patternity.footing.features import featurize
-from patternity.footing.holds import HOLD_GRACE_SEC, ROLL_GRACE_SEC, hold_grace
+from patternity.footing.grace import HOLD_GRACE_SEC, ROLL_GRACE_SEC, hold_grace
 from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
 from patternity.footing.transitions import iter_legal_transitions
 from patternity.simfile import NoteRow
