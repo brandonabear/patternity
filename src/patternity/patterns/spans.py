@@ -18,6 +18,7 @@ class PatternKind(StrEnum):
     BRACKET = "bracket"
     CROSSOVER = "crossover"
     INVERTED_CROSSOVER = "inverted_crossover"
+    CANDLE = "candle"
 
 
 @dataclass(frozen=True, slots=True)

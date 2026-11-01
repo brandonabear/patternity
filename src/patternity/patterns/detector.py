@@ -7,7 +7,7 @@ footing decoder never sees them.
 import math
 
 from patternity.footing.resolve import ResolvedStep
-from patternity.footing.stance import FootMove, PlayerOrientation
+from patternity.footing.stance import FootMove, FootPlacement, PlayerOrientation
 from patternity.metrics import TechMetrics
 from patternity.patterns.spans import PatternKind, PatternSpan
 from patternity.simfile.notes import NoteType
@@ -20,6 +20,20 @@ _LR_COLS = frozenset({0, 3})
 _UD_COLS = frozenset({1, 2})
 _PRESS = frozenset({NoteType.TAP, NoteType.HOLD, NoteType.ROLL, NoteType.LIFT})
 _FEET = (FootMove.LEFT, FootMove.RIGHT)
+_OPPOSITE_PANELS = (
+    (FootPlacement.U.mask, FootPlacement.D.mask),
+    (FootPlacement.L.mask, FootPlacement.R.mask),
+)
+
+
+def _crosses_center(before: FootPlacement, after: FootPlacement) -> bool:
+    """The foot moved between opposite panels (U/D or L/R) without keeping one."""
+    if before.shares_panel_with(after):
+        return False
+    return any(
+        (before.mask & a and after.mask & b) or (before.mask & b and after.mask & a)
+        for a, b in _OPPOSITE_PANELS
+    )
 
 
 def _span(kind: PatternKind, steps: tuple[ResolvedStep, ...]) -> PatternSpan:
@@ -46,8 +60,7 @@ def column_foot(step: ResolvedStep, col: int) -> FootMove | None:
     bit = 1 << col
     if note in _PRESS:
         for foot in _FEET:
-            placement = fr.stance.left if foot == FootMove.LEFT else fr.stance.right
-            if fr.moved & foot and placement.mask & bit:
+            if fr.moved & foot and fr.stance.placement(foot).mask & bit:
                 return foot
         return None
     if note == NoteType.TAIL:
@@ -61,7 +74,7 @@ def _single_col(step: ResolvedStep) -> int | None:
 
 
 def detect_tech_patterns(steps: list[ResolvedStep]) -> TechMetrics:
-    """Label jacks, foot/side switches, doublesteps, brackets, and crossovers."""
+    """Label jacks, foot/side switches, doublesteps, brackets, crossovers, and candles."""
     spans: list[PatternSpan] = []
 
     last_foot: list[FootMove | None] = [None] * 4
@@ -81,6 +94,9 @@ def detect_tech_patterns(steps: list[ResolvedStep]) -> TechMetrics:
 
     prev_press: ResolvedStep | None = None
     prev_row: ResolvedStep | None = None
+    # Each foot's previous press, for candles (the other foot's presses in
+    # between don't matter).
+    foot_press: dict[FootMove, ResolvedStep] = {}
     active: list[ResolvedStep] = []
     run_orientation: PlayerOrientation | None = None
     run_start = 0
@@ -110,9 +126,17 @@ def detect_tech_patterns(steps: list[ResolvedStep]) -> TechMetrics:
         if fr.moved != FootMove.NONE:
             press_rows += 1
             for mover in _FEET:
-                placement = fr.stance.left if mover == FootMove.LEFT else fr.stance.right
-                if fr.moved & mover and (placement.mask & row.press_mask).bit_count() >= 2:
+                if not fr.moved & mover:
+                    continue
+                placement = fr.stance.placement(mover)
+                if (placement.mask & row.press_mask).bit_count() >= 2:
                     spans.append(_span(PatternKind.BRACKET, (step,)))
+                before = foot_press.get(mover)
+                if before is not None and _crosses_center(
+                    before.foot_row.stance.placement(mover), placement
+                ):
+                    spans.append(_span(PatternKind.CANDLE, (before, step)))
+                foot_press[mover] = step
 
             press_col = _single_col(step)
             released = (

@@ -1,6 +1,6 @@
 # Patternity documentation
 
-Patternity parses StepMania `.sm` / `.ssc` charts (4-panel singles), works out which foot hits each arrow, and reports basic and "tech" metrics (jacks, footswitches, sideswitches, doublesteps, brackets, crossovers).
+Patternity parses StepMania `.sm` / `.ssc` charts (4-panel singles), works out which foot hits each arrow, and reports basic and "tech" metrics (jacks, footswitches, sideswitches, doublesteps, brackets, crossovers, candles).
 
 | Page | Read it when you want to… |
 |------|---------------------------|

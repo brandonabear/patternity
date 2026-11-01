@@ -1,14 +1,9 @@
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from dataclasses import fields as _fields
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from patternity.patterns.spans import PatternKind, PatternSpan
 from patternity.simfile.notes import NoteRow, NoteType
-
-if TYPE_CHECKING:
-    from patternity.footing.resolve import ResolvedStep
 
 
 @dataclass
@@ -107,6 +102,10 @@ class TechMetrics:
     def doublesteps(self) -> int:
         return self.count(PatternKind.DOUBLESTEP)
 
+    @property
+    def candles(self) -> int:
+        return self.count(PatternKind.CANDLE)
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "crossovers": self.crossovers,
@@ -115,6 +114,7 @@ class TechMetrics:
             "jacks": self.jacks,
             "brackets": self.brackets,
             "doublesteps": self.doublesteps,
+            "candles": self.candles,
         }
 
 
@@ -123,35 +123,8 @@ class MovementMetrics:
     """Player movement metrics from foot-path resolution."""
 
     direction_shifts: int = 0
-    turns: int = 0
-    candles: int = 0
     total_cost: float = 0.0
     foot_path_feasible: bool = True
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "direction_shifts": self.direction_shifts,
-            "turns": self.turns,
-            "candles": self.candles,
-            "total_cost": self.total_cost,
-            "foot_path_feasible": self.foot_path_feasible,
-        }
-
-    @classmethod
-    def from_decode(
-        cls,
-        steps: list[ResolvedStep],
-        *,
-        cost: float,
-        feasible: bool,
-        crossover_count: int,
-    ) -> MovementMetrics:
-        from patternity.movement.detector import count_candles, count_direction_shifts
-
-        return cls(
-            direction_shifts=count_direction_shifts(steps),
-            turns=crossover_count,
-            candles=count_candles(steps),
-            total_cost=cost,
-            foot_path_feasible=feasible,
-        )
+        return {f.name: getattr(self, f.name) for f in _fields(self)}

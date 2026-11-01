@@ -2,6 +2,7 @@ from typing import Any
 
 from patternity.footing import FootingModel, resolve_chart
 from patternity.metrics import BasicMetrics, MovementMetrics, TechMetrics
+from patternity.movement import detect_movement
 from patternity.patterns.detector import detect_tech_patterns
 from patternity.simfile.song import Chart
 
@@ -31,12 +32,7 @@ class Analyzer:
         for step in resolved.steps:
             self.basic_metrics.add_note(step.note_row)
         self.tech_metrics = detect_tech_patterns(resolved.steps)
-        self.movement_metrics = MovementMetrics.from_decode(
-            resolved.steps,
-            cost=resolved.cost,
-            feasible=resolved.feasible,
-            crossover_count=self.tech_metrics.crossovers,
-        )
+        self.movement_metrics = detect_movement(resolved)
 
         return {
             "basic": self.basic_metrics.to_dict(),

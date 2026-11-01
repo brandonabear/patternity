@@ -32,14 +32,9 @@ Without `-a`, the CLI only parses the file and prints the song title.
     'basic': {'taps': 587, 'jumps': 14, 'hands': 14, 'holds': 135, 'rolls': 5,
               'mines': 20, 'lifts': 0, 'fakes': 0, 'steps': 601},
     'tech': {'crossovers': 0, 'footswitches': 60, 'sideswitches': 0,
-             'jacks': 0, 'brackets': 14, 'doublesteps': 20},
-    'movement': {
-        'direction_shifts': 12,
-        'turns': 0,
-        'candles': 4,
-        'total_cost': 28240.8,
-        'foot_path_feasible': True,
-    }
+             'jacks': 0, 'brackets': 14, 'doublesteps': 20, 'candles': 56},
+    'movement': {'direction_shifts': 0, 'total_cost': 17101.5,
+                 'foot_path_feasible': True}
 }
 ```
 
@@ -47,8 +42,6 @@ Without `-a`, the CLI only parses the file and prints the song title.
 - **`tech`** counts come from the inferred foot path. Definitions are in [Architecture → Tech labels](architecture.md#tech-labels).
 - **`movement`** counts also come from the inferred foot path (see [Architecture → Movement metrics](architecture.md#movement-metrics)):
   - **`direction_shifts`** — press-row flips between facing left and facing right.
-  - **`turns`** — same number as **`tech.crossovers`** for that run.
-  - **`candles`** — completed center-crossing foot maneuvers (side-to-side via U/D, or U then D on one foot).
   - **`total_cost`** — cost of the chosen path under the current weights (compare charts only under the same weights; not a difficulty score; can be negative).
   - **`foot_path_feasible`** — `False` when any row needed a relaxed fallback. See [Debugging](debugging.md#relaxed-rows).
 

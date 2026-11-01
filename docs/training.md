@@ -28,7 +28,7 @@ Annotations are `//` comments on note rows in a fixture chart under `tests/fixtu
 | `@foot=L` / `@foot=R` | Which foot presses this row. |
 | `@feet=L,R` | Two panels pressed by different feet (a jump). |
 | `@feet=L,L` / `@feet=R,R` | Both panels pressed by one foot (a bracket). |
-| `@pattern=…` | The tech pattern that **ends** on this row: `jack`, `footswitch`, `holdswitch` (scored as a footswitch), `sideswitch`, `doublestep`, `bracket`. Comma-separate several. Only scored, never trained on. |
+| `@pattern=…` | The tech pattern that **ends** on this row: `jack`, `footswitch`, `holdswitch` (scored as a footswitch), `sideswitch`, `doublestep`, `bracket`, `candle`. Comma-separate several. Only scored, never trained on. |
 | `@section=name` | Groups following rows under a name (informational). |
 | `@suggest=…  @margin=…` | Written by the suggestion script. Ignored by training until you rename it to `@foot` / `@feet`. |
 

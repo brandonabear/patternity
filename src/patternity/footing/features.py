@@ -57,7 +57,7 @@ def speed(dt: float | None) -> float:
 
 
 def _placement(row: FootRow, foot: FootMove) -> FootPlacement:
-    return row.stance.left if foot == FootMove.LEFT else row.stance.right
+    return row.stance.placement(foot)
 
 
 def _displaced(curr: FootRow, foot: FootMove) -> bool:

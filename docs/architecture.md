@@ -12,7 +12,7 @@ flowchart TD
     footing --> steps["ResolvedStep[]<br/>(note_row + foot_row)"]
     steps --> basic["BasicMetrics<br/>(note_row only)"]
     steps --> detector["patterns.detect_tech_patterns<br/>(ITG cutoffs)"]
-    footing --> movement["MovementMetrics<br/>(shifts, turns, candles, cost)"]
+    footing --> movement["MovementMetrics<br/>(direction shifts, cost, feasible)"]
     detector --> tech["TechMetrics"]
     basic --> report["Analyzer.analyze()"]
     tech --> report
@@ -22,8 +22,8 @@ flowchart TD
 1. **Read and parse.** `read_simfile` loads the text; `StepmaniaFileParser.parse` turns it into a `Song` with a `Header` and one `Chart` per difficulty. Each chart's `notes` is a list of `NoteRow`s (empty `0000` rows are dropped) carrying measure, beat, quantization, timestamp (from `#BPMS` / `#STOPS` / `#OFFSET`), and which holds/rolls are active. See [File format](format.md).
 2. **Footing.** `footing.resolve_chart` finds the cheapest physically legal sequence of foot positions for the whole chart and returns one **`ResolvedStep`** per row (`note_row` plus decoded `foot_row`). The cost of each move is a learned linear function of a few generic features. The same decode supplies **`MovementMetrics`**: total path cost and whether any row needed a relaxed (penalized) fallback. See [Footing model](footing-model.md).
 3. **Basic metrics.** `Analyzer` walks `resolved.steps` and feeds each `note_row` into `BasicMetrics`. Counts are chart notation only (taps, jumps, holds, …); they do **not** use `foot_row` and do not change when footing weights change.
-4. **Tech labels.** `patterns.detector.detect_tech_patterns` walks the same steps and labels jacks, switches, doublesteps, brackets, and crossovers using community / ITGmania timing cutoffs into **`TechMetrics`**.
-5. **Movement metrics.** `MovementMetrics.from_decode` sets `direction_shifts` and `candles` from `movement/detector.py`, `turns` from `tech.crossovers`, plus path cost and feasibility.
+4. **Tech labels.** `patterns.detector.detect_tech_patterns` walks the same steps and labels jacks, switches, doublesteps, brackets, crossovers, and candles using community / ITGmania timing cutoffs into **`TechMetrics`**.
+5. **Movement metrics.** `movement.detect_movement` counts `direction_shifts` on the same steps and copies path cost and feasibility from the decode.
 6. **Report.** `Analyzer.analyze()` returns the `basic`, `tech`, and `movement` dictionaries (see [Usage → Output](usage.md#output)).
 
 ## Modules
@@ -59,7 +59,7 @@ src/patternity/
 | `patterns/spans.py` | `PatternKind` and `PatternSpan` (one detection with its steps). |
 | `patterns/detector.py` | Tech-pattern labeling on a decoded path. The only place ITG timing cutoffs appear. |
 | `metrics.py` | `BasicMetrics`, `TechMetrics` (spans plus counts), `MovementMetrics`. |
-| `movement/detector.py` | `direction_shifts` and `candles` on a resolved path. |
+| `movement/detector.py` | `detect_movement`: direction shifts, path cost, and feasibility on a resolved path. |
 | `analyzer.py` | Ties the steps above together for one chart. |
 | `cli.py` | The `patternity` command. |
 | `data/footing_weights.json` | The trained weights loaded by default. |
@@ -101,16 +101,15 @@ Jacks and switches only pair a panel with the **very next press row**, as in ITG
 | Doublestep | Two consecutive single-panel presses by the same foot on different panels, unless the other foot released a hold in between. |
 | Bracket | One foot presses two panels on the same row. |
 | Crossover | A run of crossed-orientation steps (one foot past the other), including the step before and after. Inverted (fully backwards) runs are counted too. |
+| Candle | A foot's press lands on the panel opposite its own previous press (Up↔Down or Left↔Right), whatever the other foot did in between. A bracket that keeps one of its panels (for example LU to LD) is not a candle. Examples: Up, Right, Down in a stream (the left foot goes Up to Down); the crossover Left, Down, Right; the left foot anchored on Left while the right foot hits Up then Down. |
 
 ## Movement metrics
 
-Computed from the same decoded foot path as tech labels (`movement/detector.py` + `MovementMetrics.from_decode`). Like tech, these counts can change if footing weights change; they do not use ITG jack/footswitch timing cutoffs.
+Computed by `movement/detector.py` from the same decoded foot path as tech labels, so `direction_shifts` can change if footing weights change.
 
 | Metric | Rule |
 |--------|------|
-| `direction_shifts` | On each press row, +1 when orientation changes between `FACING_LEFT` and `FACING_RIGHT` (same condition as the `facing_flip` training feature; neutral and inverted transitions are ignored). |
-| `turns` | Equals `tech.crossovers` for that analyze call (crossover + inverted crossover spans from `patterns/detector.py`). |
-| `candles` | Per foot, one count per **maneuver run** (maximal consecutive press rows where that foot moved): either L-side and R-side placements both appear with a U/D touch in the run, or both U and D are touched in the run (e.g. L→D→R, or R-foot U then D while the other foot stays put). |
+| `direction_shifts` | On each press row, +1 when orientation changes between `FACING_LEFT` and `FACING_RIGHT` (same condition as the `facing_flip` training feature; neutral and inverted transitions are ignored, so a normal crossover counts 0). |
 | `total_cost` | Sum of weighted transition costs on the chosen path. |
 | `foot_path_feasible` | `False` if any row used a relaxed (penalized) fallback. |
 
@@ -122,5 +121,5 @@ Computed from the same decoded foot path as tech labels (`movement/detector.py` 
 | Fix how a passage is *footed* | Annotate it and retrain ([Training workflow](training.md)). Only add or change a feature in `footing/features.py` (`featurize`) when the existing features cannot express the distinction ([Footing model](footing-model.md#adding-a-feature)). |
 | Allow or forbid a physical move outright | `footing/transitions.py` (hard rules) |
 | Change what basic metrics count | `metrics.py` (`BasicMetrics.add_note`) |
-| Change movement counts (shifts, candles) | `movement/detector.py` |
+| Change movement counts (direction shifts) | `movement/detector.py` |
 | Support a new simfile tag | `simfile/parser.py`, `simfile/song.py` |

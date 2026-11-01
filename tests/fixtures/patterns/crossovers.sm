@@ -52,9 +52,9 @@
 // @section=crossover-left-to-right
 1000 // @foot=L
 0100 // @foot=R
-0001 // @foot=L @pattern=crossover
+0001 // @foot=L @pattern=crossover,candle
 0100 // @foot=R
-1000 // @foot=L
+1000 // @foot=L @pattern=candle
 0000
 0000
 0000
@@ -62,9 +62,9 @@
 // @section=crossover-right-to-left
 0001 // @foot=R
 0100 // @foot=L
-1000 // @foot=R @pattern=crossover
+1000 // @foot=R @pattern=crossover,candle
 0100 // @foot=L
-0001 // @foot=R
+0001 // @foot=R @pattern=candle
 0000
 0000
 0000
@@ -72,9 +72,9 @@
 // @section=crossunder-left-to-right
 1000 // @foot=L
 0010 // @foot=R
-0001 // @foot=L @pattern=crossover
+0001 // @foot=L @pattern=crossover,candle
 0010 // @foot=R
-1000 // @foot=L
+1000 // @foot=L @pattern=candle
 0000
 0000
 0000
@@ -82,9 +82,9 @@
 // @section=crossunder-right-to-left
 0001 // @foot=R
 0010 // @foot=L
-1000 // @foot=R @pattern=crossover
+1000 // @foot=R @pattern=crossover,candle
 0010 // @foot=L
-0001 // @foot=R
+0001 // @foot=R @pattern=candle
 0000
 0000
 0000
@@ -92,10 +92,10 @@
 // @section=crossover-lateral
 1000 // @foot=L
 0100 // @foot=R
-0001 // @foot=L @crossover
-1000 // @foot=R @crossover
+0001 // @foot=L @pattern=crossover,candle
+1000 // @foot=R 
 0010 // @foot=L
-0001 // @foot=R
+0001 // @foot=R @pattern=candle
 1000 // @foot=L
 0000
 ;

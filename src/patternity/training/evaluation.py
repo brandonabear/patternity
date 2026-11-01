@@ -27,6 +27,7 @@ PATTERN_TAGS: dict[str, PatternKind] = {
     "sideswitch": PatternKind.SIDESWITCH,
     "doublestep": PatternKind.DOUBLESTEP,
     "bracket": PatternKind.BRACKET,
+    "candle": PatternKind.CANDLE,
 }
 SCORED_KINDS: tuple[PatternKind, ...] = tuple(dict.fromkeys(PATTERN_TAGS.values()))
 

@@ -154,6 +154,10 @@ class Stance:
         """True if this stance covers all bits in `required_mask`."""
         return (self.covered_mask & required_mask) == required_mask
 
+    def placement(self, foot: FootMove) -> FootPlacement:
+        """Placement of a single foot (``LEFT`` or ``RIGHT``)."""
+        return self.left if foot == FootMove.LEFT else self.right
+
 
 class FootMove(IntFlag):
     """Bitflag identifying which foot/feet were used in a given NoteRow."""
