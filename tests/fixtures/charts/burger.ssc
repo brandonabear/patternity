@@ -496,21 +496,21 @@
 1000 // @foot=L
 0000
 , // m14
-0102 // @foot=R @pattern=bracket
+0102 // @foot=R @pattern=bracket,candle
 0000
 0013 // @feet=L
 0001 // @foot=R
-2100 // @foot=L @pattern=bracket
+2100 // @foot=L @pattern=bracket,candle
 0000
 3010 // @foot=R
 0000
 1000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 00M0
 0100 // @foot=L @pattern=footswitch
 0002 // @foot=R
 0000
-0010 // @foot=L
+0010 // @foot=L @pattern=candle
 0000
 , // m15
 2003 // @foot=L @pattern=doublestep
@@ -527,7 +527,7 @@
 0010 // @foot=R @pattern=footswitch
 2000 // @foot=L
 0000
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 0000
 , // m16
 3001 // @foot=R @pattern=doublestep
@@ -539,7 +539,7 @@
 0100 // @foot=R @pattern=footswitch
 0100 // @foot=L @pattern=footswitch
 0001 // @foot=R
-0010 // @foot=L
+0010 // @foot=L @pattern=candle
 0200 // @foot=R
 0000
 1300 // @foot=L
@@ -552,7 +552,7 @@
 3100 // @foot=R
 0010 // @foot=L
 0001 // @foot=R
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 0040 // @foot=R
 0000
 1030 // @foot=L
@@ -561,19 +561,19 @@
 0100 // @foot=R
 0010 // @foot=L
 000M
-0010 // @foot=R @pattern=footswitch
+0010 // @foot=R @pattern=footswitch,candle
 1000 // @foot=L
 , // m18
-0202 // @foot=R @pattern=bracket
+0202 // @foot=R @pattern=bracket,candle
 0000
 1303 // @foot=L
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 2200 // @foot=L @pattern=bracket
 0000
 3310 // @foot=R
 0000
 1000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 00M0
 0100 // @foot=L @pattern=footswitch
 0002 // @foot=R
@@ -595,7 +595,7 @@
 0100 // @foot=R @pattern=footswitch
 2000 // @foot=L
 0000
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 0000
 , // m20
 3001 // @foot=R @pattern=doublestep
@@ -623,7 +623,7 @@
 0000
 0000
 0000
-0020 // @foot=L
+0020 // @foot=L @pattern=candle
 0030
 0000
 0000
@@ -663,7 +663,7 @@
 0000
 0000
 0000
-0020 // @foot=R
+0020 // @foot=R @pattern=candle
 0030
 0000
 0000
@@ -711,7 +711,7 @@
 0010 // @foot=R @pattern=footswitch
 2000 // @foot=L
 0000
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 0000
 , // m24
 3001 // @foot=R @pattern=doublestep
@@ -723,7 +723,7 @@
 0100 // @foot=L @pattern=footswitch
 0100 // @foot=R @pattern=footswitch
 1000 // @foot=L
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 0200 // @foot=L
 0300
 0001 // @foot=R
@@ -733,10 +733,10 @@
 , // m25
 0002 // @foot=R
 0000
-0013 // @foot=L
+0013 // @foot=L @pattern=candle
 0100 // @foot=R
 1000 // @foot=L
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 0400 // @foot=L
 0000
 0301 // @foot=R
@@ -745,13 +745,13 @@
 0010 // @foot=L
 0100 // @foot=R
 M000
-0100 // @foot=L @pattern=footswitch
+0100 // @foot=L @pattern=footswitch,candle
 0001 // @foot=R
 , // m26
-2020 // @foot=L @pattern=bracket
+2020 // @foot=L @pattern=bracket,candle
 0000
 3031 // @foot=R
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 0022 // @foot=R @pattern=bracket
 0000
 0133 // @foot=L
@@ -762,7 +762,7 @@ M000
 0100 // @foot=R @pattern=footswitch
 2000 // @foot=L
 0000
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 0000
 , // m27
 3002 // @foot=R @pattern=doublestep
@@ -779,7 +779,7 @@ M000
 0010 // @foot=L @pattern=footswitch
 0002 // @foot=R
 0000
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 0000
 , // m28
 1003 // @foot=L @pattern=doublestep
@@ -855,7 +855,7 @@ M000
 0000
 0000
 0000
-0020 // @foot=R
+0020 // @foot=R @pattern=candle
 0030
 0000
 0000
@@ -866,7 +866,7 @@ M000
 , // m30
 0100 // @foot=L
 0002 // @foot=R
-0013 // @foot=L
+0013 // @foot=L @pattern=candle
 0100 // @foot=R
 1000 // @foot=L
 0001 // @foot=R
@@ -874,18 +874,18 @@ M000
 0010 // @foot=R
 , // m31
 2000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 3001 // @foot=R @pattern=doublestep
 0010 // @foot=L
 0002 // @foot=R
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 1003 // @foot=L @pattern=doublestep
 0001 // @foot=R
 , // m32
 0100 // @foot=L
 0010 // @foot=R
 1000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 0010 // @foot=L
 0100 // @foot=R
 1000 // @foot=L
@@ -903,10 +903,10 @@ M000
 0103 // @foot=L
 0010 // @foot=R
 1000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 0010 // @foot=L
 0001 // @foot=R
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 0010 // @foot=R
 , // m35
 1000 // @foot=L
@@ -916,7 +916,7 @@ M000
 1000 // @foot=L
 0010 // @foot=R
 1000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 , // m36
 1000 // @foot=L
 0100 // @foot=R
@@ -929,10 +929,10 @@ M000
 , // m37
 0100 // @foot=L
 0001 // @foot=R
-0010 // @foot=L
+0010 // @foot=L @pattern=candle
 0100 // @foot=R
 1000 // @foot=L
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 0100 // @foot=L
 0002 // @foot=R
 , // m38
@@ -1369,12 +1369,12 @@ M000
 0013 // @foot=L
 0000
 0001 // @foot=R
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 00M0
 0100 // @foot=R @pattern=footswitch
 2000 // @foot=L
 0000
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 0000
 , // m47
 3004 // @foot=R @pattern=doublestep
@@ -1391,7 +1391,7 @@ M000
 0010 // @foot=L @pattern=footswitch
 0002 // @foot=R
 0000
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 0000
 , // m48
 1003 // @foot=L @pattern=doublestep
@@ -1403,7 +1403,7 @@ M000
 0100 // @foot=L @pattern=footswitch
 0100 // @foot=R @pattern=footswitch
 1000 // @foot=L
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 0200 // @foot=L
 0000
 0301 // @foot=R
@@ -1416,7 +1416,7 @@ M000
 0103 // @foot=L
 0010 // @foot=R
 1000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 0040 // @foot=L
 0000
 0031 // @foot=R
@@ -1425,19 +1425,19 @@ M000
 0100 // @foot=L
 0010 // @foot=R
 000M
-0010 // @foot=L @pattern=footswitch
+0010 // @foot=L @pattern=footswitch,candle
 0001 // @foot=R
 , // m50
-2200 // @foot=L @pattern=bracket
+2200 // @foot=L @pattern=bracket,candle
 0000
 3301 // @foot=R
-0010 // @foot=L
+0010 // @foot=L @pattern=candle
 0202 // @foot=R @pattern=bracket
 0000
 0313 // @foot=L
 0000
 0001 // @foot=R
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 00M0
 0100 // @foot=R @pattern=footswitch
 2000 // @foot=L
@@ -1459,7 +1459,7 @@ M000
 0100 // @foot=L @pattern=footswitch
 0002 // @foot=R
 0000
-0010 // @foot=L
+0010 // @foot=L @pattern=candle
 0000
 , // m52
 1003 // @foot=L @pattern=doublestep
@@ -1487,7 +1487,7 @@ M000
 0000
 0000
 0000
-0020 // @foot=R
+0020 // @foot=R @pattern=candle
 0030
 0000
 0000
@@ -1527,7 +1527,7 @@ M000
 0000
 0000
 0000
-0020 // @foot=L
+0020 // @foot=L @pattern=candle
 0030
 0000
 0000
@@ -1558,7 +1558,7 @@ M000
 0010 // @foot=R @pattern=footswitch
 2000 // @foot=L
 0000
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 0000
 , // m55
 3002 // @foot=R @pattern=doublestep
@@ -1575,7 +1575,7 @@ M000
 0100 // @foot=L @pattern=footswitch
 0002 // @foot=R
 0000
-0010 // @foot=L
+0010 // @foot=L @pattern=candle
 0000
 , // m56
 1003 // @foot=L @pattern=doublestep
@@ -1587,7 +1587,7 @@ M000
 0100 // @foot=R @pattern=footswitch
 0100 // @foot=L @pattern=footswitch
 0001 // @foot=R
-0010 // @foot=L
+0010 // @foot=L @pattern=candle
 0200 // @foot=R
 0300
 1000 // @foot=L
@@ -1597,10 +1597,10 @@ M000
 , // m57
 2000 // @foot=L
 0000
-3010 // @foot=R
+3010 // @foot=R @pattern=candle
 0100 // @foot=L
 0001 // @foot=R
-0010 // @foot=L
+0010 // @foot=L @pattern=candle
 0400 // @foot=R
 0000
 1300 // @foot=L
@@ -1609,13 +1609,13 @@ M000
 0010 // @foot=R
 0100 // @foot=L
 000M
-0100 // @foot=R @pattern=footswitch
+0100 // @foot=R @pattern=footswitch,candle
 1000 // @foot=L
 , // m58
-0022 // @foot=R @pattern=bracket
+0022 // @foot=R @pattern=bracket,candle
 0000
 1033 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 2020 // @foot=L @pattern=bracket
 0000
 3130 // @foot=R
@@ -1626,7 +1626,7 @@ M000
 0100 // @foot=L @pattern=footswitch
 0002 // @foot=R
 0000
-0010 // @foot=L
+0010 // @foot=L @pattern=candle
 0000
 , // m59
 2003 // @foot=L @pattern=doublestep
@@ -1643,7 +1643,7 @@ M000
 0010 // @foot=R @pattern=footswitch
 2000 // @foot=L
 0000
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 0000
 , // m60
 3001 // @foot=R @pattern=doublestep
@@ -1719,7 +1719,7 @@ M000
 0000
 0000
 0000
-0020 // @foot=L
+0020 // @foot=L @pattern=candle
 0030
 0000
 0000
