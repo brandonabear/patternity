@@ -15,6 +15,10 @@ class NoteType(StrEnum):
     LIFT = "L"
 
 
+PRESSABLE_NOTES = (NoteType.TAP, NoteType.HOLD, NoteType.ROLL)
+ANCHORED_NOTES = (NoteType.HOLD, NoteType.ROLL)
+
+
 @dataclass
 class NoteRow:
     left: NoteType | None = None
@@ -41,7 +45,7 @@ class NoteRow:
         """4-bit mask of columns requiring a foot press on this row (TAP, HOLD head, ROLL head)."""
         mask = 0
         for col, note in enumerate((self.left, self.down, self.up, self.right)):
-            if note in (NoteType.TAP, NoteType.HOLD, NoteType.ROLL):
+            if note in PRESSABLE_NOTES:
                 mask |= self.column_bit(col)
         return mask
 

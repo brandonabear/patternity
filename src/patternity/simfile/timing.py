@@ -26,7 +26,7 @@ class TimingEngine:
 
         # Calculate elapsed time across BPM changes.
         elapsed_time = 0.0
-        for (current_beat, current_bpm), (next_beat, next_bpm) in itertools.pairwise(
+        for (current_beat, current_bpm), (next_beat, _) in itertools.pairwise(
             self.bpms
         ):
             if target_beat <= current_beat:
@@ -36,9 +36,9 @@ class TimingEngine:
                 break
             elapsed_time += (next_beat - current_beat) * (60.0 / current_bpm)
 
-        # Append elapsed time across stops.
+        # Increment elapsed time across stops.
         for stop_beat, stop_duration in self.stops:
-            # Stops not applied on target beat
+            # Stops applied AFTER target beat
             if stop_beat < target_beat:
                 elapsed_time += stop_duration
             else:

@@ -149,12 +149,13 @@ class Header:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Header:
         obj = cls()
-        skip_booleans = {"selectable"}
         for field_name in _fields(obj):
+            # Skip missing keys
             value = data.get(field_name.name)
             if value is None:
                 continue
-            if field_name.name in skip_booleans:
+
+            if field_name.name in {"selectable"}:
                 setattr(obj, field_name.name, value == "yes")
             elif isinstance(value, dict):
                 setattr(

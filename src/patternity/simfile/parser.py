@@ -13,7 +13,6 @@ from patternity.simfile.song import (
 )
 from patternity.simfile.timing import TimingEngine
 
-_HEADER_RE = re.compile(r"^(#[A-Z][A-Z0-9]*)\s*:\s*(.*)$", re.DOTALL)
 _SSC_CHART_TAGS = frozenset(
     {
         "#STEPSTYPE",
@@ -41,12 +40,17 @@ def strip_leading_comments(section: str) -> str:
     lines = section.splitlines()
     for idx, line in enumerate(lines):
         stripped_line = line.strip()
+        # Keep only non-comment lines
         if stripped_line and not stripped_line.startswith("//"):
             return "\n".join(lines[idx:]).strip()
     return ""
 
 
+_HEADER_RE = re.compile(r"^(#[A-Z][A-Z0-9]*)\s*:\s*(.*)$", re.DOTALL)
+
+
 def _parse_header(raw: str) -> tuple[str, str]:
+    """Extract the key/value pair as a tuple using regex."""
     fallback = ("", "")
     if not raw:
         return fallback
@@ -74,7 +78,7 @@ def _split_measures(notes: str) -> list[list[str]]:
                 current = []
         else:
             current.append(line)
-    # The chart-closing ";" is consumed as the section delimiter, so the last
+    # The chart-closing ";" is treated as the section delimiter, so the last
     # measure may have no trailing ",".
     if current:
         measures.append(current)

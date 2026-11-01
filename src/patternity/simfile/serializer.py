@@ -17,4 +17,5 @@ def deserialize(path: Path) -> Song:
 
 
 def output_path(input_file: Path, output_dir: Path) -> Path:
+    """Build serialized output path (JSON)."""
     return output_dir / f"{input_file.stem}.json"
