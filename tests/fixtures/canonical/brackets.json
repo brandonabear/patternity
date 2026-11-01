@@ -6,15 +6,15 @@
         {
             "chart_index": 0,
             "basic": {
-                "taps": 68,
-                "jumps": 14,
+                "taps": 78,
+                "jumps": 15,
                 "hands": 0,
-                "holds": 0,
+                "holds": 1,
                 "rolls": 0,
                 "mines": 0,
                 "lifts": 0,
                 "fakes": 0,
-                "steps": 82
+                "steps": 93
             },
             "tech": {
                 "crossovers": 2,
