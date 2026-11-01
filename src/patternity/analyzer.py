@@ -31,8 +31,12 @@ class Analyzer:
         for step in resolved.steps:
             self.basic_metrics.add_note(step.note_row)
         self.tech_metrics = detect_tech_patterns(resolved.steps)
-        self.movement_metrics.total_cost = resolved.cost
-        self.movement_metrics.foot_path_feasible = resolved.feasible
+        self.movement_metrics = MovementMetrics.from_decode(
+            resolved.steps,
+            cost=resolved.cost,
+            feasible=resolved.feasible,
+            crossover_count=self.tech_metrics.crossovers,
+        )
 
         return {
             "basic": self.basic_metrics.to_dict(),

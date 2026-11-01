@@ -33,14 +33,24 @@ Without `-a`, the CLI only parses the file and prints the song title.
               'mines': 20, 'lifts': 0, 'fakes': 0, 'steps': 601},
     'tech': {'crossovers': 0, 'footswitches': 60, 'sideswitches': 0,
              'jacks': 0, 'brackets': 14, 'doublesteps': 20},
-    'movement': {'total_cost': 28240.8, 'foot_path_feasible': True}
+    'movement': {
+        'direction_shifts': 12,
+        'turns': 0,
+        'candles': 4,
+        'total_cost': 28240.8,
+        'foot_path_feasible': True,
+    }
 }
 ```
 
 - **`basic`** counts come from each step's `note_row` after decode (same chart data as `chart.notes`; footing weights do not affect them). `taps` counts press rows (a jump is one tap); `steps` counts arrow heads (a jump is two).
 - **`tech`** counts come from the inferred foot path. Definitions are in [Architecture → Tech labels](architecture.md#tech-labels).
-- **`movement.total_cost`** is the cost of the chosen foot path under the current weights. It is only meaningful for comparing footings of the same chart under the same weights; it is not a difficulty score, and can be negative.
-- **`movement.foot_path_feasible`** is `False` when some row could not be played under the hard physical rules (for example a mine on every panel a foot could use) and was forced with a penalty. See [Debugging](debugging.md#relaxed-rows).
+- **`movement`** counts also come from the inferred foot path (see [Architecture → Movement metrics](architecture.md#movement-metrics)):
+  - **`direction_shifts`** — press-row flips between facing left and facing right.
+  - **`turns`** — same number as **`tech.crossovers`** for that run.
+  - **`candles`** — completed center-crossing foot maneuvers (side-to-side via U/D, or U then D on one foot).
+  - **`total_cost`** — cost of the chosen path under the current weights (compare charts only under the same weights; not a difficulty score; can be negative).
+  - **`foot_path_feasible`** — `False` when any row needed a relaxed fallback. See [Debugging](debugging.md#relaxed-rows).
 
 ## Python
 
