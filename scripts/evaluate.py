@@ -4,7 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
+
+from rich.console import Console
 
 from patternity.footing import FootingModel
 from patternity.simfile import read_simfile
@@ -19,7 +22,7 @@ from patternity.training import (
 )
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "fixtures",
@@ -36,29 +39,42 @@ def main() -> None:
     parser.add_argument(
         "--loo", action="store_true", help="also train/score leave-one-chart-out"
     )
-    args = parser.parse_args()
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    console = Console()
+    parser = build_parser()
+    args = parser.parse_args(args=argv)
+
     root = args.fixtures_root or default_fixtures_root()
     fixtures = args.fixtures or load_corpus(root)
 
     model = FootingModel.load(args.weights) if args.weights else FootingModel.default()
     total_rows = total_errors = 0
+
     for rel in fixtures:
         annotated = parse_annotated_sm(read_simfile(root / rel))
         report = evaluate_annotated(rel, annotated, model)
         total_rows += report.rows
         total_errors += report.errors
-        print(format_report(report, annotated, show=args.show))
+        console.print(format_report(report, annotated, show=args.show))
+
     if total_rows:
-        print(
+        console.print(
             f"TOTAL: {1 - total_errors / total_rows:.2%} "
             f"({total_errors} / {total_rows} rows)"
         )
 
     if args.loo:
-        print("Leave-one-chart-out:")
+        console.print("Leave-one-chart-out:")
         for fold in leave_one_out(load_examples(fixtures, root)):
-            print(f"  {fold.held_out:32s} {fold.accuracy:7.2%} ({fold.errors}/{fold.rows})")
+            console.print(
+                f"  {fold.held_out:32s} {fold.accuracy:7.2%} ({fold.errors}/{fold.rows})"
+            )
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

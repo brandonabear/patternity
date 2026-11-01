@@ -22,8 +22,11 @@ from __future__ import annotations
 import argparse
 import math
 import re
+import sys
 from collections.abc import Sequence
 from pathlib import Path
+
+from rich.console import Console
 
 from patternity.footing import FootingModel, FootMove, ResolvedStep, resolve_chart
 from patternity.patterns.detector import detect_tech_patterns
@@ -138,9 +141,9 @@ def _add_measure_markers(lines: list[str], endings: list[str]) -> None:
         lines[line_i] = _format_comma_measure(lines[line_i], measure)
 
 
-
-
-def suggest_file(path: Path, model: FootingModel, *, list_rows: int) -> tuple[int, int]:
+def suggest_file(
+    console: Console, path: Path, model: FootingModel, *, list_rows: int
+) -> tuple[int, int]:
     """Write suggestions in place; return (foot suggestions, pattern suggestions)."""
     data = read_simfile(path)
     raw_lines = path.read_text(encoding="utf-8", newline="").splitlines(keepends=True)
@@ -176,7 +179,12 @@ def suggest_file(path: Path, model: FootingModel, *, list_rows: int) -> tuple[in
             parts.append(foot_suffix)
             label = "DISAGREES" if expected is not None else "untagged"
             suggestions.append(
-                (margin, row.line_number, row.measure, f"{label} m{row.measure} {foot_suffix}")
+                (
+                    margin,
+                    row.line_number,
+                    row.measure,
+                    f"{label} m{row.measure} {foot_suffix}",
+                )
             )
 
         tagged = {_TAG_ALIASES[tag] for tag in row.patterns if tag in _TAG_ALIASES}
@@ -193,30 +201,46 @@ def suggest_file(path: Path, model: FootingModel, *, list_rows: int) -> tuple[in
             line_i = row.line_number - 1
             text = lines[line_i]
             suffix = " ".join(parts)
-            lines[line_i] = f"{text} {suffix}" if "//" in text else f"{text} // {suffix}"
+            lines[line_i] = (
+                f"{text} {suffix}" if "//" in text else f"{text} // {suffix}"
+            )
 
     with path.open("w", encoding="utf-8", newline="") as out:
         out.writelines(body + end for body, end in zip(lines, endings, strict=True))
     suggestions.sort()
     for _margin, line_number, measure, text in suggestions[:list_rows]:
-        print(f"  line {line_number:5d} m{measure}: {text}")
+        console.print(f"  line {line_number:5d} m{measure}: {text}")
     if pattern_suggestions:
-        print("Pattern suggestions:")
+        console.print("Pattern suggestions:")
         for text in pattern_suggestions[:list_rows]:
-            print(text)
+            console.print(text)
     return len(suggestions), len(pattern_suggestions)
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("chart", type=Path)
     parser.add_argument("--weights", type=Path, help="weights JSON (default: packaged)")
-    parser.add_argument("--list", type=int, default=25, help="lowest-margin rows to print")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--list", type=int, default=25, help="lowest-margin rows to print"
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    console = Console()
+    parser = build_parser()
+    args = parser.parse_args(args=argv)
+
     model = FootingModel.load(args.weights) if args.weights else FootingModel.default()
-    feet, patterns = suggest_file(args.chart.resolve(), model, list_rows=args.list)
-    print(f"Wrote {feet} foot and {patterns} pattern suggestions to {args.chart}")
+    feet, patterns = suggest_file(
+        console, args.chart.resolve(), model, list_rows=args.list
+    )
+    console.print(
+        f"Wrote {feet} foot and {patterns} pattern suggestions to {args.chart}"
+    )
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
