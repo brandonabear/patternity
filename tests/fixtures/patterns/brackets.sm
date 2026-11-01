@@ -90,9 +90,9 @@
 // @section=crossover-bracket-ur
 1000 // @foot=L
 0100 // @foot=R
-0011 // @feet=L,L @pattern=bracket,crossover-bracket
+0011 // @feet=L,L @pattern=bracket,crossover-bracket,candle
 0100 // @foot=R
-1000 // @foot=L
+1000 // @foot=L @pattern=candle
 0000
 0000
 0000
@@ -108,9 +108,9 @@
 // @section=crossover-bracket-lu
 0001 // @foot=R
 0100 // @foot=L
-1010 // @feet=R,R @pattern=bracket,crossover-bracket
+1010 // @feet=R,R @pattern=bracket,crossover-bracket,candle
 0100 // @foot=L
-0001 // @foot=R
+0001 // @foot=R @pattern=candle
 0000
 0000
 0000
@@ -170,13 +170,13 @@
 // Brackets can be used to change player direction
 // @section=bracket-stream
 1000 // @foot=L
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 1100 // @feet=L,L @pattern=bracket
 0001 // @foot=R
 1010 // @feet=L,L @pattern=bracket
 0100 // @foot=R
 1000 // @foot=L
-0011 // @feet=R,R @pattern=bracket
+0011 // @feet=R,R @pattern=bracket,candle
 ,
 // Brackets can lead to footswitches
 // @section=bracket-footswitch
@@ -184,7 +184,7 @@
 0010 // @foot=R
 0100 // @foot=L
 0001 // @foot=R
-1010 // @feet=L,L @pattern=bracket
+1010 // @feet=L,L @pattern=bracket,candle
 0010 // @foot=R @pattern=footswitch
 1000 // @foot=L
 0001 // @foot=R

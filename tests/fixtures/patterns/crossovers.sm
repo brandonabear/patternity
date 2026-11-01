@@ -93,9 +93,9 @@
 1000 // @foot=L
 0100 // @foot=R
 0001 // @foot=L @pattern=crossover,candle
-1000 // @foot=R 
-0010 // @foot=L
-0001 // @foot=R @pattern=candle
+1000 // @foot=R @pattern=crossover
+0010 // @foot=L @pattern=crossover
+0001 // @foot=R @pattern=crossover,candle
 1000 // @foot=L
 0000
 ;

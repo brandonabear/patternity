@@ -52,9 +52,9 @@
 0010 // @foot=L
 0010 // @foot=R @pattern=footswitch
 1000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 1000 // @foot=L
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 0010 // @foot=L @pattern=footswitch
 0001 // @foot=R
 1000 // @foot=L
@@ -62,7 +62,7 @@
 , // Footswitches with Mine Cue, +3FS
 // @section=mine-cued-footswitch
 1000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 M100 // @foot=L @pattern=footswitch
 0001 // @foot=R
 1000 // @foot=L
@@ -70,9 +70,9 @@ M100 // @foot=L @pattern=footswitch
 0010 // @foot=L
 001M // @foot=R @pattern=footswitch
 1000 // @foot=L
-0100 // @foot=R
+0100 // @foot=R @pattern=candle
 1000 // @foot=L
-0010 // @foot=R
+0010 // @foot=R @pattern=candle
 M010 // @foot=L @pattern=footswitch
 0001 // @foot=R
 1000 // @foot=L
@@ -102,7 +102,7 @@ M010 // @foot=L @pattern=footswitch
 000M // Mine Cue
 0010 // @foot=R @pattern=holdswitch
 0000
-0200 // @foot=L
+0200 // @foot=L @pattern=candle
 0000
 0001 // @foot=R
 0000
@@ -110,7 +110,7 @@ M010 // @foot=L @pattern=footswitch
 000M // Mine Cue
 0100 // @foot=R @pattern=holdswitch
 0000
-0020 // @foot=L
+0020 // @foot=L @pattern=candle
 0000
 0001 // @foot=R
 0000
@@ -118,7 +118,7 @@ M010 // @foot=L @pattern=footswitch
 000M // Mine Cue
 0010 // @foot=R @pattern=holdswitch
 0000
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 0000
 0002 // @foot=R
 0000

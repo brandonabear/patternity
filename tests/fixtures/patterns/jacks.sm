@@ -55,7 +55,7 @@
 0100 // @foot=R
 0010 // @foot=L
 0001 // @foot=R
-0100 // @foot=L
+0100 // @foot=L @pattern=candle
 0100 // @foot=L @pattern=jack
 0001 // @foot=R
 1000 // @foot=L

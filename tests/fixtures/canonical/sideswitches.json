@@ -21,7 +21,8 @@
                 "sideswitches": 1,
                 "jacks": 1,
                 "brackets": 0,
-                "doublesteps": 0
+                "doublesteps": 0,
+                "candles": 1
             }
         }
     ]

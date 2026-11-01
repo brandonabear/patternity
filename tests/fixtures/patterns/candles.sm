@@ -65,15 +65,15 @@
 1000 // @foot=L @pattern=candle
 0001 // @foot=R
 1000 // @foot=L
-0001 //@foot=R
+0001 // @foot=R
 ,
 // @section=hold-candle
-2000 //@foot=L
+2000 // @foot=L
 0010 // @foot=R
 0000
 0100 // @foot=R @pattern=doublestep,candle
 0000
-0001
+0001 // @foot=R @pattern=doublestep
 0000
 3000
 ;
