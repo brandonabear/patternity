@@ -1,4 +1,4 @@
-from patternity.metrics import TechMetrics
+from patternity.analysis import TechMetrics
 from patternity.patterns import PatternKind, PatternSpan
 
 

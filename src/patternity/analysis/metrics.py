@@ -24,9 +24,9 @@ class BasicMetrics:
         panels = (note_row.left, note_row.down, note_row.up, note_row.right)
         heads = 0
         for panel in panels:
-            # Skip empty rows early
             if panel == NoteType.EMPTY:
                 continue
+
             match panel:
                 case NoteType.MINE:
                     self.mines += 1

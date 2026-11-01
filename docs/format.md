@@ -59,4 +59,4 @@ Song (one .sm / .ssc file)
 | Note row (LDUR + derived timing) | `NoteRow` | `patternity.simfile.notes` |
 | Column symbol (`0`, `1`, `M`, …) | `NoteType` | `patternity.simfile.notes` |
 
-**Derived at parse time (not SM tags):** each `NoteRow` gets `measure`, `quantization`, and `beat` from measure boundaries and row index. **Analysis** metrics (`BasicMetrics`, `TechMetrics`, `MovementMetrics`) are computed later and are not part of the simfile; see `patternity.metrics` and [Architecture](architecture.md).
+**Derived at parse time (not SM tags):** each `NoteRow` gets `measure`, `quantization`, and `beat` from measure boundaries and row index. **Analysis** metrics (`BasicMetrics`, `TechMetrics`, `MovementMetrics`) are computed later and are not part of the simfile; see `patternity.analysis` and [Architecture](architecture.md).

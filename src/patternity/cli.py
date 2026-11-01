@@ -8,7 +8,7 @@ from pathlib import Path
 
 from rich.console import Console
 
-from patternity.analyzer import Analyzer
+from patternity.analysis import Analyzer
 from patternity.simfile.parser import StepmaniaFileParser
 from patternity.simfile.reader import read_simfile
 from patternity.simfile.serializer import output_path, serialize

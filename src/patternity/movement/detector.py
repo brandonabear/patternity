@@ -4,7 +4,7 @@ from collections.abc import Sequence
 
 from patternity.footing.resolve import FootingResult, ResolvedStep
 from patternity.footing.stance import FootMove, PlayerOrientation
-from patternity.metrics import MovementMetrics
+from patternity.analysis.metrics import MovementMetrics
 
 _FACING = frozenset({PlayerOrientation.FACING_LEFT, PlayerOrientation.FACING_RIGHT})
 

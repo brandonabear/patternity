@@ -32,10 +32,12 @@ The package is split by pipeline stage. Each subpackage's `__init__` re-exports 
 
 ```text
 src/patternity/
-  __init__.py  analyzer.py  cli.py  metrics.py
+  __init__.py  cli.py
+  analysis/    analyzer, metrics
   simfile/     reader, parser, song, notes, timing, serializer
   footing/     stance, transitions, features, search, model, resolve
   patterns/    spans, detector
+  movement/    detector
   training/    __main__, annotations, trainer, corpus, evaluation
   data/        footing_weights.json
 ```
@@ -58,13 +60,13 @@ src/patternity/
 | `footing/resolve.py` | `resolve_chart`, `ResolvedStep`, `FootingResult`. |
 | `patterns/spans.py` | `PatternKind` and `PatternSpan` (one detection with its steps). |
 | `patterns/detector.py` | Tech-pattern labeling on a decoded path. The only place ITG timing cutoffs appear. |
-| `metrics.py` | `BasicMetrics`, `TechMetrics` (spans plus counts), `MovementMetrics`. |
+| `analysis/metrics.py` | `BasicMetrics`, `TechMetrics` (spans plus counts), `MovementMetrics`. |
 | `movement/detector.py` | `detect_movement`: direction shifts, path cost, and feasibility on a resolved path. |
-| `analyzer.py` | Ties the steps above together for one chart. |
+| `analysis/analyzer.py` | Ties the steps above together for one chart. |
 | `cli.py` | The `patternity` command. |
 | `data/footing_weights.json` | The trained weights loaded by default. |
 
-`patterns/__init__` re-exports only the span types. `metrics.py` depends on them and `patterns/detector.py` depends on `metrics.py`, so import the detector from `patternity.patterns.detector` (or `patternity`).
+`patterns/__init__` re-exports only the span types. `analysis/metrics.py` depends on them and `patterns/detector.py` depends on `analysis/metrics.py`, so import the detector from `patternity.patterns.detector` (or `patternity`).
 
 ### Training and evaluation (developer tooling)
 
@@ -120,6 +122,6 @@ Computed by `movement/detector.py` from the same decoded foot path as tech label
 | Fix how a pattern is *counted* (cutoffs, pairing rules) | `patterns/detector.py` |
 | Fix how a passage is *footed* | Annotate it and retrain ([Training workflow](training.md)). Only add or change a feature in `footing/features.py` (`featurize`) when the existing features cannot express the distinction ([Footing model](footing-model.md#adding-a-feature)). |
 | Allow or forbid a physical move outright | `footing/transitions.py` (hard rules) |
-| Change what basic metrics count | `metrics.py` (`BasicMetrics.add_note`) |
+| Change what basic metrics count | `analysis/metrics.py` (`BasicMetrics.add_note`) |
 | Change movement counts (direction shifts) | `movement/detector.py` |
 | Support a new simfile tag | `simfile/parser.py`, `simfile/song.py` |
