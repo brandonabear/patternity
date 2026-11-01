@@ -19,8 +19,9 @@ flowchart TD
     parse --> trellis["Build trellis<br/>(legal states + features per row)"]
     weights[("footing_weights.json")] --> score["Transition cost = weights · features"]
     trellis --> score
-    score --> viterbi["Viterbi → cheapest foot path"]
-    viterbi --> tech["Tech counts<br/>(pattern rules)"]
+    score --> viterbi["Viterbi → resolved steps"]
+    viterbi --> basic["Basic counts<br/>(note data per step)"]
+    viterbi --> tech["Tech counts<br/>(pattern rules on foot path)"]
 
     tags["Annotated @foot / @feet tags"] --> train["Structured perceptron<br/>(decode with Viterbi, update weights)"]
     train --> weights

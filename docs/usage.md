@@ -37,7 +37,7 @@ Without `-a`, the CLI only parses the file and prints the song title.
 }
 ```
 
-- **`basic`** counts come straight from the note data. `taps` counts press rows (a jump is one tap); `steps` counts arrow heads (a jump is two).
+- **`basic`** counts come from each step's `note_row` after decode (same chart data as `chart.notes`; footing weights do not affect them). `taps` counts press rows (a jump is one tap); `steps` counts arrow heads (a jump is two).
 - **`tech`** counts come from the inferred foot path. Definitions are in [Architecture → Tech labels](architecture.md#tech-labels).
 - **`movement.total_cost`** is the cost of the chosen foot path under the current weights. It is only meaningful for comparing footings of the same chart under the same weights; it is not a difficulty score, and can be negative.
 - **`movement.foot_path_feasible`** is `False` when some row could not be played under the hard physical rules (for example a mine on every panel a foot could use) and was forced with a penalty. See [Debugging](debugging.md#relaxed-rows).

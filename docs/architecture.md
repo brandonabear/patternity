@@ -7,10 +7,11 @@ flowchart TD
     file[".sm / .ssc file"] --> reader["simfile.read_simfile"]
     reader --> parser["simfile.StepmaniaFileParser"]
     parser --> song["Song → Chart → NoteRow[]"]
-    song --> basic["BasicMetrics<br/>(note counts)"]
     song --> footing["footing.resolve_chart<br/>(Viterbi over foot states)"]
     weights[("data/footing_weights.json")] --> footing
-    footing --> detector["patterns.detect_tech_patterns<br/>(ITG cutoffs)"]
+    footing --> steps["ResolvedStep[]<br/>(note_row + foot_row)"]
+    steps --> basic["BasicMetrics<br/>(note_row only)"]
+    steps --> detector["patterns.detect_tech_patterns<br/>(ITG cutoffs)"]
     footing --> movement["MovementMetrics<br/>(path cost, feasible)"]
     detector --> tech["TechMetrics"]
     basic --> report["Analyzer.analyze()"]
@@ -19,9 +20,9 @@ flowchart TD
 ```
 
 1. **Read and parse.** `read_simfile` loads the text; `StepmaniaFileParser.parse` turns it into a `Song` with a `Header` and one `Chart` per difficulty. Each chart's `notes` is a list of `NoteRow`s (empty `0000` rows are dropped) carrying measure, beat, quantization, timestamp (from `#BPMS` / `#STOPS` / `#OFFSET`), and which holds/rolls are active. See [File format](format.md).
-2. **Basic metrics.** `BasicMetrics` counts taps, jumps, holds, mines, etc. directly from the rows. No foot model is involved.
-3. **Footing.** `footing.resolve_chart` finds the cheapest physically legal sequence of foot positions for the whole chart. The cost of each move is a learned linear function of a few generic features. The same decode supplies **`MovementMetrics`**: total path cost and whether any row needed a relaxed (penalized) fallback. See [Footing model](footing-model.md).
-4. **Tech labels.** `patterns.detector.detect_tech_patterns` walks that foot path once and labels jacks, switches, doublesteps, brackets, and crossovers using community / ITGmania timing cutoffs into **`TechMetrics`**.
+2. **Footing.** `footing.resolve_chart` finds the cheapest physically legal sequence of foot positions for the whole chart and returns one **`ResolvedStep`** per row (`note_row` plus decoded `foot_row`). The cost of each move is a learned linear function of a few generic features. The same decode supplies **`MovementMetrics`**: total path cost and whether any row needed a relaxed (penalized) fallback. See [Footing model](footing-model.md).
+3. **Basic metrics.** `Analyzer` walks `resolved.steps` and feeds each `note_row` into `BasicMetrics`. Counts are chart notation only (taps, jumps, holds, …); they do **not** use `foot_row` and do not change when footing weights change.
+4. **Tech labels.** `patterns.detector.detect_tech_patterns` walks the same steps and labels jacks, switches, doublesteps, brackets, and crossovers using community / ITGmania timing cutoffs into **`TechMetrics`**.
 5. **Report.** `Analyzer.analyze()` returns the `basic`, `tech`, and `movement` dictionaries (see [Usage → Output](usage.md#output)).
 
 ## Modules

@@ -22,15 +22,14 @@ class Analyzer:
         self.movement_metrics = MovementMetrics()
 
     def analyze(self) -> dict[str, Any]:
-        for note_row in self.chart.notes:
-            self.basic_metrics.add_note(note_row)
-
         resolved = resolve_chart(
             self.chart.notes,
             self.model,
             allow_brackets=self.allow_brackets,
             with_confidence=False,
         )
+        for step in resolved.steps:
+            self.basic_metrics.add_note(step.note_row)
         self.tech_metrics = detect_tech_patterns(resolved.steps)
         self.movement_metrics.total_cost = resolved.cost
         self.movement_metrics.foot_path_feasible = resolved.feasible
