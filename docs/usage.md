@@ -1,0 +1,86 @@
+# Usage
+
+## Install
+
+Patternity needs Python 3.14 and [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync
+```
+
+## Command line
+
+```bash
+uv run patternity -f path/to/chart.ssc -a
+```
+
+| Flag | Meaning |
+|------|---------|
+| `-f`, `--file` | Simfile to read (`.sm` or `.ssc`). Required. |
+| `-a`, `--analyze` | Analyze every chart in the file and print the metrics. |
+| `-s`, `--serialize` | Write the parsed song to JSON. |
+| `-o`, `--output` | Output directory for `--serialize` (default `data/`). |
+
+Without `-a`, the CLI only parses the file and prints the song title.
+
+### Output
+
+`-a` prints one dictionary per chart, in file order:
+
+```python
+{
+    'basic': {'taps': 587, 'jumps': 14, 'hands': 14, 'holds': 135, 'rolls': 5,
+              'mines': 20, 'lifts': 0, 'fakes': 0, 'steps': 601},
+    'tech': {'crossovers': 0, 'footswitches': 60, 'sideswitches': 0,
+             'jacks': 0, 'brackets': 14, 'doublesteps': 20},
+    'movement': {'total_cost': 28240.8, 'foot_path_feasible': True}
+}
+```
+
+- **`basic`** counts come straight from the note data. `taps` counts press rows (a jump is one tap); `steps` counts arrow heads (a jump is two).
+- **`tech`** counts come from the inferred foot path. Definitions are in [Architecture → Tech labels](architecture.md#tech-labels).
+- **`movement.total_cost`** is the cost of the chosen foot path under the current weights. It is only meaningful for comparing footings of the same chart under the same weights; it is not a difficulty score, and can be negative.
+- **`movement.foot_path_feasible`** is `False` when some row could not be played under the hard physical rules (for example a mine on every panel a foot could use) and was forced with a penalty. See [Debugging](debugging.md#relaxed-rows).
+
+## Python
+
+```python
+from pathlib import Path
+
+from patternity import Analyzer, StepmaniaFileParser, read_simfile
+
+song = StepmaniaFileParser.parse(read_simfile(Path("chart.ssc")))
+for chart in song.charts:
+    print(chart.metadata.difficulty, Analyzer(chart).analyze())
+```
+
+To inspect the foot path itself rather than the counts:
+
+```python
+from patternity import detect_tech_patterns, resolve_chart
+
+result = resolve_chart(chart.notes)          # packaged weights, with confidence
+for step in result.steps:
+    if step.note_row.press_mask:
+        fr = step.foot_row
+        print(step.note_row.measure, step.note_row.beat,
+              fr.moved.name, fr.stance.left, fr.stance.right, step.confidence)
+
+tech = detect_tech_patterns(result.steps)
+for span in tech.spans:                      # each detection, with its steps
+    print(span.kind, span.start_measure, span.start_beat)
+```
+
+`resolve_chart` and `Analyzer` accept a `model=` argument to use other weights:
+
+```python
+from patternity import FootingModel
+
+model = FootingModel.load(Path("/tmp/experiment.json"))
+Analyzer(chart, model=model).analyze()
+```
+
+## Limits
+
+- Singles (4-panel) only; doubles are out of scope.
+- Footing is learned from a small annotated corpus. Unusual patterns that no annotated chart covers (for example long jumpstreams) can be footed oddly; see [Training workflow](training.md) for how to fix that with data.
