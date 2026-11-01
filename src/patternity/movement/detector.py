@@ -10,16 +10,22 @@ _FACING = frozenset({PlayerOrientation.FACING_LEFT, PlayerOrientation.FACING_RIG
 
 
 def count_direction_shifts(steps: Sequence[ResolvedStep]) -> int:
-    """Press-row count of FACING_LEFT <-> FACING_RIGHT orientation changes."""
+    """Press-row count of FACING_LEFT <-> FACING_RIGHT changes.
+
+    Neutral and inverted rows are transition phases: they keep the last facing
+    direction, so FACING_LEFT -> NEUTRAL -> FACING_RIGHT is one shift.
+    """
     shifts = 0
-    prev: PlayerOrientation | None = None
+    last_facing: PlayerOrientation | None = None
     for step in steps:
         if step.foot_row.moved == FootMove.NONE:
             continue
         orientation = step.foot_row.stance.orientation
-        if prev in _FACING and orientation in _FACING and orientation != prev:
+        if orientation not in _FACING:
+            continue
+        if last_facing is not None and orientation != last_facing:
             shifts += 1
-        prev = orientation
+        last_facing = orientation
     return shifts
 
 

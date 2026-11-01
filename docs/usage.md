@@ -33,7 +33,7 @@ Without `-a`, the CLI only parses the file and prints the song title.
               'mines': 20, 'lifts': 0, 'fakes': 0, 'steps': 601},
     'tech': {'crossovers': 0, 'footswitches': 60, 'sideswitches': 0,
              'jacks': 0, 'brackets': 14, 'doublesteps': 20, 'candles': 56},
-    'movement': {'direction_shifts': 0, 'total_cost': 17101.5,
+    'movement': {'direction_shifts': 52, 'total_cost': 15777.96,
                  'foot_path_feasible': True}
 }
 ```
@@ -41,7 +41,7 @@ Without `-a`, the CLI only parses the file and prints the song title.
 - **`basic`** counts come from each step's `note_row` after decode (same chart data as `chart.notes`; footing weights do not affect them). `taps` counts press rows (a jump is one tap); `steps` counts arrow heads (a jump is two).
 - **`tech`** counts come from the inferred foot path. Definitions are in [Architecture → Tech labels](architecture.md#tech-labels).
 - **`movement`** counts also come from the inferred foot path (see [Architecture → Movement metrics](architecture.md#movement-metrics)):
-  - **`direction_shifts`** — press-row flips between facing left and facing right.
+  - **`direction_shifts`** — turns from facing left to facing right or back. Neutral and inverted rows in between don't reset the last facing direction.
   - **`total_cost`** — cost of the chosen path under the current weights (compare charts only under the same weights; not a difficulty score; can be negative).
   - **`foot_path_feasible`** — `False` when any row needed a relaxed fallback. See [Debugging](debugging.md#relaxed-rows).
 

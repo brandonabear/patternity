@@ -22,13 +22,34 @@ def test_direction_shifts_facing_left_right_only() -> None:
     assert count_direction_shifts(steps) == 2
 
 
-def test_direction_shifts_ignores_neutral() -> None:
+def test_direction_shifts_neutral_alone_is_not_a_shift() -> None:
     steps = [
         _press(FootPlacement.L, FootPlacement.R, FootMove.LEFT, 0),
         _press(FootPlacement.D, FootPlacement.U, FootMove.RIGHT, 1),
         _press(FootPlacement.L, FootPlacement.R, FootMove.LEFT, 2),
     ]
     assert count_direction_shifts(steps) == 0
+
+
+def test_direction_shifts_remember_facing_through_neutral() -> None:
+    steps = [
+        _press(FootPlacement.D, FootPlacement.U, FootMove.LEFT, 0),
+        _press(FootPlacement.L, FootPlacement.R, FootMove.LEFT, 1),
+        _press(FootPlacement.U, FootPlacement.D, FootMove.RIGHT, 2),
+        _press(FootPlacement.L, FootPlacement.R, FootMove.RIGHT, 3),
+        _press(FootPlacement.L, FootPlacement.D, FootMove.RIGHT, 4),
+        _press(FootPlacement.U, FootPlacement.D, FootMove.LEFT, 5),
+    ]
+    assert count_direction_shifts(steps) == 1
+
+
+def test_direction_shifts_remember_facing_through_inverted() -> None:
+    steps = [
+        _press(FootPlacement.D, FootPlacement.U, FootMove.LEFT, 0),
+        _press(FootPlacement.R, FootPlacement.L, FootMove.LEFT, 1),
+        _press(FootPlacement.U, FootPlacement.D, FootMove.RIGHT, 2),
+    ]
+    assert count_direction_shifts(steps) == 1
 
 
 def test_detect_movement_reports_cost_and_feasibility() -> None:

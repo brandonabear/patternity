@@ -109,7 +109,7 @@ Computed by `movement/detector.py` from the same decoded foot path as tech label
 
 | Metric | Rule |
 |--------|------|
-| `direction_shifts` | On each press row, +1 when orientation changes between `FACING_LEFT` and `FACING_RIGHT` (same condition as the `facing_flip` training feature; neutral and inverted transitions are ignored, so a normal crossover counts 0). |
+| `direction_shifts` | On each press row with a facing orientation, +1 when it differs from the last facing orientation (`FACING_LEFT` ↔ `FACING_RIGHT`). Neutral and inverted rows are transition phases that keep the last facing direction, so left → neutral → right counts 1 and a crossover that returns to its starting side counts 0. This differs from the `facing_flip` training feature, which only fires on direct consecutive flips. |
 | `total_cost` | Sum of weighted transition costs on the chosen path. |
 | `foot_path_feasible` | `False` if any row used a relaxed (penalized) fallback. |
 
