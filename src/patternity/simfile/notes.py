@@ -107,23 +107,27 @@ class AnchorTracker:
 
     def apply_heads(self, row: NoteRow) -> None:
         for col, note in enumerate((row.left, row.down, row.up, row.right)):
-            if note == NoteType.HOLD:
-                self._state[col] = "hold"
-            elif note == NoteType.ROLL:
-                self._state[col] = "roll"
+            match note:
+                case NoteType.HOLD:
+                    self._state[col] = "hold"
+                case NoteType.ROLL:
+                    self._state[col] = "roll"
 
     def snapshot(self) -> tuple[int, int]:
         hold_mask = 0
         roll_mask = 0
+
         for col in range(_NUM_COLUMNS):
             match self._state[col]:
                 case "hold":
                     hold_mask |= NoteRow.column_bit(col)
                 case "roll":
                     roll_mask |= NoteRow.column_bit(col)
+
         return hold_mask, roll_mask
 
     def apply_tails(self, row: NoteRow) -> None:
         for col, note in enumerate((row.left, row.down, row.up, row.right)):
-            if note == NoteType.TAIL:
-                self._state[col] = "idle"
+            match note:
+                case NoteType.TAIL:
+                    self._state[col] = "idle"

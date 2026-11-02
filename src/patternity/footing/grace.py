@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from patternity.footing.transitions import anchored_mask
-from patternity.simfile.notes import NoteRow, NoteType
+from patternity.simfile.notes import ANCHORED_NOTES, NoteRow, NoteType
 
 # StepMania / ITG hold and roll life windows.
 HOLD_GRACE_SEC = 0.32
@@ -43,7 +43,7 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[tuple[int, Remaining]]:
         out.append((mask, (remaining[0], remaining[1], remaining[2], remaining[3])))
 
         for col, note in enumerate(panels):
-            if note in (NoteType.HOLD, NoteType.ROLL):
+            if note in ANCHORED_NOTES:
                 next_tail[col] = None
     out.reverse()
     return out
