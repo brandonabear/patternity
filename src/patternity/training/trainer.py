@@ -150,13 +150,13 @@ class FoldResult:
 
 
 def leave_one_out(
-    examples: Sequence[Example], **train_kwargs: float
+    examples: Sequence[Example], *, epochs: int = 100, margin: float = 5.0
 ) -> list[FoldResult]:
     """Train on all charts but one and score per-row accuracy on the held-out chart."""
     results: list[FoldResult] = []
     for held in examples:
         rest = [e for e in examples if e is not held]
-        model = train(rest, **train_kwargs)  # type: ignore[arg-type]
+        model = train(rest, epochs=epochs, margin=margin)
         results.append(
             FoldResult(
                 held_out=held.name,

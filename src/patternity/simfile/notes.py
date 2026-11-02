@@ -100,7 +100,8 @@ _AnchorKind = Literal["idle", "hold", "roll"]
 
 
 class AnchorTracker:
-    """Per-column hold/roll state while parsing chart rows (``hold_active_mask`` / ``roll_active_mask``)."""
+    """Per-column hold/roll state while parsing chart rows (``hold_active_mask`` /
+    ``roll_active_mask``)."""
 
     def __init__(self) -> None:
         self._state: list[_AnchorKind] = ["idle"] * _NUM_COLUMNS

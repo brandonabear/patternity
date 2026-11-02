@@ -5,6 +5,7 @@ footing decoder never sees them.
 """
 
 import math
+from collections.abc import Sequence
 
 from patternity.analysis.metrics import TechMetrics
 from patternity.footing.resolve import ResolvedStep
@@ -73,7 +74,7 @@ def _single_col(step: ResolvedStep) -> int | None:
     return mask.bit_length() - 1 if mask.bit_count() == 1 else None
 
 
-def detect_tech_patterns(steps: list[ResolvedStep]) -> TechMetrics:
+def detect_tech_patterns(steps: Sequence[ResolvedStep]) -> TechMetrics:
     """Label jacks, foot/side switches, doublesteps, brackets, crossovers, and candles."""
     spans: list[PatternSpan] = []
 
@@ -187,7 +188,7 @@ def detect_tech_patterns(steps: list[ResolvedStep]) -> TechMetrics:
                     ref_time = last_time[col]
                     used_mine_ref = col_mine is not None and col_mine > ref_time
                     if used_mine_ref:
-                        ref_time = col_mine  # type: ignore[assignment]
+                        ref_time = col_mine
                     # A switch after a hold release (holdswitch) needs a mine cue.
                     cued = not from_tail[col] or any_mine_time > last_time[col]
                     kind = (

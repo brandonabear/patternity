@@ -1,4 +1,5 @@
-"""Reading and parsing StepMania ``.sm`` / ``.ssc`` files into ``Song`` / ``Chart`` / ``NoteRow``."""
+"""Reading and parsing StepMania ``.sm`` / ``.ssc`` files into ``Song`` / ``Chart`` /
+``NoteRow``."""
 
 from patternity.simfile.notes import ANCHORED_NOTES, PRESSABLE_NOTES, NoteRow, NoteType
 from patternity.simfile.parser import StepmaniaFileParser

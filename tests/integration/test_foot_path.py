@@ -4,6 +4,8 @@ import pytest
 
 from patternity.simfile import read_simfile
 from patternity.training import evaluate_annotated, format_report, parse_annotated_sm
+from patternity.training.annotations import AnnotatedChart
+from patternity.training.evaluation import FixtureReport
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 
@@ -20,7 +22,7 @@ _MIN_ACCURACY = {
 _MIN_PATTERN_F1 = 0.75
 
 
-def _report(fixture_relpath: str):  # type: ignore[no-untyped-def]
+def _report(fixture_relpath: str) -> tuple[AnnotatedChart, FixtureReport]:
     annotated = parse_annotated_sm(read_simfile(FIXTURES / fixture_relpath))
     return annotated, evaluate_annotated(fixture_relpath, annotated)
 

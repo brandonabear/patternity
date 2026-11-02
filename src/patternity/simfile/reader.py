@@ -6,7 +6,7 @@ class UnsupportedSimfileSuffix(ValueError):
 
 
 def read_simfile(file: Path) -> str:
-    if not file.suffix in [".sm", ".ssc"]:
+    if file.suffix not in [".sm", ".ssc"]:
         raise UnsupportedSimfileSuffix(
             "Invalid file extension: must be one of [`.sm`, `.ssc`]: "
             + f"Received {file.name}"

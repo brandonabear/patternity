@@ -130,8 +130,13 @@ def featurize(
         if cue:
             add("mine_cued_same_foot")
 
-    col = curr.last_press_col
-    if single and col is not None and col == prev.last_press_col and prev_foot in _FEET:
+    press_col = curr.last_press_col
+    if (
+        single
+        and press_col is not None
+        and press_col == prev.last_press_col
+        and prev_foot in _FEET
+    ):
         if prev_foot == moved:
             add("jack")
             add("jack_speed", spd)
