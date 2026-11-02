@@ -135,9 +135,7 @@ def evaluate_annotated(
                 confidence=step.confidence,
             )
         )
-    disagreements.sort(
-        key=lambda d: math.inf if d.confidence is None else d.confidence
-    )
+    disagreements.sort(key=lambda d: math.inf if d.confidence is None else d.confidence)
 
     detected: dict[PatternKind, set[int]] = {}
     for span in detect_tech_patterns(result.steps).spans:
@@ -157,7 +155,9 @@ def evaluate_fixture(path: Path, model: FootingModel | None = None) -> FixtureRe
     return evaluate_annotated(path.name, parse_annotated_sm(read_simfile(path)), model)
 
 
-def format_report(report: FixtureReport, annotated: AnnotatedChart, *, show: int = 20) -> str:
+def format_report(
+    report: FixtureReport, annotated: AnnotatedChart, *, show: int = 20
+) -> str:
     lines = [
         (
             f"{report.name}: {report.accuracy:.2%} per-row "

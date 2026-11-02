@@ -100,9 +100,7 @@ def _emit_foot_row(
             mines_since_press=prev.mines_since_press | row.mine_mask,
             last_press_col=prev.last_press_col,
             last_press_foot=prev.last_press_foot,
-            hold_owners=_update_hold_owners(
-                prev, row, stance, moved, anchored, grace
-            ),
+            hold_owners=_update_hold_owners(prev, row, stance, moved, anchored, grace),
             released_since_press=released,
             last_repeat_jack=prev.last_repeat_jack,
         )

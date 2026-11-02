@@ -39,7 +39,9 @@ class Layer:
     penalty: list[float] = field(default_factory=list)
     _index: dict[FootRow, int] = field(default_factory=dict)
 
-    def add_edge(self, prev_i: int, curr: FootRow, feat_id: int, penalty: float) -> None:
+    def add_edge(
+        self, prev_i: int, curr: FootRow, feat_id: int, penalty: float
+    ) -> None:
         state_i = self._index.get(curr)
         if state_i is None:
             state_i = len(self.states)
@@ -124,7 +126,9 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
         if row.press_mask:
             last_press_time = now
 
-    return Trellis(rows=list(rows), layers=layers, feature_table=table, relaxed_rows=relaxed)
+    return Trellis(
+        rows=list(rows), layers=layers, feature_table=table, relaxed_rows=relaxed
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,9 +141,7 @@ class Decoded:
     relaxed_rows: tuple[int, ...] = ()
 
     def states(self, trellis: Trellis) -> list[FootRow]:
-        return [
-            trellis.layers[i].states[s] for i, s in enumerate(self.state_indices)
-        ]
+        return [trellis.layers[i].states[s] for i, s in enumerate(self.state_indices)]
 
 
 def _table_costs(trellis: Trellis, weights: Sequence[float]) -> list[float]:
@@ -209,9 +211,7 @@ def viterbi(
         s = trellis.layers[i].prev_idx[k]
     state_indices.reverse()
     edge_indices.reverse()
-    return Decoded(
-        tuple(state_indices), tuple(edge_indices), total, tuple(relaxed)
-    )
+    return Decoded(tuple(state_indices), tuple(edge_indices), total, tuple(relaxed))
 
 
 def path_features(trellis: Trellis, decoded: Decoded) -> list[float]:
@@ -250,7 +250,11 @@ def row_confidence(trellis: Trellis, weights: Sequence[float]) -> list[float | N
         above = backward[i]
         cost = [math.inf] * len(layers[i - 1].states)
         for k, p in enumerate(layer.prev_idx):
-            c = table_cost[layer.feat_ids[k]] + layer.penalty[k] + above[layer.next_idx[k]]
+            c = (
+                table_cost[layer.feat_ids[k]]
+                + layer.penalty[k]
+                + above[layer.next_idx[k]]
+            )
             cost[p] = min(cost[p], c)
         backward[i - 1] = cost
 

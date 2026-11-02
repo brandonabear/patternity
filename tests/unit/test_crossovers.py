@@ -29,7 +29,9 @@ def _steps(moves: list[tuple[str, str, str]]) -> list[ResolvedStep]:
 
 def _crossover_rows(moves: list[tuple[str, str, str]]) -> list[tuple[str, int]]:
     spans = detect_tech_patterns(_steps(moves)).spans
-    return [(s.kind.value, s.steps[-1].index) for s in spans if s.kind in _CROSSOVER_KINDS]
+    return [
+        (s.kind.value, s.steps[-1].index) for s in spans if s.kind in _CROSSOVER_KINDS
+    ]
 
 
 def test_crossover_anchors_on_first_crossed_step() -> None:

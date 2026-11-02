@@ -11,7 +11,9 @@ from typing import Any
 
 from patternity.footing.features import FEATURE_NAMES
 
-PACKAGED_WEIGHTS = Path(__file__).resolve().parent.parent / "data" / "footing_weights.json"
+PACKAGED_WEIGHTS = (
+    Path(__file__).resolve().parent.parent / "data" / "footing_weights.json"
+)
 
 
 @dataclass
@@ -29,7 +31,9 @@ class FootingModel:
         cls, vector: Sequence[float], metadata: dict[str, Any] | None = None
     ) -> FootingModel:
         return cls(
-            weights={name: float(v) for name, v in zip(FEATURE_NAMES, vector, strict=True)},
+            weights={
+                name: float(v) for name, v in zip(FEATURE_NAMES, vector, strict=True)
+            },
             metadata=dict(metadata or {}),
         )
 

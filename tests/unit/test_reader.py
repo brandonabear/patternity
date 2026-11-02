@@ -3,9 +3,7 @@ import pytest
 from patternity.simfile.reader import UnsupportedSimfileSuffix, read_simfile
 
 
-@pytest.mark.parametrize(
-    "suffix", [".sm", ".ssc"]
-)
+@pytest.mark.parametrize("suffix", [".sm", ".ssc"])
 def test_read_simfile_success(mocker, suffix):
     file = mocker.Mock()
     file.name = f"chart{suffix}"
@@ -18,9 +16,7 @@ def test_read_simfile_success(mocker, suffix):
     file.read_text.assert_called_once_with(encoding="utf-8")
 
 
-@pytest.mark.parametrize(
-    "suffix", [".txt", ".dwi"]
-)
+@pytest.mark.parametrize("suffix", [".txt", ".dwi"])
 def test_read_simfile_failure(mocker, suffix):
     file = mocker.Mock()
     file.name = f"chart{suffix}"

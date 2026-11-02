@@ -149,7 +149,9 @@ class FoldResult:
         return 1.0 - self.errors / self.rows if self.rows else 1.0
 
 
-def leave_one_out(examples: Sequence[Example], **train_kwargs: float) -> list[FoldResult]:
+def leave_one_out(
+    examples: Sequence[Example], **train_kwargs: float
+) -> list[FoldResult]:
     """Train on all charts but one and score per-row accuracy on the held-out chart."""
     results: list[FoldResult] = []
     for held in examples:

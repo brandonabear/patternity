@@ -172,12 +172,12 @@ class FootMove(IntFlag):
 class FootRow:
     """Trellis node: stance plus the minimal history transition features read.
 
-    We include all fields so node merge in Viterbi occurs only when two nodes 
+    We include all fields so node merge in Viterbi occurs only when two nodes
     have identical scores.
 
     stance: The position of the player at the current FootRow
     moved: The footing used to obtain the current position.
-    mines_since_press: 
+    mines_since_press:
     last_press_col: The most recently pressed column
     last_press_foot: The most recent footing of the last pressed column
     hold_owners: Foot/Feet currently anchored by a hold or roll

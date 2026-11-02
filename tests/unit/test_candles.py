@@ -18,7 +18,9 @@ def _steps(moves: list[tuple[str, str, str]]) -> list[ResolvedStep]:
         steps.append(
             ResolvedStep(
                 index=i,
-                note_row=NoteRow.from_str(_row(panel), beat=i * 0.5, timestamp=i * 0.25),
+                note_row=NoteRow.from_str(
+                    _row(panel), beat=i * 0.5, timestamp=i * 0.25
+                ),
                 foot_row=FootRow(
                     stance=Stance.from_feet(FootPlacement(left), FootPlacement(right)),
                     moved=moved,

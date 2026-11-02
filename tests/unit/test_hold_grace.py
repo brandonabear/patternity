@@ -63,7 +63,9 @@ def test_release_inside_window_adds_early_release() -> None:
 
 def test_owner_cannot_leave_before_window() -> None:
     # 16ths at 150 BPM are 0.1s apart; the tap is 1.0s before the tail.
-    rows = _rows(["2000"] + ["0000"] * 3 + ["0100"] + ["0000"] * 9 + ["3000", "0000", ","])
+    rows = _rows(
+        ["2000"] + ["0000"] * 3 + ["0100"] + ["0000"] * 9 + ["3000", "0000", ","]
+    )
     press = next(i for i, r in enumerate(rows) if r.press_mask == 0b0010)
     assert not hold_grace(rows)[press][0]
     assert _left_presses_down(rows, press) is None

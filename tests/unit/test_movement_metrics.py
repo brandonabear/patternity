@@ -5,7 +5,9 @@ from patternity.movement import count_direction_shifts, detect_movement
 from patternity.simfile import NoteRow
 
 
-def _press(left: FootPlacement, right: FootPlacement, moved: FootMove, index: int) -> ResolvedStep:
+def _press(
+    left: FootPlacement, right: FootPlacement, moved: FootMove, index: int
+) -> ResolvedStep:
     return ResolvedStep(
         index=index,
         note_row=NoteRow.from_str("0100"),

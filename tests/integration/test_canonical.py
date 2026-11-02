@@ -14,7 +14,9 @@ def _load_canonical(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _analyze_fixture(canonical: dict[str, Any], chart_entry: dict[str, Any]) -> dict[str, Any]:
+def _analyze_fixture(
+    canonical: dict[str, Any], chart_entry: dict[str, Any]
+) -> dict[str, Any]:
     fixture_path = FIXTURES / canonical["fixture"]
     song = StepmaniaFileParser.parse(read_simfile(fixture_path))
     return Analyzer(song.charts[chart_entry["chart_index"]]).analyze()
@@ -78,9 +80,7 @@ def test_canonical_hand_counted_metrics(canonical_path: Path) -> None:
                 "charts[].basic and charts[].tech"
             )
         mismatches: list[str] = []
-        mismatches.extend(
-            _metric_mismatches(result["basic"], basic, label="basic")
-        )
+        mismatches.extend(_metric_mismatches(result["basic"], basic, label="basic"))
         mismatches.extend(
             _metric_mismatches(
                 result["tech"],

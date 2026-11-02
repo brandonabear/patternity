@@ -11,10 +11,10 @@ class BasicMetrics:
     """Basic metrics for a chart."""
 
     taps: int = 0  # Count of pressable rows (jumps/hands = 1)
-    jumps: int = 0 # Count of pressable notes
+    jumps: int = 0  # Count of pressable notes
     hands: int = 0
-    holds: int = 0 
-    rolls: int = 0 
+    holds: int = 0
+    rolls: int = 0
     mines: int = 0
     lifts: int = 0
     fakes: int = 0

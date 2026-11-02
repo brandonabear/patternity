@@ -26,7 +26,9 @@ _HEADER = """\
 #NOTES:
 """
 
-_MINI_CHART = _HEADER + """\
+_MINI_CHART = (
+    _HEADER
+    + """\
 0000
 0000
 0100
@@ -38,8 +40,11 @@ _MINI_CHART = _HEADER + """\
 0000
 ;
 """
+)
 
-_PATTERN_CHART = _HEADER + """\
+_PATTERN_CHART = (
+    _HEADER
+    + """\
 1000 // @pattern=jump
 0001 // @suggest=R @margin=1.0
 0001 // @pattern=candle
@@ -51,6 +56,7 @@ _PATTERN_CHART = _HEADER + """\
 0000
 ;
 """
+)
 
 
 @pytest.fixture
@@ -63,8 +69,9 @@ def test_suggest_adds_measure_markers_and_measure_on_tags(
 ) -> None:
     path = tmp_path / "mini.ssc"
     path.write_text(_MINI_CHART, encoding="utf-8")
-    assert (
-        suggest_file(mock_console, path, FootingModel.default(), list_rows=10) == (2, 0)
+    assert suggest_file(mock_console, path, FootingModel.default(), list_rows=10) == (
+        2,
+        0,
     )
     text = path.read_text(encoding="utf-8")
     assert "// measure 0\n" in text
@@ -74,9 +81,7 @@ def test_suggest_adds_measure_markers_and_measure_on_tags(
     assert "measure 0 @suggest" not in text
 
 
-def test_suggest_patterns_where_decoder_disagrees(
-    mock_console, tmp_path: Path
-) -> None:
+def test_suggest_patterns_where_decoder_disagrees(mock_console, tmp_path: Path) -> None:
     path = tmp_path / "patterns.ssc"
     path.write_text(_PATTERN_CHART, encoding="utf-8")
     _feet, patterns = suggest_file(
@@ -112,7 +117,9 @@ def test_accepting_all_suggestions_by_find_replace(
     suggested = parse_annotated_sm(path.read_text(encoding="utf-8"))
     assert not suggested.tagged_assignments
 
-    accepted = parse_annotated_sm(path.read_text(encoding="utf-8").replace("@suggest_", "@"))
+    accepted = parse_annotated_sm(
+        path.read_text(encoding="utf-8").replace("@suggest_", "@")
+    )
     steps = resolve_chart(accepted.chart.notes, model).steps
     assert accepted.tagged_assignments == {
         step.index: step.foot_row.moved for step in steps if step.note_row.press_mask

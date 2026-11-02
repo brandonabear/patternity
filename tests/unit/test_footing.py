@@ -96,15 +96,21 @@ def _gold_steps(rows: list[str], bpm: float) -> list[ResolvedStep]:
 
 def test_switch_after_hold_release_needs_mine_cue() -> None:
     base = ["0020 // @foot=L", "0001 // @foot=R", "0030"]
-    plain = _gold_steps([*base, "0000", "0010 // @foot=R", "0000", "0000", "0000", ","], 200)
-    cued = _gold_steps([*base, "000M", "0010 // @foot=R", "0000", "0000", "0000", ","], 200)
+    plain = _gold_steps(
+        [*base, "0000", "0010 // @foot=R", "0000", "0000", "0000", ","], 200
+    )
+    cued = _gold_steps(
+        [*base, "000M", "0010 // @foot=R", "0000", "0000", "0000", ","], 200
+    )
     assert detect_tech_patterns(plain).footswitches == 0
     assert detect_tech_patterns(cued).footswitches == 1
     assert detect_tech_patterns(cued).doublesteps == 0
 
 
 def test_same_foot_panel_change_is_doublestep() -> None:
-    steps = _gold_steps(["1000 // @foot=L", "0100 // @foot=R", "0001 // @foot=R", ","], 120)
+    steps = _gold_steps(
+        ["1000 // @foot=L", "0100 // @foot=R", "0001 // @foot=R", ","], 120
+    )
     kinds = [span.kind for span in detect_tech_patterns(steps).spans]
     assert kinds == [PatternKind.DOUBLESTEP]
 
