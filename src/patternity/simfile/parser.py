@@ -97,6 +97,7 @@ def _rows_from_measures(
             if row == "0000":
                 continue
 
+            # Build row timing information
             beat = round(measure_idx * 4 + row_idx * 4 / quantization, 4)
             note_row = NoteRow.from_str(
                 row,
@@ -105,6 +106,8 @@ def _rows_from_measures(
                 measure=measure_idx,
                 timestamp=timing.convert_beat_to_seconds(beat),
             )
+
+            # Apply hold/roll tracking
             anchor_tracker.apply_heads(note_row)
             hold_mask, roll_mask = anchor_tracker.snapshot()
             note_row.hold_active_mask = hold_mask

@@ -15,8 +15,8 @@ class NoteType(StrEnum):
     LIFT = "L"
 
 
-PRESSABLE_NOTES = (NoteType.TAP, NoteType.HOLD, NoteType.ROLL)
-ANCHORED_NOTES = (NoteType.HOLD, NoteType.ROLL)
+PRESSABLE_NOTES = frozenset({NoteType.TAP, NoteType.HOLD, NoteType.ROLL})
+ANCHORED_NOTES = frozenset({NoteType.HOLD, NoteType.ROLL})
 
 
 @dataclass
