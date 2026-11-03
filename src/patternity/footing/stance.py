@@ -29,7 +29,7 @@ class FootPlacement(StrEnum):
 
     @property
     def mask(self) -> int:
-        """4-bit LDUR mask for panels covered by this placement."""
+        """4-bit LDUR mask for panels covered by given foot placement."""
         return _PLACEMENT_MASKS[self]
 
     @property
@@ -38,16 +38,16 @@ class FootPlacement(StrEnum):
         return _PLACEMENT_COORDS[self]
 
     def shares_panel_with(self, other: FootPlacement) -> bool:
-        """True if both placements include at least one common panel."""
+        """True if both foot placements include at least one common panel."""
         return bool(self.mask & other.mask)
 
     @property
     def is_bracket(self) -> bool:
-        """True if this placement bridges two adjacent panels."""
+        """True if this foot placement bridges two adjacent panels."""
         return len(self.value) == 2
 
     def distance_to(self, other: FootPlacement) -> float:
-        """Euclidean distance between two placements on the pad."""
+        """Euclidean distance between two foot placements on the pad."""
         return math.dist(self.coords, other.coords)
 
 
@@ -90,7 +90,13 @@ def compute_orientation(
     right: FootPlacement,
     prev_orientation: PlayerOrientation = PlayerOrientation.NEUTRAL,
 ) -> PlayerOrientation:
-    """Derive body orientation from left and right foot coordinates."""
+    """Derive body orientation from left and right foot coordinates.
+
+    Assumes ``left``/``right`` don't overlap (see ``Stance`` docstring); the
+    dx/dy sign logic still runs and returns a definite value for overlapping
+    placements, but "which way are the hips facing" isn't a coherent question
+    there, so the result shouldn't be trusted in that case.
+    """
     lx, ly = left.coords
     rx, ry = right.coords
     dx = rx - lx
@@ -112,9 +118,30 @@ def compute_orientation(
     return prev_orientation
 
 
+class FootMove(IntFlag):
+    """Bitflag identifying which foot/feet were used in a given NoteRow."""
+
+    NONE = 0
+    LEFT = 1
+    RIGHT = 2
+    BOTH = LEFT | RIGHT
+
+
 @dataclass(frozen=True, slots=True)
 class Stance:
-    """Combined physical posture of both feet and derived hip orientation."""
+    """Combined physical posture of both feet and derived hip orientation.
+
+    Player orientation is only guaranteed with legal footing when built using
+    `from_feet` method; the dataclass itself does not validate it. Direct
+    construction does not guard against illegal stances like the following:
+    Stance(
+        left=FootPlacement.LU,
+        right=FootPlacement.U,
+        orientation=PlayerOrientation.INVERTED
+    )
+
+    Always construct Stance via `from_feet`.
+    """
 
     left: FootPlacement
     right: FootPlacement
@@ -156,15 +183,6 @@ class Stance:
     def placement(self, foot: FootMove) -> FootPlacement:
         """Placement of a single foot (``LEFT`` or ``RIGHT``)."""
         return self.left if foot == FootMove.LEFT else self.right
-
-
-class FootMove(IntFlag):
-    """Bitflag identifying which foot/feet were used in a given NoteRow."""
-
-    NONE = 0
-    LEFT = 1
-    RIGHT = 2
-    BOTH = LEFT | RIGHT
 
 
 @dataclass(frozen=True, slots=True)

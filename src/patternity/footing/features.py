@@ -17,34 +17,36 @@ from patternity.footing.transitions import anchored_mask
 from patternity.simfile.notes import NoteRow
 
 FEATURE_NAMES: tuple[str, ...] = (
-    "same_foot",
-    "same_foot_speed",
-    "same_foot_after_release",
-    "jack",
-    "jack_speed",
-    "jack_speed_sq",
-    "switch",
-    "switch_speed",
-    "repeat_change",
-    "travel",
-    "travel_speed",
-    "overlap",
-    "crossed",
-    "cross_entry",
-    "inverted",
-    "facing_flip",
-    "twisted",
-    "bracket",
-    "bracket_speed",
-    "jump",
-    "jump_speed",
-    "hold_bracket_tap",
-    "mine_cued_switch",
-    "mine_cued_same_foot",
-    "cued_foot_moves",
-    "cued_foot_stays",
-    "hold_release",
-    "early_release",
+    "same_foot",  # The same foot presses twice in a row (any panels).
+    "same_foot_speed",  # Same, scaled by speed.
+    "same_foot_after_release",  # Same, but the other foot just released a hold, including a
+    # grace-window release on this row (natural after a hold).
+    "jack",  # Same foot, same panel, consecutive presses.
+    "jack_speed",  # Same, scaled by speed.
+    "jack_speed_sq",  # Same, scaled by speed squared, so fast jacks cost disproportionately more.
+    "switch",  # Other foot, same panel, consecutive presses.
+    "switch_speed",  # Same, scaled by speed.
+    "repeat_change",  # A same-panel run changes technique midway (jack then switch, or the reverse).
+    "travel",  # Distance the moving foot travels.
+    "travel_speed",  # Same, scaled by speed.
+    "overlap",  # Both feet end up sharing a panel area during a single-foot press.
+    "crossed",  # The stance is crossed.
+    "cross_entry",  # Same, but only on the step that enters the crossed stance.
+    "inverted",  # Fully backwards stance.
+    "facing_flip",  # Turning from facing one side to facing the other.
+    "twisted",  # Facing sideways without being crossed.
+    "bracket",  # A foot lands on a two-panel bracket.
+    "bracket_speed",  # Same, scaled by speed.
+    "jump",  # Both feet press on the same row.
+    "jump_speed",  # Same, scaled by speed.
+    "hold_bracket_tap",  # A foot that owns a hold brackets to tap another panel.
+    "mine_cued_switch",  # A switch with a mine cue since the last press.
+    "mine_cued_same_foot",  # A same-foot repeat with a mine cue since the last press.
+    "cued_foot_moves",  # A foot standing on a mine-cued panel moves off it.
+    "cued_foot_stays",  # A foot standing on a mine-cued panel stays on it.
+    "hold_release",  # A foot leaves a hold or roll it owns during the grace window (tail row included).
+    "early_release",  # Same, scaled by how early: seconds left to the tail / grace window (0 on
+    # the tail row, up to 1).
 )
 FEATURE_INDEX: dict[str, int] = {name: i for i, name in enumerate(FEATURE_NAMES)}
 

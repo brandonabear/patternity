@@ -7,7 +7,7 @@ The footing weights are learned from charts you annotate. The loop is:
 3. Retrain.
 4. Check training fit, leave-one-chart-out, and the tests.
 
-For what the trainer does internally, see [Footing model](footing-model.md#training-the-structured-perceptron).
+For what the trainer does internally, see [The Structured Perceptron](#the-structured-perceptron) below.
 
 ## 1. Annotate
 
@@ -150,3 +150,31 @@ uv run pytest -q
 - **Real ambiguity, decided by a person.** The model learns most from passages where a reasonable alternative footing exists and you can say why yours is right.
 - **Coverage of what's missing.** Look at charts where the analyzer's counts look wrong and annotate the passages responsible (see [Debugging](debugging.md)). Jumpstreams, uncued footswitches, and long same-panel runs have historically been under-covered.
 - **Variety over volume.** A few distinct charts teach more than one very long chart; long charts are already scaled down during training so they don't dominate.
+
+## The Structured Perceptron
+
+StepMania does not embed the notion of footing within its engines, nor is this information persisted in chart data in `.sm` or `.ssc` files. We hand-annotate charts that an ML model can fit and effectively mimic player footing decision-making.
+
+We want weights under which every annotated foot choice is part of the cheapest path. A **structured perceptron** learns exactly that: decode with the current weights, and if the result disagrees with the annotations, nudge the weights so the annotated path gets cheaper and the wrong path gets more expensive. Repeat. No gradients or probabilities needed — just the same Viterbi decoder used at runtime — and with a linear model and a few dozen features it converges quickly on a small corpus.
+
+### The Update
+
+Every epoch, for each annotated chart in shuffled order (`training.trainer.train`):
+
+1. **Predict** the cheapest path using the current weights with **cost-augmented decoding**: a path that disagrees with an annotation gets a `margin` (default 5) discount, so the annotated path must win by at least that margin, not merely tie.
+2. If any annotated row is wrong, find the **gold path**: the cheapest path that agrees with every annotation. Annotations only say which foot moved, not every detail of the stance, so the decoder fills in the rest under the current weights (a "latent-variable" perceptron). This is also why charts can be **partially annotated** — untagged rows are simply left to the decoder.
+3. **Update**: `w ← w − step × (features(gold) − features(predicted))`. Features the gold path relies on get cheaper; features the wrong path relied on get more expensive.
+4. **Clip** a few weights at zero (`NONNEGATIVE` in `training/trainer.py`): travel, inverted, crossover entry, facing flip, technique change, jack speed², bracket speed, hold release, early release. These can only add physical effort, so clipping stops the perceptron from learning to reward them on sparse data.
+
+`step` is scaled per chart by `mean annotated rows / this chart's annotated rows`, so one long, fully annotated chart can't drown out a 12-row pattern fixture.
+
+### Stopping And The Returned Weights
+
+- If a whole epoch passes with every chart decoded correctly at the margin, training stops and returns those weights (`footing_weights.json` then records `"trainer": "structured-perceptron"`).
+- Otherwise, after `epochs` (default 100), it returns the **average** of the weights across all updates (`"averaged-structured-perceptron"`) — the standard remedy when no single weight vector satisfies every annotation.
+
+> [!NOTE]
+> "Averaged" means some annotations conflict under the current features: either the tags disagree with each other, or the model is missing a feature that would tell the passages apart. See [Debugging](debugging.md#the-trainer-did-not-converge).
+
+Training is deterministic (`seed=0`).
+
