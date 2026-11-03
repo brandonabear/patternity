@@ -96,21 +96,20 @@ def compute_orientation(
     dx = rx - lx
     dy = ry - ly
 
-    if dx > 0:
-        return PlayerOrientation.NEUTRAL
-
-    # Both feet occupy the exact same placement (e.g., footswitch overlap)
-    if dx == 0 and dy == 0:
-        return prev_orientation
-
-    # dx <= 0: Feet are aligned vertically (dx == 0) or crossed horizontally (dx < 0)
+    # Change in dy indicates hip direction shift (left, right)
     if dy > 0:
         return PlayerOrientation.FACING_LEFT
     if dy < 0:
         return PlayerOrientation.FACING_RIGHT
 
-    # dx < 0 and dy == 0 (e.g., left=R, right=L)
-    return PlayerOrientation.INVERTED
+    # Change in dx indicates player direction shift (forward, backward)
+    if dx > 0:
+        return PlayerOrientation.NEUTRAL
+    if dx < 0:
+        return PlayerOrientation.INVERTED
+
+    # dx=0, dy=0 occurs with repeated steps, footswitches, etc.
+    return prev_orientation
 
 
 @dataclass(frozen=True, slots=True)

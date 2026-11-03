@@ -28,7 +28,6 @@ NONNEGATIVE: frozenset[str] = frozenset(
         "travel",
         "travel_speed",
         "inverted",
-        "facing_flip",
         "cross_entry",
         "repeat_change",
         "jack_speed_sq",
