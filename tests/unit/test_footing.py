@@ -27,11 +27,11 @@ def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
         row = rows[i]
         now = row.timestamp or 0.0
         dt = now - last_press if row.press_mask and last_press is not None else None
-        grace_mask, grace_remaining = grace_rows[i]
-        for curr in iter_legal_transitions(prev, row, grace=grace_mask):
+        grace = grace_rows[i]
+        for curr in iter_legal_transitions(prev, row, grace=grace.mask):
             if row.press_mask and row.mine_mask and hits_mine(curr, row.mine_mask):
                 continue
-            feats = featurize(prev, curr, row, dt, grace_remaining=grace_remaining)
+            feats = featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
             edge = sum(weights[FEATURE_NAMES.index(k)] * v for k, v in feats.items())
             walk(i + 1, curr, cost + edge, now if row.press_mask else last_press)
 
@@ -129,3 +129,11 @@ def test_training_fits_a_small_fixture() -> None:
     assert row_errors(example, model.vector()) == 0
     assert set(model.weights) == set(FEATURE_NAMES)
     assert example.gold[5] == FootMove.LEFT
+
+
+def test_training_with_zero_epochs_returns_unconverged_zero_weights() -> None:
+    annotated = parse_annotated_sm(chart_text(["1000 // @foot=L", "0100 // @foot=R", ","]))
+    example = Example("tiny", annotated, build_trellis(annotated.chart.notes))
+    model = train([example], epochs=0)
+    assert model.metadata["trainer"] == "averaged-structured-perceptron"
+    assert all(weight == 0.0 for weight in model.weights.values())

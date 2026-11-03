@@ -70,8 +70,8 @@ flowchart TD
     S2a -->|stationary re-tap: 0.3| S3a
     S2b -.->|same_foot: 2.0| S3b
 
-    classDef winner stroke:#2e7d32,stroke-width:3px
+    classDef selected stroke:#2e7d32,stroke-width:3px
     classDef pruned stroke-dasharray: 4 3
-    class S1a,S2a,S3a winner
+    class S1a,S2a,S3a selected
     class S1b,S2b,S3b pruned
 ```

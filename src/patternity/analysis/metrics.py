@@ -23,9 +23,6 @@ class BasicMetrics:
     def add_note(self, note_row: NoteRow) -> None:
         heads = 0
         for panel in note_row.panels:
-            if panel == NoteType.EMPTY:
-                continue
-
             match panel:
                 case NoteType.MINE:
                     self.mines += 1
@@ -42,6 +39,7 @@ class BasicMetrics:
                 case NoteType.TAP:
                     heads += 1
                 case _:
+                    # Empty panels and hold/roll tails count toward nothing.
                     continue
 
         self.steps += heads

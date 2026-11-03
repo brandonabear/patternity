@@ -7,6 +7,7 @@ not tech-pattern timing cutoffs.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from patternity.footing.transitions import anchored_mask
 from patternity.simfile.notes import ANCHORED_NOTES, NoteRow, NoteType
@@ -18,10 +19,22 @@ ROLL_GRACE_SEC = 0.35
 Remaining = tuple[float | None, float | None, float | None, float | None]
 
 
-def hold_grace(rows: Sequence[NoteRow]) -> list[tuple[int, Remaining]]:
-    """Per row: mask of anchored columns in grace, and seconds left to each tail."""
+@dataclass(frozen=True)
+class GraceWindow:
+    """Grace state of one row.
+
+    ``mask``: anchored columns whose tail is within the grace window.
+    ``remaining``: seconds left to each such column's tail (``None`` elsewhere).
+    """
+
+    mask: int = 0
+    remaining: Remaining = (None, None, None, None)
+
+
+def hold_grace(rows: Sequence[NoteRow]) -> list[GraceWindow]:
+    """The grace window of each row."""
     next_tail: list[float | None] = [None] * 4
-    out: list[tuple[int, Remaining]] = []
+    out: list[GraceWindow] = []
     for row in reversed(rows):
         for col, note in enumerate(row.panels):
             if note == NoteType.TAIL:
@@ -39,7 +52,7 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[tuple[int, Remaining]]:
             if 0.0 <= tail - now <= window:
                 mask |= bit
                 remaining[col] = tail - now
-        out.append((mask, (remaining[0], remaining[1], remaining[2], remaining[3])))
+        out.append(GraceWindow(mask, (remaining[0], remaining[1], remaining[2], remaining[3])))
 
         for col, note in enumerate(row.panels):
             if note in ANCHORED_NOTES:

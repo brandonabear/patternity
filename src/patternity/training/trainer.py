@@ -100,6 +100,7 @@ def train(
     mean_rows = sum(len(e.gold) for e in examples) / max(len(examples), 1)
     scale = {id(e): mean_rows / max(len(e.gold), 1) for e in examples}
 
+    converged = False
     for _ in range(epochs):
         rng.shuffle(order)
         mistakes = 0
@@ -120,8 +121,8 @@ def train(
                 total[i] += weights[i]
             steps += 1
         if mistakes == 0:
+            converged = True
             break
-    converged = mistakes == 0
 
     averaged = [t / max(steps, 1) for t in total]
     return FootingModel.from_vector(

@@ -13,6 +13,11 @@ class PlayerOrientation(StrEnum):
     FACING_RIGHT = "facing_right"
     INVERTED = "inverted"
 
+    @property
+    def is_facing(self) -> bool:
+        """Turned sideways: facing left or facing right."""
+        return self in (PlayerOrientation.FACING_LEFT, PlayerOrientation.FACING_RIGHT)
+
 
 class FootPlacement(StrEnum):
     """Physical placement of a foot on a 4-panel pad."""
@@ -189,16 +194,16 @@ class Stance:
 class FootRow:
     """Trellis node: stance plus the minimal history transition features read.
 
-    We include all fields so node merge in Viterbi occurs only when two nodes
-    have identical scores.
+    Every field takes part in equality and hashing, so Viterbi merges two nodes
+    only when their state is identical (and therefore so are all future costs).
 
     stance: The position of the player at the current FootRow
     moved: The footing used to obtain the current position.
-    mines_since_press:
+    mines_since_press: Mask of panels that had a mine since the last press row
     last_press_col: The most recently pressed column
     last_press_foot: The most recent footing of the last pressed column
     hold_owners: Foot/Feet currently anchored by a hold or roll
-    released_since_press:
+    released_since_press: Feet that released a hold/roll tail since the last press row
     last_repeat_jack: Flag indicating if last press repeated the preceding panel/foot
     """
 

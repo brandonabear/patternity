@@ -21,7 +21,9 @@ class TimingEngine:
     def convert_beat_to_seconds(self, target_beat: float) -> float:
         """Convert a target beat to elapsed seconds.
 
-        Only handles BPM changes and stops.
+        Only handles BPM changes and stops. ``#OFFSET`` is intentionally not
+        applied: every consumer compares differences between timestamps, where a
+        constant offset cancels out, so timestamps are seconds from beat 0.
         """
 
         # Calculate elapsed time across BPM changes.

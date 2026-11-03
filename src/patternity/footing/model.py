@@ -11,6 +11,10 @@ from typing import Any
 
 from patternity.footing.features import FEATURE_NAMES
 
+# Filesystem path to the packaged weights, used only as the training CLI's
+# ``--output`` default: writing needs a real path, whereas reading goes through
+# ``importlib.resources`` (see ``FootingModel.default``) so it also works when the
+# package is installed as a zip or wheel.
 PACKAGED_WEIGHTS = (
     Path(__file__).resolve().parent.parent / "data" / "footing_weights.json"
 )

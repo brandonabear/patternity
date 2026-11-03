@@ -118,7 +118,7 @@ for row in chart.notes[:20]:
     print(row.measure, row.beat, row.timestamp, row)
 ```
 
-All-zero or `None` timestamps mean the `#BPMS` / `#OFFSET` tags were not parsed. (A past bug: `#BPMS` values split across several lines were dropped.) Also check that `chart.metadata.difficulty` is the chart you expect; the CLI analyzes every chart in file order.
+All-zero or `None` timestamps mean the `#BPMS` tag was not parsed. (A past bug: `#BPMS` values split across several lines were dropped.) Also check that `chart.metadata.difficulty` is the chart you expect; the CLI analyzes every chart in file order.
 
 ## Running the checks
 

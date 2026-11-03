@@ -90,16 +90,16 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
             if row.press_mask and last_press_time is not None
             else None
         )
-        grace_mask, grace_remaining = grace_rows[row_index]
+        grace = grace_rows[row_index]
         layer = Layer()
         blocked: list[tuple[int, FootRow, int]] = []
         check_mines = bool(row.mine_mask and row.press_mask)
         for prev_i, prev in enumerate(states):
             for curr in iter_legal_transitions(
-                prev, row, allow_brackets=allow_brackets, grace=grace_mask
+                prev, row, allow_brackets=allow_brackets, grace=grace.mask
             ):
                 feat_id = intern(
-                    featurize(prev, curr, row, dt, grace_remaining=grace_remaining)
+                    featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
                 )
                 if check_mines and hits_mine(curr, row.mine_mask):
                     blocked.append((prev_i, curr, feat_id))

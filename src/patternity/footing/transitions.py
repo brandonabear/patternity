@@ -20,11 +20,12 @@ def anchored_mask(row: NoteRow) -> int:
 
 def _holds_preserved(
     prev: FootRow,
+    *,
     next_left: FootPlacement,
     next_right: FootPlacement,
     anchored: int,
-    allow_mid_hold_switches: bool,
     grace: int,
+    allow_mid_hold_switches: bool,
 ) -> bool:
     """Anchored panels stay covered, and by their owning foot unless switches are allowed."""
     required = anchored & ~grace
@@ -156,11 +157,11 @@ def iter_legal_transitions(
 
         if _holds_preserved(
             prev,
-            target,
-            prev_stance.right,
-            anchored,
-            allow_mid_hold_switches,
-            grace,
+            next_left=target,
+            next_right=prev_stance.right,
+            anchored=anchored,
+            grace=grace,
+            allow_mid_hold_switches=allow_mid_hold_switches,
         ):
             yield _emit_foot_row(
                 prev,
@@ -175,11 +176,11 @@ def iter_legal_transitions(
 
         if _holds_preserved(
             prev,
-            prev_stance.left,
-            target,
-            anchored,
-            allow_mid_hold_switches,
-            grace,
+            next_left=prev_stance.left,
+            next_right=target,
+            anchored=anchored,
+            grace=grace,
+            allow_mid_hold_switches=allow_mid_hold_switches,
         ):
             yield _emit_foot_row(
                 prev,
@@ -210,11 +211,11 @@ def iter_legal_transitions(
                     continue
                 if not _holds_preserved(
                     prev,
-                    left_p,
-                    right_p,
-                    anchored,
-                    allow_mid_hold_switches,
-                    grace,
+                    next_left=left_p,
+                    next_right=right_p,
+                    anchored=anchored,
+                    grace=grace,
+                    allow_mid_hold_switches=allow_mid_hold_switches,
                 ):
                     continue
 

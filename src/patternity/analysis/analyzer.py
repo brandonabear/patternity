@@ -23,6 +23,11 @@ class Analyzer:
         self.movement_metrics = MovementMetrics()
 
     def analyze(self) -> dict[str, Any]:
+        """Decode the chart and compute all metrics.
+
+        Not idempotent: basic metrics accumulate into ``self.basic_metrics``, so a
+        second call double-counts them. Call once per ``Analyzer``.
+        """
         resolved = resolve_chart(
             self.chart.notes,
             self.model,

@@ -6,8 +6,6 @@ from patternity.analysis.metrics import MovementMetrics
 from patternity.footing.resolve import FootingResult, ResolvedStep
 from patternity.footing.stance import FootMove, PlayerOrientation
 
-_FACING = frozenset({PlayerOrientation.FACING_LEFT, PlayerOrientation.FACING_RIGHT})
-
 
 def count_direction_shifts(steps: Sequence[ResolvedStep]) -> int:
     """Press-row count of FACING_LEFT <-> FACING_RIGHT changes.
@@ -21,7 +19,7 @@ def count_direction_shifts(steps: Sequence[ResolvedStep]) -> int:
         if step.foot_row.moved == FootMove.NONE:
             continue
         orientation = step.foot_row.stance.orientation
-        if orientation not in _FACING:
+        if not orientation.is_facing:
             continue
         if last_facing is not None and orientation != last_facing:
             shifts += 1

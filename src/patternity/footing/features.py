@@ -26,7 +26,8 @@ FEATURE_NAMES: tuple[str, ...] = (
     "jack_speed_sq",  # Same, scaled by speed squared, so fast jacks cost disproportionately more.
     "switch",  # Other foot, same panel, consecutive presses.
     "switch_speed",  # Same, scaled by speed.
-    "repeat_change",  # A same-panel run changes technique midway (jack then switch, or the reverse).
+    "repeat_change",  # A same-panel run changes technique midway (jack then switch, or
+    # the reverse).
     "travel",  # Distance the moving foot travels.
     "travel_speed",  # Same, scaled by speed.
     "overlap",  # Both feet end up sharing a panel area during a single-foot press.
@@ -44,7 +45,8 @@ FEATURE_NAMES: tuple[str, ...] = (
     "mine_cued_same_foot",  # A same-foot repeat with a mine cue since the last press.
     "cued_foot_moves",  # A foot standing on a mine-cued panel moves off it.
     "cued_foot_stays",  # A foot standing on a mine-cued panel stays on it.
-    "hold_release",  # A foot leaves a hold or roll it owns during the grace window (tail row included).
+    "hold_release",  # A foot leaves a hold or roll it owns during the grace window (tail
+    # row included).
     "early_release",  # Same, scaled by how early: seconds left to the tail / grace window (0 on
     # the tail row, up to 1).
 )
@@ -52,7 +54,6 @@ FEATURE_INDEX: dict[str, int] = {name: i for i, name in enumerate(FEATURE_NAMES)
 
 _MAX_NPS = 20.0
 _FEET = (FootMove.LEFT, FootMove.RIGHT)
-_FACING = frozenset({PlayerOrientation.FACING_LEFT, PlayerOrientation.FACING_RIGHT})
 
 
 def speed(dt: float | None) -> float:
@@ -191,11 +192,11 @@ def featurize(
     if stance.orientation == PlayerOrientation.INVERTED:
         add("inverted")
     if (
-        stance.orientation in _FACING
-        and prev.stance.orientation in _FACING
+        stance.orientation.is_facing
+        and prev.stance.orientation.is_facing
         and stance.orientation != prev.stance.orientation
     ):
         add("facing_flip")
-    if stance.orientation in _FACING and not stance.is_crossed:
+    if stance.orientation.is_facing and not stance.is_crossed:
         add("twisted")
     return feats
