@@ -43,8 +43,18 @@ Each transition is stored in a feature vector `FEATURE_NAMES` (see `footing/feat
 
 ### Visualizing the Trellis
 
-It helps to maintain a simplified mental model of how `patternity` solves footing. Imagine a 3-arrow phrase: `down` -> `up` -> `down`. If the player begins in a neutral stance facing forward with their feet on the `left` and `right` arrows, the following diagram models the player state nodes (`FootRow`), transition edges (`FootMove`), and the associated costs. **The green nodes and solid edges are the minimum-cost path chosen via Viterbi**; dashed nodes are alternatives it beat. Within each row, the node where the left foot moved is drawn on the left and the one where the right foot moved on the right, so the chosen path alternates sides as the feet alternate. For readability, each row's alternatives branch only from the winning node of the row above. The playfield on the left shows the same three 8th notes on the Left/Down/Up/Right panels. Each arrow is labeled with the foot (L or R) on the winning path, and arrows and the row boxes of the trellis are colored by quantization as in ITG: red on a quarter-note beat, blue on an 8th-note beat. Nodes read `Stance(left foot, right foot)`.
+It helps to maintain a mental model of how `patternity` solves footing by visualizing the trellis and Viterbi-selected paths. The following diagrams show short arrow phrases and provide a simplified trellis representation. The modeled footing is labeled in the chart on the left and the winning path (lowest cost) is highlighted in the diagram on the right. Edge costs are the real transition costs from the packaged weights at 120 BPM (rounded) and will change when the model is retrained.
 
-![Playfield for three 8th notes (down, up, down; arrows labeled L, R, L for the winning foot and colored red on quarter-note beats, blue on 8th-note beats) beside the footing trellis for the same rows, starting from a neutral stance. The minimum-cost path (green nodes, solid edges) alternates left, right, left; dashed nodes and edges are alternatives, each branching from the winning node above.](images/trellis.svg)
+### Example 1: Simple Alternating Feet
 
-<!-- images/trellis.svg is plain hand-editable SVG (not generated from Mermaid), so node order within each row is exact. -->
+One of the earliest optimizations players learn is to alternate feet between arrows and effectively "walk" instead of returning to the center arrow each time. This becomes a necessity as arrow density increases with difficulty.
+
+The opening step is a tie (26.3 either way) because the neutral stance is symmetric. The decoder breaks it toward the right foot (Right, Left, Right), which costs the same 73.5 in total as the Left, Right, Left path drawn here.
+
+![Playfield for three 8th notes (down, up, down; arrows labeled L, R, L for the winning foot and colored red on 4th-note beats, blue on 8th-note beats) beside the footing trellis for the same rows, starting from a neutral stance. The minimum-cost path (white-outlined nodes, solid edges) alternates left, right, left; dashed nodes and edges are alternatives, each branching from the winning node above.](images/trellis_alternating.svg)
+
+### Example 2: Mine-Cued Footswitch
+
+A footswitch is a technique where consecutive same-arrow presses are hit by alternating feet. This can be coerced by placing a mine such that performing a jack would result in triggering the mine or where the speed of consecutive taps is sufficiently quick that alternating feet requires less effort.
+
+![Playfield for a footswitch (Left, Down, mine on Left, Down, Right on 16th notes; arrows labeled with the winning foot L, R, L, R and colored red on 4th-note beats, green on 16th-note beats) beside the footing trellis for the same rows. The minimum-cost path (white-outlined nodes, solid edges) alternates feet, with the left foot stepping off the mined Left panel to take over Down; dashed nodes and edges are alternatives branching from the winning node above.](images/trellis_footswitch.svg)
