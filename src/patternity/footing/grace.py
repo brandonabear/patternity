@@ -23,8 +23,7 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[tuple[int, Remaining]]:
     next_tail: list[float | None] = [None] * 4
     out: list[tuple[int, Remaining]] = []
     for row in reversed(rows):
-        panels = (row.left, row.down, row.up, row.right)
-        for col, note in enumerate(panels):
+        for col, note in enumerate(row.panels):
             if note == NoteType.TAIL:
                 next_tail[col] = row.timestamp
 
@@ -42,7 +41,7 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[tuple[int, Remaining]]:
                 remaining[col] = tail - now
         out.append((mask, (remaining[0], remaining[1], remaining[2], remaining[3])))
 
-        for col, note in enumerate(panels):
+        for col, note in enumerate(row.panels):
             if note in ANCHORED_NOTES:
                 next_tail[col] = None
     out.reverse()

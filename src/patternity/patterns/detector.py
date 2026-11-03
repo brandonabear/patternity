@@ -6,6 +6,7 @@ footing decoder never sees them.
 
 import math
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from patternity.analysis.metrics import TechMetrics
 from patternity.footing.resolve import ResolvedStep
@@ -51,12 +52,7 @@ def _span(kind: PatternKind, steps: tuple[ResolvedStep, ...]) -> PatternSpan:
 
 def column_foot(step: ResolvedStep, col: int) -> FootMove | None:
     """Foot acting on ``col``: the moving foot for a press, the hold owner for a tail."""
-    note = (
-        step.note_row.left,
-        step.note_row.down,
-        step.note_row.up,
-        step.note_row.right,
-    )[col]
+    note = step.note_row.panels[col]
     fr = step.foot_row
     bit = 1 << col
     if note in _PRESS:
@@ -74,150 +70,205 @@ def _single_col(step: ResolvedStep) -> int | None:
     return mask.bit_length() - 1 if mask.bit_count() == 1 else None
 
 
-def detect_tech_patterns(steps: Sequence[ResolvedStep]) -> TechMetrics:
-    """Label jacks, foot/side switches, doublesteps, brackets, crossovers, and candles."""
-    spans: list[PatternSpan] = []
+@dataclass
+class _ColumnHistory:
+    """What last happened on one panel.
 
-    last_foot: list[FootMove | None] = [None] * 4
-    last_time = [-math.inf] * 4
-    mine_time: list[float | None] = [None] * 4
-    last_step: list[ResolvedStep | None] = [None] * 4
-    from_tail = [False] * 4
-    press_foot: list[FootMove | None] = [None] * 4
-    press_time = [-math.inf] * 4
-    press_step: list[ResolvedStep | None] = [None] * 4
-    any_mine_time = -math.inf
-    # Jacks and switches only pair a panel's event with the very next press
-    # row; a revisit after other steps (e.g. D-U-D in a stream) is neither.
-    press_rows = 0
-    event_epoch = [-1] * 4
-    press_epoch = [-1] * 4
+    Jacks and switches only pair a panel's event with the very next press row;
+    a revisit after other steps (e.g. D-U-D in a stream) is neither. To enforce
+    this, events are stamped with an *epoch*: the number of press rows seen so
+    far, including the row the event is on. An earlier event is adjacent to the
+    current press row exactly when its epoch equals the count of press rows
+    *before* the current one (``epoch_before``).
+    """
 
-    prev_press: ResolvedStep | None = None
-    prev_row: ResolvedStep | None = None
-    # Each foot's previous press, for candles (the other foot's presses in
-    # between don't matter).
-    foot_press: dict[FootMove, ResolvedStep] = {}
-    # Orientation of the current crossed stance, or None while uncrossed. A new
-    # crossover starts when the legs cross, or turn while staying crossed.
-    crossed_orientation: PlayerOrientation | None = None
+    # Last event of any kind (press or hold/roll tail).
+    last_event: ResolvedStep | None = None
+    last_foot: FootMove | None = None
+    last_time: float = -math.inf
+    last_was_tail: bool = False
+    event_epoch: int = -1
+    # Last press (tails excluded).
+    last_press: ResolvedStep | None = None
+    press_foot: FootMove | None = None
+    press_time: float = -math.inf
+    press_epoch: int = -1
+    # Latest mine on this panel since its last press.
+    mine_time: float | None = None
 
-    for step in steps:
+    def press_before(self, epoch_before: int) -> ResolvedStep | None:
+        """The last press, if it was on the press row right before this one."""
+        return self.last_press if self.press_epoch == epoch_before else None
+
+    def event_before(self, epoch_before: int) -> ResolvedStep | None:
+        """The last event, if it was no earlier than the press row right before this one."""
+        return self.last_event if self.event_epoch == epoch_before else None
+
+    def mine_after(self, time: float) -> float | None:
+        """The panel's mine time if a mine fell after ``time``."""
+        if self.mine_time is not None and self.mine_time > time:
+            return self.mine_time
+        return None
+
+    def record_press(self, step: ResolvedStep, foot: FootMove, now: float, epoch: int) -> None:
+        self.last_press = step
+        self.press_foot = foot
+        self.press_time = now
+        self.press_epoch = epoch
+        self.mine_time = None
+
+    def record_event(
+        self, step: ResolvedStep, foot: FootMove, now: float, epoch: int, is_tail: bool
+    ) -> None:
+        self.last_event = step
+        self.last_foot = foot
+        self.last_time = now
+        self.last_was_tail = is_tail
+        self.event_epoch = epoch
+
+
+class _TechDetector:
+    """Walks a decoded path once, appending a span for each pattern it finds."""
+
+    def __init__(self) -> None:
+        self.spans: list[PatternSpan] = []
+        self.columns = [_ColumnHistory() for _ in range(4)]
+        self.press_rows = 0
+        self.any_mine_time = -math.inf
+        self.prev_press: ResolvedStep | None = None
+        self.prev_row: ResolvedStep | None = None
+        # Each foot's previous press, for candles (the other foot's presses in
+        # between don't matter).
+        self.foot_press: dict[FootMove, ResolvedStep] = {}
+        # Orientation of the current crossed stance, or None while uncrossed.
+        self.crossed_orientation: PlayerOrientation | None = None
+
+    def feed(self, step: ResolvedStep) -> None:
         row = step.note_row
-        fr = step.foot_row
         now = row.timestamp or 0.0
+        self._record_mines(step, now)
 
-        for col in range(4):
-            if (1 << col) & row.mine_mask:
-                mine_time[col] = now
-                any_mine_time = now
-
-        epoch_before = press_rows
-        if fr.moved != FootMove.NONE:
-            press_rows += 1
-            for mover in _FEET:
-                if not fr.moved & mover:
-                    continue
-                placement = fr.stance.placement(mover)
-                if (placement.mask & row.press_mask).bit_count() >= 2:
-                    spans.append(_span(PatternKind.BRACKET, (step,)))
-                before = foot_press.get(mover)
-                if before is not None and _crosses_center(
-                    before.foot_row.stance.placement(mover), placement
-                ):
-                    spans.append(_span(PatternKind.CANDLE, (before, step)))
-                foot_press[mover] = step
-
-            press_col = _single_col(step)
-            released = (
-                prev_row.foot_row.released_since_press
-                if prev_row is not None
-                else FootMove.NONE
-            )
-            if (
-                prev_press is not None
-                and fr.moved in _FEET
-                and prev_press.foot_row.moved == fr.moved
-                and press_col is not None
-                and _single_col(prev_press) not in (None, press_col)
-                and not released & ~fr.moved
-            ):
-                spans.append(_span(PatternKind.DOUBLESTEP, (prev_press, step)))
-
-            orientation = fr.stance.orientation if fr.stance.is_crossed else None
-            if orientation is not None and orientation != crossed_orientation:
-                kind = (
-                    PatternKind.INVERTED_CROSSOVER
-                    if orientation == PlayerOrientation.INVERTED
-                    else PatternKind.CROSSOVER
-                )
-                entry = (step,) if prev_press is None else (prev_press, step)
-                spans.append(_span(kind, entry))
-            crossed_orientation = orientation
-            prev_press = step
+        epoch_before = self.press_rows
+        if step.foot_row.moved != FootMove.NONE:
+            self.press_rows += 1
+            self._brackets_and_candles(step)
+            self._doublestep(step)
+            self._crossover(step)
+            self.prev_press = step
 
         for col in range(4):
             foot = column_foot(step, col)
             if foot is None:
                 continue
-            is_press = (
-                row.left,
-                row.down,
-                row.up,
-                row.right,
-            )[col] in _PRESS
-            col_mine = mine_time[col]
-
+            history = self.columns[col]
+            is_press = row.panels[col] in _PRESS
             if is_press:
-                prior_press = press_step[col]
-                prior_any = last_step[col]
-                if press_epoch[col] != epoch_before:
-                    prior_press = None
-                if event_epoch[col] != epoch_before:
-                    prior_any = None
-                if prior_press is not None and press_foot[col] == foot:
-                    ref_time = press_time[col]
-                    if col_mine is not None and col_mine > ref_time:
-                        ref_time = col_mine
-                    if (
-                        now - ref_time < ITG_JACK_CUTOFF_SEC
-                        and not (1 << col) & row.mine_mask
-                    ):
-                        spans.append(_span(PatternKind.JACK, (prior_press, step)))
-                elif prior_any is not None and last_foot[col] not in (None, foot):
-                    ref_time = last_time[col]
-                    used_mine_ref = col_mine is not None and col_mine > ref_time
-                    if used_mine_ref:
-                        ref_time = col_mine
-                    # A switch after a hold release (holdswitch) needs a mine cue.
-                    cued = not from_tail[col] or any_mine_time > last_time[col]
-                    kind = (
-                        PatternKind.SIDESWITCH
-                        if col in _LR_COLS
-                        else PatternKind.FOOTSWITCH
-                    )
-                    if (
-                        cued
-                        and now - ref_time < ITG_FOOTSWITCH_CUTOFF_SEC
-                        and not (
-                            kind == PatternKind.FOOTSWITCH
-                            and used_mine_ref
-                            and col in _UD_COLS
-                        )
-                    ):
-                        spans.append(_span(kind, (prior_any, step)))
-                press_foot[col] = foot
-                press_time[col] = now
-                press_step[col] = step
-                press_epoch[col] = press_rows
-                mine_time[col] = None
+                self._jack_or_switch(step, col, foot, now, epoch_before)
+                history.record_press(step, foot, now, self.press_rows)
+            history.record_event(step, foot, now, self.press_rows, is_tail=not is_press)
+        self.prev_row = step
 
-            event_epoch[col] = press_rows
-            last_foot[col] = foot
-            last_time[col] = now
-            last_step[col] = step
-            from_tail[col] = not is_press
-        prev_row = step
+    def _record_mines(self, step: ResolvedStep, now: float) -> None:
+        for col in range(4):
+            if (1 << col) & step.note_row.mine_mask:
+                self.columns[col].mine_time = now
+                self.any_mine_time = now
 
-    spans.sort(key=lambda s: (s.start_beat, s.end_beat))
+    def _brackets_and_candles(self, step: ResolvedStep) -> None:
+        """A bracket: one foot presses two panels. A candle: a foot's press lands
+        opposite its own previous press."""
+        fr = step.foot_row
+        for mover in _FEET:
+            if not fr.moved & mover:
+                continue
+            placement = fr.stance.placement(mover)
+            if (placement.mask & step.note_row.press_mask).bit_count() >= 2:
+                self.spans.append(_span(PatternKind.BRACKET, (step,)))
+            before = self.foot_press.get(mover)
+            if before is not None and _crosses_center(
+                before.foot_row.stance.placement(mover), placement
+            ):
+                self.spans.append(_span(PatternKind.CANDLE, (before, step)))
+            self.foot_press[mover] = step
+
+    def _doublestep(self, step: ResolvedStep) -> None:
+        """The same foot presses two different single panels in a row, unless the
+        other foot released a hold in between."""
+        prev = self.prev_press
+        moved = step.foot_row.moved
+        press_col = _single_col(step)
+        released = (
+            self.prev_row.foot_row.released_since_press
+            if self.prev_row is not None
+            else FootMove.NONE
+        )
+        if (
+            prev is not None
+            and moved in _FEET
+            and prev.foot_row.moved == moved
+            and press_col is not None
+            and _single_col(prev) not in (None, press_col)
+            and not released & ~moved
+        ):
+            self.spans.append(_span(PatternKind.DOUBLESTEP, (prev, step)))
+
+    def _crossover(self, step: ResolvedStep) -> None:
+        """A crossover starts when the legs cross, or turn while staying crossed."""
+        stance = step.foot_row.stance
+        orientation = stance.orientation if stance.is_crossed else None
+        if orientation is not None and orientation != self.crossed_orientation:
+            kind = (
+                PatternKind.INVERTED_CROSSOVER
+                if orientation == PlayerOrientation.INVERTED
+                else PatternKind.CROSSOVER
+            )
+            entry = (step,) if self.prev_press is None else (self.prev_press, step)
+            self.spans.append(_span(kind, entry))
+        self.crossed_orientation = orientation
+
+    def _jack_or_switch(
+        self, step: ResolvedStep, col: int, foot: FootMove, now: float, epoch_before: int
+    ) -> None:
+        """Pair this press with the panel's event on the previous press row."""
+        history = self.columns[col]
+        prior_press = history.press_before(epoch_before)
+        if prior_press is not None and history.press_foot == foot:
+            self._jack(step, col, prior_press, now)
+            return
+        prior_event = history.event_before(epoch_before)
+        if prior_event is not None and history.last_foot not in (None, foot):
+            self._switch(step, col, prior_event, now)
+
+    def _jack(self, step: ResolvedStep, col: int, prior: ResolvedStep, now: float) -> None:
+        """Same foot, same panel, fast enough. A mine in between resets the clock."""
+        history = self.columns[col]
+        mine_ref = history.mine_after(history.press_time)
+        ref_time = history.press_time if mine_ref is None else mine_ref
+        mine_on_row = (1 << col) & step.note_row.mine_mask
+        if now - ref_time < ITG_JACK_CUTOFF_SEC and not mine_on_row:
+            self.spans.append(_span(PatternKind.JACK, (prior, step)))
+
+    def _switch(self, step: ResolvedStep, col: int, prior: ResolvedStep, now: float) -> None:
+        """The other foot takes over the panel fast enough."""
+        history = self.columns[col]
+        mine_ref = history.mine_after(history.last_time)
+        ref_time = history.last_time if mine_ref is None else mine_ref
+        # A switch after a hold release (holdswitch) needs a mine cue.
+        cued = not history.last_was_tail or self.any_mine_time > history.last_time
+        if col in _LR_COLS:
+            kind = PatternKind.SIDESWITCH
+        else:
+            kind = PatternKind.FOOTSWITCH
+            if mine_ref is not None:
+                return
+        if cued and now - ref_time < ITG_FOOTSWITCH_CUTOFF_SEC:
+            self.spans.append(_span(kind, (prior, step)))
+
+
+def detect_tech_patterns(steps: Sequence[ResolvedStep]) -> TechMetrics:
+    """Label jacks, foot/side switches, doublesteps, brackets, crossovers, and candles."""
+    detector = _TechDetector()
+    for step in steps:
+        detector.feed(step)
+    spans = sorted(detector.spans, key=lambda s: (s.start_beat, s.end_beat))
     return TechMetrics(spans=spans)

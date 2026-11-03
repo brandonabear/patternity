@@ -21,9 +21,8 @@ class BasicMetrics:
     steps: int = 0
 
     def add_note(self, note_row: NoteRow) -> None:
-        panels = (note_row.left, note_row.down, note_row.up, note_row.right)
         heads = 0
-        for panel in panels:
+        for panel in note_row.panels:
             if panel == NoteType.EMPTY:
                 continue
 

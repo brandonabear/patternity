@@ -1,56 +1,52 @@
-from patternity.footing import ResolvedStep
 from patternity.footing.resolve import FootingResult
-from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
 from patternity.movement import count_direction_shifts, detect_movement
-from patternity.simfile import NoteRow
-
-
-def _press(
-    left: FootPlacement, right: FootPlacement, moved: FootMove, index: int
-) -> ResolvedStep:
-    return ResolvedStep(
-        index=index,
-        note_row=NoteRow.from_str("0100"),
-        foot_row=FootRow(stance=Stance.from_feet(left, right), moved=moved),
-    )
+from tests.helpers import synthetic_steps
 
 
 def test_direction_shifts_facing_left_right_only() -> None:
-    steps = [
-        _press(FootPlacement.D, FootPlacement.U, FootMove.LEFT, 0),
-        _press(FootPlacement.U, FootPlacement.D, FootMove.RIGHT, 1),
-        _press(FootPlacement.D, FootPlacement.U, FootMove.LEFT, 2),
-    ]
+    steps = synthetic_steps(
+        [
+            ("L", "D", "U"),
+            ("R", "U", "D"),
+            ("L", "D", "U"),
+        ]
+    )
     assert count_direction_shifts(steps) == 2
 
 
 def test_direction_shifts_neutral_alone_is_not_a_shift() -> None:
-    steps = [
-        _press(FootPlacement.L, FootPlacement.R, FootMove.LEFT, 0),
-        _press(FootPlacement.D, FootPlacement.U, FootMove.RIGHT, 1),
-        _press(FootPlacement.L, FootPlacement.R, FootMove.LEFT, 2),
-    ]
+    steps = synthetic_steps(
+        [
+            ("L", "L", "R"),
+            ("R", "D", "U"),
+            ("L", "L", "R"),
+        ]
+    )
     assert count_direction_shifts(steps) == 0
 
 
 def test_direction_shifts_remember_facing_through_neutral() -> None:
-    steps = [
-        _press(FootPlacement.D, FootPlacement.U, FootMove.LEFT, 0),
-        _press(FootPlacement.L, FootPlacement.R, FootMove.LEFT, 1),
-        _press(FootPlacement.U, FootPlacement.D, FootMove.RIGHT, 2),
-        _press(FootPlacement.L, FootPlacement.R, FootMove.RIGHT, 3),
-        _press(FootPlacement.L, FootPlacement.D, FootMove.RIGHT, 4),
-        _press(FootPlacement.U, FootPlacement.D, FootMove.LEFT, 5),
-    ]
+    steps = synthetic_steps(
+        [
+            ("L", "D", "U"),
+            ("L", "L", "R"),
+            ("R", "U", "D"),
+            ("R", "L", "R"),
+            ("R", "L", "D"),
+            ("L", "U", "D"),
+        ]
+    )
     assert count_direction_shifts(steps) == 1
 
 
 def test_direction_shifts_remember_facing_through_inverted() -> None:
-    steps = [
-        _press(FootPlacement.D, FootPlacement.U, FootMove.LEFT, 0),
-        _press(FootPlacement.R, FootPlacement.L, FootMove.LEFT, 1),
-        _press(FootPlacement.U, FootPlacement.D, FootMove.RIGHT, 2),
-    ]
+    steps = synthetic_steps(
+        [
+            ("L", "D", "U"),
+            ("L", "R", "L"),
+            ("R", "U", "D"),
+        ]
+    )
     assert count_direction_shifts(steps) == 1
 
 

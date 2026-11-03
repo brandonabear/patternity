@@ -1,7 +1,7 @@
 import math
 import random
 
-from patternity.footing import FootingModel, ResolvedStep
+from patternity.footing import FootingModel
 from patternity.footing.features import FEATURE_NAMES, featurize, hits_mine
 from patternity.footing.grace import hold_grace
 from patternity.footing.search import build_trellis, row_confidence, viterbi
@@ -11,15 +11,7 @@ from patternity.patterns import PatternKind
 from patternity.patterns.detector import detect_tech_patterns
 from patternity.simfile import NoteRow
 from patternity.training import Example, parse_annotated_sm, row_errors, train
-
-
-def _chart(rows: list[str], bpm: float = 120.0) -> str:
-    body = "\n".join(rows)
-    return (
-        f"#TITLE:t;\n#BPMS:0.000={bpm};\n#STOPS:;\n#NOTES:\n"
-        "     dance-single:\n     t:\n     Challenge:\n     1:\n"
-        f"     0,0,0,0,0:\n{body}\n;\n"
-    )
+from tests.helpers import chart_text, gold_steps
 
 
 def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
@@ -49,7 +41,7 @@ def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
 
 def test_viterbi_matches_brute_force_over_all_paths() -> None:
     rows = ["1000", "0100", "0100", "M010", "0001", "1100", "0010", ","]
-    chart = parse_annotated_sm(_chart(rows)).chart
+    chart = parse_annotated_sm(chart_text(rows)).chart
     rng = random.Random(7)
     for _ in range(5):
         weights = [rng.uniform(-5, 20) for _ in FEATURE_NAMES]
@@ -63,7 +55,7 @@ def test_viterbi_matches_brute_force_over_all_paths() -> None:
 def test_confidence_is_infinite_when_only_one_foot_move_is_possible() -> None:
     # Left+Right cannot be bracketed, so the jump row is always BOTH.
     rows = ["1000", "1001", "0100", ","]
-    chart = parse_annotated_sm(_chart(rows)).chart
+    chart = parse_annotated_sm(chart_text(rows)).chart
     trellis = build_trellis(chart.notes)
     confidence = row_confidence(trellis, FootingModel.default().vector())
     assert confidence[1] == math.inf
@@ -72,7 +64,7 @@ def test_confidence_is_infinite_when_only_one_foot_move_is_possible() -> None:
 
 def test_physically_impossible_annotation_is_reported() -> None:
     rows = ["0002 // @foot=R", "1000 // @foot=R", "0003", ","]
-    annotated = parse_annotated_sm(_chart(rows))
+    annotated = parse_annotated_sm(chart_text(rows))
     trellis = build_trellis(annotated.chart.notes)
     decoded = viterbi(
         trellis, FootingModel.default().vector(), allowed=annotated.tagged_assignments
@@ -80,26 +72,12 @@ def test_physically_impossible_annotation_is_reported() -> None:
     assert decoded.relaxed_rows == (1,)
 
 
-def _gold_steps(rows: list[str], bpm: float) -> list[ResolvedStep]:
-    annotated = parse_annotated_sm(_chart(rows, bpm))
-    trellis = build_trellis(annotated.chart.notes)
-    decoded = viterbi(
-        trellis, [0.0] * len(FEATURE_NAMES), allowed=annotated.tagged_assignments
-    )
-    return [
-        ResolvedStep(index=i, note_row=row, foot_row=state)
-        for i, (row, state) in enumerate(
-            zip(annotated.chart.notes, decoded.states(trellis), strict=True)
-        )
-    ]
-
-
 def test_switch_after_hold_release_needs_mine_cue() -> None:
     base = ["0020 // @foot=L", "0001 // @foot=R", "0030"]
-    plain = _gold_steps(
+    plain = gold_steps(
         [*base, "0000", "0010 // @foot=R", "0000", "0000", "0000", ","], 200
     )
-    cued = _gold_steps(
+    cued = gold_steps(
         [*base, "000M", "0010 // @foot=R", "0000", "0000", "0000", ","], 200
     )
     assert detect_tech_patterns(plain).footswitches == 0
@@ -108,7 +86,7 @@ def test_switch_after_hold_release_needs_mine_cue() -> None:
 
 
 def test_same_foot_panel_change_is_doublestep() -> None:
-    steps = _gold_steps(
+    steps = gold_steps(
         ["1000 // @foot=L", "0100 // @foot=R", "0001 // @foot=R", ","], 120
     )
     kinds = [span.kind for span in detect_tech_patterns(steps).spans]
@@ -129,7 +107,7 @@ def test_stream_revisits_are_not_jacks_or_switches() -> None:
         "0100 // @foot=R",
         ",",
     ]
-    tech = detect_tech_patterns(_gold_steps(rows, 400))
+    tech = detect_tech_patterns(gold_steps(rows, 400))
     assert (tech.jacks, tech.footswitches, tech.sideswitches) == (0, 0, 0)
 
 
@@ -145,7 +123,7 @@ def test_training_fits_a_small_fixture() -> None:
         "1000 // @foot=L",
         ",",
     ]
-    annotated = parse_annotated_sm(_chart(rows, 150))
+    annotated = parse_annotated_sm(chart_text(rows, 150))
     example = Example("jacks", annotated, build_trellis(annotated.chart.notes))
     model = train([example], epochs=20)
     assert row_errors(example, model.vector()) == 0

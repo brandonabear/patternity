@@ -1,5 +1,5 @@
 import re
-from collections.abc import Iterator
+from dataclasses import dataclass
 
 from patternity.simfile.notes import AnchorTracker, NoteRow
 from patternity.simfile.song import (
@@ -10,6 +10,7 @@ from patternity.simfile.song import (
     GrooveRadar,
     Header,
     Song,
+    parse_beat_value_map,
 )
 from patternity.simfile.timing import TimingEngine
 
@@ -64,11 +65,26 @@ def _strip_comment(line: str) -> str:
     return line.split("//", 1)[0].strip()
 
 
-def _split_measures(notes: str) -> list[list[str]]:
-    """Group note rows into measures. Measures are separated by ',' lines."""
-    measures: list[list[str]] = []
-    current: list[str] = []
-    for raw in notes.splitlines():
+@dataclass(frozen=True)
+class SourceRow:
+    """A non-empty note row as written, with its position in the chart.
+
+    ``line_index`` is the 0-based line within the notes text passed to
+    ``source_rows``.
+    """
+
+    text: str
+    line_index: int
+    measure: int
+    quantization: int
+    beat: float
+
+
+def _split_measures(notes: str) -> list[list[tuple[int, str]]]:
+    """Group ``(line_index, row_text)`` into measures separated by ',' lines."""
+    measures: list[list[tuple[int, str]]] = []
+    current: list[tuple[int, str]] = []
+    for line_index, raw in enumerate(notes.splitlines()):
         line = _strip_comment(raw)
         if not line:
             continue
@@ -77,7 +93,7 @@ def _split_measures(notes: str) -> list[list[str]]:
                 measures.append(current)
                 current = []
         else:
-            current.append(line)
+            current.append((line_index, line))
     # The chart-closing ";" is treated as the section delimiter, so the last
     # measure may have no trailing ",".
     if current:
@@ -85,39 +101,43 @@ def _split_measures(notes: str) -> list[list[str]]:
     return measures
 
 
-def _rows_from_measures(
-    measures: list[list[str]], timing: TimingEngine
-) -> Iterator[NoteRow]:
-    """Extract NoteRow and anchor state information."""
-    anchor_tracker = AnchorTracker()
-    for measure_idx, rows in enumerate(measures):
-        quantization = len(rows)
-        for row_idx, row in enumerate(rows):
-            # Skip empty rows
-            if row == "0000":
+def source_rows(notes: str) -> list[SourceRow]:
+    """The rows that become ``NoteRow``s, in chart order (empty ``0000`` rows skipped)."""
+    rows: list[SourceRow] = []
+    for measure_idx, measure in enumerate(_split_measures(notes)):
+        quantization = len(measure)
+        for slot, (line_index, text) in enumerate(measure):
+            if text == "0000":
                 continue
-
-            # Build row timing information
-            beat = round(measure_idx * 4 + row_idx * 4 / quantization, 4)
-            note_row = NoteRow.from_str(
-                row,
-                quantization=quantization,
-                beat=beat,
-                measure=measure_idx,
-                timestamp=timing.convert_beat_to_seconds(beat),
+            rows.append(
+                SourceRow(
+                    text=text,
+                    line_index=line_index,
+                    measure=measure_idx,
+                    quantization=quantization,
+                    beat=round(measure_idx * 4 + slot * 4 / quantization, 4),
+                )
             )
-
-            # Apply hold/roll tracking
-            anchor_tracker.apply_heads(note_row)
-            hold_mask, roll_mask = anchor_tracker.snapshot()
-            note_row.hold_active_mask = hold_mask
-            note_row.roll_active_mask = roll_mask
-            anchor_tracker.apply_tails(note_row)
-            yield note_row
+    return rows
 
 
 def _parse_notedata(notes: str, timing: TimingEngine) -> list[NoteRow]:
-    return list(_rows_from_measures(_split_measures(notes), timing))
+    """Build NoteRows with timing and hold/roll anchor state."""
+    anchor_tracker = AnchorTracker()
+    note_rows: list[NoteRow] = []
+    for source in source_rows(notes):
+        note_row = NoteRow.from_str(
+            source.text,
+            quantization=source.quantization,
+            beat=source.beat,
+            measure=source.measure,
+            timestamp=timing.convert_beat_to_seconds(source.beat),
+        )
+        anchor_tracker.apply_heads(note_row)
+        note_row.hold_active_mask, note_row.roll_active_mask = anchor_tracker.snapshot()
+        anchor_tracker.apply_tails(note_row)
+        note_rows.append(note_row)
+    return note_rows
 
 
 def _parse_groove_radar(raw: str) -> GrooveRadar:
@@ -182,13 +202,9 @@ class StepmaniaFileParser:
 
         if chart_fields:
             if chart_fields.get("#BPMS"):
-                temp_header = Header()
-                getattr(temp_header, HEADER_SETTERS["#BPMS"])(chart_fields["#BPMS"])
-                bpms = temp_header.bpms
+                bpms = parse_beat_value_map(chart_fields["#BPMS"])
             if chart_fields.get("#STOPS"):
-                temp_header = Header()
-                getattr(temp_header, HEADER_SETTERS["#STOPS"])(chart_fields["#STOPS"])
-                stops = temp_header.stops
+                stops = parse_beat_value_map(chart_fields["#STOPS"])
 
         return TimingEngine(bpms=bpms, stops=stops)
 

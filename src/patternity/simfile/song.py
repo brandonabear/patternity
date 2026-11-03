@@ -36,6 +36,16 @@ HEADER_SETTERS = {
 }
 
 
+def parse_beat_value_map(value: str) -> dict[float, float]:
+    """Parse ``beat=value,beat=value`` (as in ``#BPMS`` / ``#STOPS``) into a dict."""
+    beat_value_map = {}
+    if value.strip():
+        for beat_value in value.split(","):
+            b, v = beat_value.split("=", maxsplit=1)
+            beat_value_map[float(b)] = float(v)
+    return beat_value_map
+
+
 @dataclass
 class Header:
     title: str | None = None
@@ -124,20 +134,11 @@ class Header:
     def set_offset(self, value: str) -> None:
         self.offset = float(value)
 
-    @staticmethod
-    def _parse_beat_value_map(value: str) -> dict[float, float]:
-        beat_value_map = {}
-        if value.strip():
-            for beat_value in value.split(","):
-                b, v = beat_value.split("=", maxsplit=1)
-                beat_value_map[float(b)] = float(v)
-        return beat_value_map
-
     def set_stops(self, value: str) -> None:
-        self.stops = self._parse_beat_value_map(value)
+        self.stops = parse_beat_value_map(value)
 
     def set_bpms(self, value: str) -> None:
-        self.bpms = self._parse_beat_value_map(value)
+        self.bpms = parse_beat_value_map(value)
 
     def to_dict(self) -> dict[str, Any]:
         return {

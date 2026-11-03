@@ -11,7 +11,11 @@ from dataclasses import dataclass
 
 from patternity.footing.stance import FootMove
 from patternity.simfile.notes import NoteRow, NoteType
-from patternity.simfile.parser import StepmaniaFileParser, strip_leading_comments
+from patternity.simfile.parser import (
+    StepmaniaFileParser,
+    source_rows,
+    strip_leading_comments,
+)
 from patternity.simfile.song import Chart, Song
 
 _NOTE_ROW_RE = re.compile(r"^[0-4MFL]{4}", re.IGNORECASE)
@@ -46,8 +50,7 @@ class AnnotatedRow:
 
     @property
     def pressable_cols(self) -> tuple[int, ...]:
-        notes = (self.row.left, self.row.down, self.row.up, self.row.right)
-        return tuple(col for col, note in enumerate(notes) if note in _PRESSABLE)
+        return tuple(col for col, note in enumerate(self.row.panels) if note in _PRESSABLE)
 
     def expected_foot_move(self) -> FootMove | None:
         """Map ``@foot`` / ``@feet`` to ``FootMove`` for regression checks."""
@@ -77,14 +80,6 @@ class AnnotatedChart:
             for row in self.rows
             if (move := row.expected_foot_move()) is not None
         }
-
-
-@dataclass(frozen=True)
-class _RawRow:
-    text: str
-    comment: str
-    line_number: int
-    section: str
 
 
 def _is_flat_notes_section(lines: list[str]) -> bool:
@@ -149,100 +144,77 @@ def _parse_tags(
     return feet, patterns
 
 
+def _sections_by_line(lines: list[str]) -> list[str]:
+    """The active ``@section`` name at each body line.
+
+    A section is set by a comment-only line or a comment on a measure separator,
+    and applies to the rows that follow.
+    """
+    section = "default"
+    sections: list[str] = []
+    for line in lines:
+        note_text, _, comment = line.partition("//")
+        note_text = note_text.strip()
+        if not note_text or note_text.startswith((",", ";")):
+            match = _SECTION_RE.search(comment.strip())
+            if match:
+                section = match.group(1)
+        sections.append(section)
+    return sections
+
+
+def _validate_row(item: AnnotatedRow, *, require_complete: bool) -> None:
+    line, feet = item.line_number, item.feet
+    press_count = len(item.pressable_cols)
+    if len(feet) == 2 and press_count != 2:
+        raise AnnotationError(
+            f"line {line}: @feet expects two panels but row has {press_count} pressable notes"
+        )
+    if len(feet) > 2:
+        raise AnnotationError(f"line {line}: too many @feet entries ({len(feet)})")
+    if item.patterns and press_count == 0:
+        raise AnnotationError(f"line {line}: pattern anchor has no pressable note")
+    if require_complete and press_count and not feet:
+        raise AnnotationError(f"line {line}: pressable row is missing @foot/@feet")
+
+
 def parse_annotated_sm(data: str, *, require_complete: bool = False) -> AnnotatedChart:
-    """Parse the first chart and align inline comments to parsed note rows."""
+    """Parse the first chart and align inline comments to its parsed note rows.
+
+    Row positions come from the parser's ``source_rows``; this function only adds
+    what the parser discards: comments, source line numbers, and sections.
+    """
     song = StepmaniaFileParser.parse(data)
     if not song.charts:
         raise AnnotationError("simfile has no parsed chart")
+    notes = song.charts[0].notes
 
     body, body_line = _notes_body(data)
-    measures: list[list[_RawRow]] = []
-    current: list[_RawRow] = []
-    section_name = "default"
-
-    for offset, raw_line in enumerate(body.splitlines()):
-        line_number = body_line + offset
-        stripped = raw_line.strip()
-        if not stripped:
-            continue
-        if stripped.startswith("//"):
-            match = _SECTION_RE.search(stripped[2:].strip())
-            if match:
-                section_name = match.group(1)
-            continue
-
-        note_text, marker, comment = stripped.partition("//")
-        note_text = note_text.strip()
-        comment = comment.strip() if marker else ""
-        if note_text.startswith((",", ";")):
-            if current:
-                measures.append(current)
-                current = []
-            match = _SECTION_RE.search(comment)
-            if match:
-                section_name = match.group(1)
-            continue
-        if note_text:
-            current.append(_RawRow(note_text, comment, line_number, section_name))
-    if current:
-        measures.append(current)
-
-    annotated: list[AnnotatedRow] = []
-    row_index = 0
-    for measure_index, measure in enumerate(measures):
-        quantization = len(measure)
-        if quantization == 0:
-            continue
-        beat_step = 4.0 / quantization
-        for slot, raw in enumerate(measure):
-            if raw.text == "0000":
-                continue
-            try:
-                note_row = NoteRow.from_str(
-                    raw.text,
-                    quantization=quantization,
-                    beat=round(measure_index * 4.0 + slot * beat_step, 4),
-                    measure=measure_index,
-                )
-            except (TypeError, ValueError) as error:
-                raise AnnotationError(
-                    f"line {raw.line_number}: invalid note row {raw.text!r}"
-                ) from error
-            feet, patterns = _parse_tags(raw.comment, line_number=raw.line_number)
-            item = AnnotatedRow(
-                index=row_index,
-                line_number=raw.line_number,
-                measure=measure_index,
-                beat=note_row.beat or 0.0,
-                row=note_row,
-                feet=feet,
-                patterns=patterns,
-                section=raw.section,
-            )
-            press_count = len(item.pressable_cols)
-            if feet and len(feet) == 2 and press_count != 2:
-                raise AnnotationError(
-                    f"line {raw.line_number}: @feet expects two panels but row has "
-                    f"{press_count} pressable notes"
-                )
-            if feet and len(feet) > 2:
-                raise AnnotationError(
-                    f"line {raw.line_number}: too many @feet entries ({len(feet)})"
-                )
-            if patterns and press_count == 0:
-                raise AnnotationError(
-                    f"line {raw.line_number}: pattern anchor has no pressable note"
-                )
-            if require_complete and press_count and not feet:
-                raise AnnotationError(
-                    f"line {raw.line_number}: pressable row is missing @foot/@feet"
-                )
-            annotated.append(item)
-            row_index += 1
-
-    if len(annotated) != len(song.charts[0].notes):
+    lines = body.splitlines()
+    sources = source_rows(body)
+    # Guards _notes_body locating the same text the parser read.
+    if len(sources) != len(notes):
         raise AnnotationError(
             "annotation row alignment differs from parser: "
-            f"{len(annotated)} annotated vs {len(song.charts[0].notes)} parsed"
+            f"{len(sources)} annotated vs {len(notes)} parsed"
         )
+    sections = _sections_by_line(lines)
+
+    annotated: list[AnnotatedRow] = []
+    for index, (source, note_row) in enumerate(zip(sources, notes, strict=True)):
+        line_number = body_line + source.line_index
+        _, _, comment = lines[source.line_index].partition("//")
+        feet, patterns = _parse_tags(comment.strip(), line_number=line_number)
+        item = AnnotatedRow(
+            index=index,
+            line_number=line_number,
+            measure=source.measure,
+            beat=source.beat,
+            row=note_row,
+            feet=feet,
+            patterns=patterns,
+            section=sections[source.line_index],
+        )
+        _validate_row(item, require_complete=require_complete)
+        annotated.append(item)
     return AnnotatedChart(song=song, rows=tuple(annotated))

@@ -32,30 +32,27 @@ class NoteRow:
     hold_active_mask: int = 0
     roll_active_mask: int = 0
 
-    @staticmethod
-    def column_bit(col: int) -> int:
-        return 1 << col
-
-    @classmethod
-    def column_active(cls, mask: int, col: int) -> bool:
-        return bool(mask & cls.column_bit(col))
+    @property
+    def panels(self) -> tuple[NoteType | None, NoteType | None, NoteType | None, NoteType | None]:
+        """The four columns in LDUR order."""
+        return (self.left, self.down, self.up, self.right)
 
     @property
     def press_mask(self) -> int:
         """4-bit mask of columns requiring a foot press on this row (TAP, HOLD head, ROLL head)."""
         mask = 0
-        for col, note in enumerate((self.left, self.down, self.up, self.right)):
+        for col, note in enumerate(self.panels):
             if note in PRESSABLE_NOTES:
-                mask |= self.column_bit(col)
+                mask |= 1 << col
         return mask
 
     @property
     def mine_mask(self) -> int:
         """4-bit mask of columns containing a MINE on this row."""
         mask = 0
-        for col, note in enumerate((self.left, self.down, self.up, self.right)):
+        for col, note in enumerate(self.panels):
             if note == NoteType.MINE:
-                mask |= self.column_bit(col)
+                mask |= 1 << col
         return mask
 
     @classmethod
@@ -107,7 +104,7 @@ class AnchorTracker:
         self._state: list[_AnchorKind] = ["idle"] * _NUM_COLUMNS
 
     def apply_heads(self, row: NoteRow) -> None:
-        for col, note in enumerate((row.left, row.down, row.up, row.right)):
+        for col, note in enumerate(row.panels):
             match note:
                 case NoteType.HOLD:
                     self._state[col] = "hold"
@@ -121,14 +118,14 @@ class AnchorTracker:
         for col in range(_NUM_COLUMNS):
             match self._state[col]:
                 case "hold":
-                    hold_mask |= NoteRow.column_bit(col)
+                    hold_mask |= 1 << col
                 case "roll":
-                    roll_mask |= NoteRow.column_bit(col)
+                    roll_mask |= 1 << col
 
         return hold_mask, roll_mask
 
     def apply_tails(self, row: NoteRow) -> None:
-        for col, note in enumerate((row.left, row.down, row.up, row.right)):
+        for col, note in enumerate(row.panels):
             match note:
                 case NoteType.TAIL:
                     self._state[col] = "idle"

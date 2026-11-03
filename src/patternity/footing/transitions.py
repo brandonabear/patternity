@@ -14,7 +14,7 @@ _ANCHOR_HEADS = frozenset({NoteType.HOLD, NoteType.ROLL})
 
 
 def anchored_mask(row: NoteRow) -> int:
-    """Panels held or rolled through this row without a new press (tails included)."""
+    """Active hold/rolls on current row. Considered active through the tail."""
     return (row.hold_active_mask | row.roll_active_mask) & ~row.press_mask
 
 
@@ -67,8 +67,7 @@ def _update_hold_owners(
         placement = stance.left if foot == FootMove.LEFT else stance.right
         if grace & bit and not placement.mask & bit:
             del owners[col]
-    panels = (row.left, row.down, row.up, row.right)
-    for col, note in enumerate(panels):
+    for col, note in enumerate(row.panels):
         if note not in _ANCHOR_HEADS:
             continue
         bit = 1 << col
@@ -90,9 +89,8 @@ def _emit_foot_row(
 ) -> FootRow:
     if moved == FootMove.NONE:
         released = prev.released_since_press
-        panels = (row.left, row.down, row.up, row.right)
         for col, owner in prev.hold_owners:
-            if panels[col] == NoteType.TAIL:
+            if row.panels[col] == NoteType.TAIL:
                 released |= owner
         return FootRow(
             stance=stance,

@@ -3,17 +3,12 @@ from patternity.footing.grace import HOLD_GRACE_SEC, ROLL_GRACE_SEC, hold_grace
 from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
 from patternity.footing.transitions import iter_legal_transitions
 from patternity.simfile import NoteRow
-from patternity.training import parse_annotated_sm
+from tests.helpers import chart_rows
 
 
-def _rows(chart_rows: list[str], bpm: float = 150.0) -> list[NoteRow]:
-    body = "\n".join(chart_rows)
-    text = (
-        f"#TITLE:t;\n#BPMS:0.000={bpm};\n#STOPS:;\n#NOTES:\n"
-        "     dance-single:\n     t:\n     Challenge:\n     1:\n"
-        f"     0,0,0,0,0:\n{body}\n;\n"
-    )
-    return parse_annotated_sm(text).chart.notes
+def _rows(rows: list[str], bpm: float = 150.0) -> list[NoteRow]:
+    """Defaults to 150 BPM, where 8ths are 0.2 s apart."""
+    return chart_rows(rows, bpm)
 
 
 def _left_holding_left() -> FootRow:
