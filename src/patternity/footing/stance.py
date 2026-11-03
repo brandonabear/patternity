@@ -102,13 +102,13 @@ def compute_orientation(
     dx = rx - lx
     dy = ry - ly
 
-    # Change in dy indicates hip direction shift (left, right)
+    # Change in dy indicates left/right orientation
     if dy > 0:
         return PlayerOrientation.FACING_LEFT
     if dy < 0:
         return PlayerOrientation.FACING_RIGHT
 
-    # Change in dx indicates player direction shift (forward, backward)
+    # Change in dx indicates forward/backward orientation
     if dx > 0:
         return PlayerOrientation.NEUTRAL
     if dx < 0:
