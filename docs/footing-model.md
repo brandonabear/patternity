@@ -43,7 +43,7 @@ Each transition is stored in a feature vector `FEATURE_NAMES` (see `footing/feat
 
 ### Visualizing the Trellis
 
-It helps to maintain a mental model of how `patternity` solves footing by visualizing the trellis and Viterbi-selected paths. The following diagrams show short arrow phrases and provide a simplified trellis representation. The modeled footing is labeled in the chart on the left and the winning path (lowest cost) is highlighted in the diagram on the right. Edge costs are the real transition costs from the packaged weights at 120 BPM (rounded) and will change when the model is retrained.
+It helps to maintain a mental model of how `patternity` solves footing by visualizing the trellis and Viterbi-selected paths. The following diagrams show short arrow phrases and provide a simplified trellis representation. The modeled footing is labeled in the chart on the left and the winning path (lowest cost) is highlighted in the diagram on the right. Edge costs are the real transition costs from the packaged weights at 120 BPM (150 BPM in Example 3), rounded, and will change when the model is retrained.
 
 ### Example 1: Simple Alternating Feet
 
@@ -58,3 +58,9 @@ The opening step is an exact tie (26.3 either way) because the neutral stance is
 A footswitch is a technique where consecutive same-arrow presses are hit by alternating feet. This can be coerced by placing a mine such that performing a jack would result in triggering the mine or where the speed of consecutive taps is sufficiently quick that alternating feet requires less effort.
 
 ![Playfield for a footswitch (Left, Down, mine on Left, Down, Right on 16th notes; arrows labeled with the winning foot L, R, L, R and colored red on 4th-note beats, green on 16th-note beats) beside the footing trellis for the same rows. The minimum-cost path (white-outlined nodes, solid edges) alternates feet, with the left foot stepping off the mined Left panel to take over Down; dashed nodes and edges are alternatives branching from the winning node above.](images/trellis_footswitch.svg)
+
+### Example 3: Crossover Bracket
+
+A crossover-bracket is the combination of a crossover (right foot used to hit left panel or left foot used to hit right panel) and a bracket (one foot used to hit two adjacent panels). While a player could opt to perform a jump, depending on the speed, the cost may be lower to simpler turn and bracket the two-panel hit instead.
+
+![Playfield for a crossover bracket (Right, Down, Left and Up together, Down, Right on 16th notes at 150 BPM; arrows labeled with the winning foot R, L, R and R, L, R, colored red on 4th-note beats, blue on 8th-note beats and green on 16th-note beats) beside the footing trellis for the same rows. The minimum-cost path (white-outlined nodes, solid edges) has the right foot bracket Left and Up across the left foot rather than jumping; dashed nodes and edges are alternatives branching from the winning node above.](images/trellis_crossover_bracket.svg)

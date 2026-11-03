@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 930 1040" width="930" height="1040" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14">
+<title>Playfield and footing trellis for a crossover bracket: right, down, left and up, down, right</title>
+<desc>Left: the playfield for five 16th-note steps at 150 BPM, Right, Down, Left and Up together, Down, Right, with arrows colored by quantization and labeled with the winning foot, R, L, R and R, L, R. Right: the Viterbi trellis for the same rows, starting from a neutral stance. The minimum-cost path (white-outlined nodes, solid edges) has the right foot bracket Left and Up across the left foot, which stays on Down, a crossover bracket, rather than jumping with both feet. Every alternative branches from the winning node above it.</desc>
+<style>.row{font-weight:600} .lbl{font-size:12px} .foot{font-size:17px;font-weight:700;fill:#fff;stroke:#000;stroke-width:0.6;paint-order:stroke}</style>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ececec"/></marker><marker id="arrowDim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9a9a9a"/></marker></defs>
+<rect width="930" height="1040" fill="#1f2023"/>
+<rect x="240" y="10" width="660" height="110" rx="8" fill="#c9c9c9" stroke="#555" stroke-dasharray="2 4" stroke-linecap="round"/>
+<text x="254" y="32" class="row" fill="#222">Start</text>
+<rect x="240" y="170" width="660" height="120" rx="8" fill="#3b1d21" stroke="#e5484d"/>
+<text x="254" y="192" class="row" fill="#f5b5b8">Row 1: Right Arrow</text>
+<rect x="240" y="350" width="660" height="120" rx="8" fill="#14291b" stroke="#2a8a52"/>
+<text x="254" y="372" class="row" fill="#a6f0c4">Row 2: Down Arrow</text>
+<rect x="240" y="530" width="660" height="120" rx="8" fill="#18263f" stroke="#4b8df8"/>
+<text x="254" y="552" class="row" fill="#a9c6fb">Row 3: Left + Up Arrows</text>
+<rect x="240" y="710" width="660" height="120" rx="8" fill="#14291b" stroke="#2a8a52"/>
+<text x="254" y="732" class="row" fill="#a6f0c4">Row 4: Down Arrow</text>
+<rect x="240" y="890" width="660" height="120" rx="8" fill="#3b1d21" stroke="#e5484d"/>
+<text x="254" y="912" class="row" fill="#f5b5b8">Row 5: Right Arrow</text>
+<text x="122.0" y="34" text-anchor="middle" class="row" fill="#ececec">Playfield</text>
+<text x="122.0" y="52" text-anchor="middle" class="lbl" fill="#9a9a9a">5 steps on 16th notes at 150 BPM</text>
+<g transform="translate(32 76) scale(0.5)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#ff4d4d" stroke="#000" stroke-width="2" stroke-linejoin="round"/></g>
+<text x="48" y="80" class="lbl" fill="#ececec">4th-note beat</text>
+<g transform="translate(32 94) scale(0.5)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#3b82f6" stroke="#000" stroke-width="2" stroke-linejoin="round"/></g>
+<text x="48" y="98" class="lbl" fill="#ececec">8th-note beat</text>
+<g transform="translate(32 112) scale(0.5)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#3ddc84" stroke="#000" stroke-width="2" stroke-linejoin="round"/></g>
+<text x="48" y="116" class="lbl" fill="#ececec">16th-note beat</text>
+<rect x="24" y="207.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="74" y="207.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="124" y="207.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="174" y="207.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<g transform="translate(197.0 230) rotate(90) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#ff4d4d" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g><text x="197.0" y="236" text-anchor="middle" class="foot">R</text>
+<rect x="24" y="387.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="74" y="387.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<g transform="translate(97.0 410) rotate(180) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#3ddc84" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g><text x="97.0" y="416" text-anchor="middle" class="foot">L</text>
+<rect x="124" y="387.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="174" y="387.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="24" y="567.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<g transform="translate(47.0 590) rotate(270) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#3b82f6" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g><text x="47.0" y="596" text-anchor="middle" class="foot">R</text>
+<rect x="74" y="567.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="124" y="567.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<g transform="translate(147.0 590) rotate(0) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#3b82f6" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g><text x="147.0" y="596" text-anchor="middle" class="foot">R</text>
+<rect x="174" y="567.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="24" y="747.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="74" y="747.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<g transform="translate(97.0 770) rotate(180) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#3ddc84" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g><text x="97.0" y="776" text-anchor="middle" class="foot">L</text>
+<rect x="124" y="747.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="174" y="747.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="24" y="927.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="74" y="927.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="124" y="927.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<rect x="174" y="927.0" width="46" height="46" rx="4" fill="#d9d9d9" stroke="#8a8a8a"/>
+<g transform="translate(197.0 950) rotate(90) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#ff4d4d" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g><text x="197.0" y="956" text-anchor="middle" class="foot">R</text>
+<line x1="600" y1="96" x2="740" y2="210" stroke="#ececec" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="614.5" y="147.7" width="125.0" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="677.0" y="162.7" text-anchor="middle" class="lbl" fill="#ececec">stationary: 0.0</text>
+<line x1="540" y1="96" x2="400" y2="210" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrowDim)"/>
+<rect x="374.6" y="147.7" width="176.8" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="463.0" y="162.7" text-anchor="middle" class="lbl" fill="#ececec">travel + overlap: 55.1</text>
+<line x1="740" y1="266" x2="400" y2="390" stroke="#ececec" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="518.6" y="317.0" width="102.8" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="570.0" y="332.0" text-anchor="middle" class="lbl" fill="#ececec">travel: 37.3</text>
+<line x1="740" y1="266" x2="740" y2="390" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrowDim)"/>
+<rect x="673.8" y="317.0" width="132.4" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="740.0" y="332.0" text-anchor="middle" class="lbl" fill="#ececec">same_foot: 176.7</text>
+<line x1="400" y1="446" x2="740" y2="570" stroke="#ececec" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="474.2" y="497.0" width="191.6" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="570.0" y="512.0" text-anchor="middle" class="lbl" fill="#ececec">bracket + crossed: 126.5</text>
+<line x1="400" y1="446" x2="400" y2="570" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrowDim)"/>
+<rect x="352.3" y="497.0" width="95.4" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="400.0" y="512.0" text-anchor="middle" class="lbl" fill="#ececec">jump: 160.0</text>
+<line x1="740" y1="626" x2="400" y2="750" stroke="#ececec" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="514.9" y="677.0" width="110.2" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="570.0" y="692.0" text-anchor="middle" class="lbl" fill="#ececec">crossed: 22.0</text>
+<line x1="740" y1="626" x2="740" y2="750" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrowDim)"/>
+<rect x="636.8" y="677.0" width="206.4" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="740.0" y="692.0" text-anchor="middle" class="lbl" fill="#ececec">same_foot + overlap: 220.3</text>
+<line x1="400" y1="806" x2="740" y2="930" stroke="#ececec" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="518.6" y="857.0" width="102.8" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="570.0" y="872.0" text-anchor="middle" class="lbl" fill="#ececec">travel: 39.8</text>
+<line x1="400" y1="806" x2="400" y2="930" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrowDim)"/>
+<rect x="296.8" y="857.0" width="206.4" height="20" rx="3" fill="#1f2023" fill-opacity="0.92"/>
+<text x="400.0" y="872.0" text-anchor="middle" class="lbl" fill="#ececec">same_foot + crossed: 182.2</text>
+<rect x="460.0" y="40" width="220" height="56" rx="6" fill="#e4e4e4" stroke="#555" stroke-width="1.5" stroke-dasharray="2 4" stroke-linecap="round"/>
+<text x="570" y="63" text-anchor="middle" fill="#222">Stance(Left, Right)</text>
+<text x="570" y="84" text-anchor="middle" fill="#222">neutral stance</text>
+<rect x="630.0" y="210" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#ffffff" stroke-width="3"/>
+<text x="740" y="233" text-anchor="middle" fill="#ececec">Stance(Left, Right)</text>
+<text x="740" y="254" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Right Foot</text>
+<rect x="290.0" y="210" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="400" y="233" text-anchor="middle" fill="#ececec">Stance(Right, Right)</text>
+<text x="400" y="254" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Left Foot</text>
+<rect x="290.0" y="390" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#ffffff" stroke-width="3"/>
+<text x="400" y="413" text-anchor="middle" fill="#ececec">Stance(Down, Right)</text>
+<text x="400" y="434" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Left Foot</text>
+<rect x="630.0" y="390" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="740" y="413" text-anchor="middle" fill="#ececec">Stance(Left, Down)</text>
+<text x="740" y="434" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Right Foot</text>
+<rect x="630.0" y="570" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#ffffff" stroke-width="3"/>
+<text x="740" y="593" text-anchor="middle" fill="#ececec">Stance(Down, Left+Up)</text>
+<text x="740" y="614" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Right Foot</text>
+<rect x="290.0" y="570" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="400" y="593" text-anchor="middle" fill="#ececec">Stance(Left, Up)</text>
+<text x="400" y="614" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Both Feet</text>
+<rect x="290.0" y="750" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#ffffff" stroke-width="3"/>
+<text x="400" y="773" text-anchor="middle" fill="#ececec">Stance(Down, Left+Up)</text>
+<text x="400" y="794" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Left Foot</text>
+<rect x="630.0" y="750" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="740" y="773" text-anchor="middle" fill="#ececec">Stance(Down, Down)</text>
+<text x="740" y="794" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Right Foot</text>
+<rect x="630.0" y="930" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#ffffff" stroke-width="3"/>
+<text x="740" y="953" text-anchor="middle" fill="#ececec">Stance(Down, Right)</text>
+<text x="740" y="974" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Right Foot</text>
+<rect x="290.0" y="930" width="220" height="56" rx="6" fill="#2a2b2f" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="400" y="953" text-anchor="middle" fill="#ececec">Stance(Right, Left+Up)</text>
+<text x="400" y="974" text-anchor="middle" fill="#ececec"><tspan font-style="italic">moved:</tspan> Left Foot</text>
+</svg>
