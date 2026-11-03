@@ -26,7 +26,7 @@
                 "candles": 5
             },
             "movement": {
-                "direction_shifts": 3
+                "direction_shifts": 5
             }
         }
     ]
