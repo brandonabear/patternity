@@ -43,35 +43,8 @@ Each transition is stored in a feature vector `FEATURE_NAMES` (see `footing/feat
 
 ### Visualizing the Trellis
 
-It helps to maintain a simplified mental model of how `patternity` solves footing. Imagine a 3-arrow phrase: `down` -> `up` -> `down`. If the player begins in a neutral stance facing forward with their feet on the `left` and `right` arrows, the following diagram models the player state nodes (`FootRow`), transition edges (`FootMove`), and the associated costs. **The highlighted edges are the minimum-cost path chosen via Viterbi.**
+It helps to maintain a simplified mental model of how `patternity` solves footing. Imagine a 3-arrow phrase: `down` -> `up` -> `down`. If the player begins in a neutral stance facing forward with their feet on the `left` and `right` arrows, the following diagram models the player state nodes (`FootRow`), transition edges (`FootMove`), and the associated costs. **The green nodes and solid edges are the minimum-cost path chosen via Viterbi**; dashed nodes are alternatives it beat. Within each row, the node where the left foot moved is drawn on the left and the one where the right foot moved on the right, so the chosen path alternates sides as the feet alternate. For readability, each row's alternatives branch only from the winning node of the row above. The playfield on the left shows the same three 8th notes on the Left/Down/Up/Right panels. Each arrow is labeled with the foot (L or R) on the winning path, and arrows and the row boxes of the trellis are colored by quantization as in ITG: red on a quarter-note beat, blue on an 8th-note beat. Nodes read `Stance(left foot, right foot)`.
 
-```mermaid
-flowchart TD
-    subgraph start["Start"]
-        S0["(Left, Right)<br/>start"]
-    end
-    subgraph row1["Row 1: Down"]
-        S1a["(Down, Right)<br/>moved: Left"]
-        S1b["(Left, Down)<br/>moved: Right"]
-    end
-    subgraph row2["Row 2: Up"]
-        S2a["(Down, Up)<br/>moved: Right"]
-        S2b["(Up, Right)<br/>moved: Left"]
-    end
-    subgraph row3["Row 3: Down"]
-        S3a["(Down, Up)<br/>moved: Left"]
-        S3b["(Down, Right)<br/>moved: Left"]
-    end
+![Playfield for three 8th notes (down, up, down; arrows labeled L, R, L for the winning foot and colored red on quarter-note beats, blue on 8th-note beats) beside the footing trellis for the same rows, starting from a neutral stance. The minimum-cost path (green nodes, solid edges) alternates left, right, left; dashed nodes and edges are alternatives, each branching from the winning node above.](images/trellis.svg)
 
-    S0 -->|travel: 1.0| S1a
-    S0 -.->|travel: 1.0| S1b
-    S1a -->|travel: 1.0| S2a
-    S1a -.->|same_foot: 2.0| S2b
-    S2a -->|stationary re-tap: 0.3| S3a
-    S2b -.->|same_foot: 2.0| S3b
-
-    classDef selected stroke:#2e7d32,stroke-width:3px
-    classDef pruned stroke-dasharray: 4 3
-    class S1a,S2a,S3a selected
-    class S1b,S2b,S3b pruned
-```
+<!-- images/trellis.svg is plain hand-editable SVG (not generated from Mermaid), so node order within each row is exact. -->
