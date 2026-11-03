@@ -49,9 +49,9 @@ It helps to maintain a mental model of how `patternity` solves footing by visual
 
 One of the earliest optimizations players learn is to alternate feet between arrows and effectively "walk" instead of returning to the center arrow each time. This becomes a necessity as arrow density increases with difficulty.
 
-The opening step is a tie (26.3 either way) because the neutral stance is symmetric. The decoder breaks it toward the right foot (Right, Left, Right), which costs the same 73.5 in total as the Left, Right, Left path drawn here.
+The opening step is an exact tie (26.3 either way) because the neutral stance is symmetric. The diagram follows the decoder, which happens to break that tie toward the right foot; opening with the left foot (Left, Right, Left) costs the same 73.5 in total.
 
-![Playfield for three 8th notes (down, up, down; arrows labeled L, R, L for the winning foot and colored red on 4th-note beats, blue on 8th-note beats) beside the footing trellis for the same rows, starting from a neutral stance. The minimum-cost path (white-outlined nodes, solid edges) alternates left, right, left; dashed nodes and edges are alternatives, each branching from the winning node above.](images/trellis_alternating.svg)
+![Playfield for three 8th notes (down, up, down; arrows labeled R, L, R for the winning foot and colored red on 4th-note beats, blue on 8th-note beats) beside the footing trellis for the same rows, starting from a neutral stance. The minimum-cost path (white-outlined nodes, solid edges) alternates right, left, right; dashed nodes and edges are alternatives, each branching from the winning node above.](images/trellis_alternating.svg)
 
 ### Example 2: Mine-Cued Footswitch
 
