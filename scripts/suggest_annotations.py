@@ -166,7 +166,7 @@ def suggest_file(
     pattern_suggestions: list[str] = []
     for row in annotated.rows:
         step = result.steps[row.index]
-        if not step.note_row.press_mask:
+        if not step.note_row.pressed:
             continue
         parts: list[str] = []
 
