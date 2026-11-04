@@ -9,6 +9,7 @@ Patternity parses StepMania `.sm` / `.ssc` charts (4-panel singles), works out w
 | [Footing model](footing-model.md) | Understand how footing is inferred: states, features, Viterbi, the perceptron |
 | [Training workflow](training.md) | Annotate charts, retrain the weights, and check the result |
 | [Debugging](debugging.md) | Find out why a chart reports surprising counts or footing |
+| [Development guide](development.md) | Run the checks, find where to make a change, or add a footing feature |
 | [Design principles](design.md) | Know the rules the codebase follows and why |
 | [File format](format.md) | Understand `.sm` / `.ssc` structure and how it maps to the parsed model |
 

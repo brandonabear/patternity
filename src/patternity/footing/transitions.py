@@ -6,8 +6,8 @@ Each row is handled in three steps:
    (pressed, held, releasable).
 2. ``_candidates`` proposes every way the feet could move: one foot to any
    placement, or (for multi-panel rows) both feet to any pair of placements.
-3. Each candidate must pass every rule in ``rules.RULES``; the survivors become
-   the next ``FootRow`` states.
+3. Each candidate must pass every rule in ``rules.RULES``; illegal footing
+   states are removed from consideration of Viterbi.
 """
 
 from __future__ import annotations
@@ -49,11 +49,12 @@ def _update_hold_owners(
     prev: FootRow, row: NoteRow, ctx: RowContext, stance: Stance, moved: FootMove
 ) -> tuple[tuple[Panel, FootMove], ...]:
     """Which foot owns each held panel after this row, as sorted (panel, foot) pairs."""
-    # Holds still underway keep their owner...
+    # Active holds retain ownership
     owners: dict[Panel, FootMove] = {
         panel: foot for panel, foot in prev.hold_owners if panel in ctx.held
     }
-    # ...unless the owner stepped off during the grace window.
+
+    # Check for foot removal in grace period (remove ownership)
     for panel, foot in list(owners.items()):
         if panel in ctx.releasable and panel not in stance.placement(foot).panels:
             del owners[panel]
@@ -88,6 +89,7 @@ def _emit_foot_row(
         for panel, owner in prev.hold_owners:
             if panel in tails:
                 released |= owner
+
         return FootRow(
             stance=stance,
             moved=moved,
@@ -101,6 +103,7 @@ def _emit_foot_row(
 
     # Only a single-panel press is tracked for jacks and switches.
     last_press = ctx.pressed if len(ctx.pressed) == 1 else Panel.NONE
+
     # repeat_jack: True if the same foot presses the same panel again (a jack),
     # False if the other foot takes over the panel (a switch), and None when
     # that comparison doesn't apply (a multi-panel row, a jump, or a new panel).
@@ -112,6 +115,7 @@ def _emit_foot_row(
         and prev.last_press_foot in (FootMove.LEFT, FootMove.RIGHT)
     ):
         repeat_jack = moved == prev.last_press_foot
+
     return FootRow(
         stance=stance,
         moved=moved,
@@ -137,7 +141,7 @@ def iter_legal_transitions(
     """
     ctx = RowContext.from_row(row, grace)
 
-    # No new press: the feet stay put, but holds and mines still update.
+    # No change in footing
     if not ctx.pressed:
         yield _emit_foot_row(prev, row, ctx, stance=prev.stance, moved=FootMove.NONE)
         return

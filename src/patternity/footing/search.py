@@ -1,8 +1,7 @@
 """Exact search over legal foot states: trellis construction, Viterbi, and per-row confidence.
 
-The trellis enumerates every reachable ``FootRow`` per chart row (no beam) and
-stores each edge's feature vector, so it is independent of the weights and can
-be decoded many times (as training does).
+The trellis enumerates every reachable ``FootRow`` per chart row and stores each edge's
+feature vector. Build once, decode many times (as training does).
 """
 
 from __future__ import annotations
@@ -17,7 +16,7 @@ from patternity.footing.features import (
     featurize,
     hits_mine,
 )
-from patternity.footing.grace import hold_grace
+from patternity.footing.grace import GraceWindow, hold_grace
 from patternity.footing.stance import FootMove, FootRow
 from patternity.footing.transitions import iter_legal_transitions
 from patternity.simfile.notes import NoteRow
@@ -30,7 +29,13 @@ FeatureVector = tuple[tuple[int, float], ...]
 
 @dataclass(slots=True)
 class Layer:
-    """States reachable at one chart row plus edges from the previous layer."""
+    """States reachable at one chart row plus edges from the previous layer.
+
+    Edges are stored as parallel lists, one entry per edge: edge ``k`` goes from
+    state ``prev_idx[k]`` of the previous layer to state ``next_idx[k]`` of this
+    one, and costs ``feature_table[feat_ids[k]]`` (weighted) plus ``penalty[k]``.
+    ``add_edge`` adds each distinct ``FootRow`` to ``states`` only once.
+    """
 
     states: list[FootRow] = field(default_factory=list)
     prev_idx: list[int] = field(default_factory=list)
@@ -63,63 +68,114 @@ class Trellis:
     relaxed_rows: list[int]
 
 
-def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Trellis:
-    """Enumerate every reachable state per row (no beam) with edge features."""
-    table: list[FeatureVector] = []
-    table_index: dict[FeatureVector, int] = {}
+class _FeatureTable:
+    """Distinct edge feature vectors, each stored once and referenced by index.
 
-    def intern(feats: dict[str, float]) -> int:
+    Many edges share the same features, so a decode costs each vector once and
+    looks edges up by index.
+    """
+
+    def __init__(self) -> None:
+        self.vectors: list[FeatureVector] = []
+        self._index: dict[FeatureVector, int] = {}
+
+    def intern(self, feats: dict[str, float]) -> int:
+        """Index of ``feats`` as a sparse vector, adding it if new.
+
+        Values are rounded to 9 places so float noise doesn't create duplicates.
+        """
         vec = tuple(sorted((FEATURE_INDEX[k], round(v, 9)) for k, v in feats.items()))
-        idx = table_index.get(vec)
+        idx = self._index.get(vec)
         if idx is None:
-            idx = len(table)
-            table.append(vec)
-            table_index[vec] = idx
+            idx = len(self.vectors)
+            self.vectors.append(vec)
+            self._index[vec] = idx
         return idx
 
+
+# An edge held back because it steps on a mine: (prev state index, next state, feature id).
+_Blocked = tuple[int, FootRow, int]
+
+
+def _expand_layer(
+    states: Sequence[FootRow],
+    row: NoteRow,
+    dt: float | None,
+    grace: GraceWindow,
+    features: _FeatureTable,
+    allow_brackets: bool,
+) -> tuple[Layer, list[_Blocked]]:
+    """Every legal transition from each previous state to ``row``, as a layer of edges.
+
+    Edges that step on a mine are returned separately rather than added: hitting a
+    mine is avoidable, not impossible, so they're kept as a fallback.
+    """
+    layer = Layer()
+    blocked: list[_Blocked] = []
+    check_mines = bool(row.mines and row.pressed)
+    for prev_i, prev in enumerate(states):
+        for curr in iter_legal_transitions(
+            prev, row, allow_brackets=allow_brackets, grace=grace.panels
+        ):
+            feat_id = features.intern(
+                featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
+            )
+            if check_mines and hits_mine(curr, row.mines):
+                blocked.append((prev_i, curr, feat_id))
+                continue
+            layer.add_edge(prev_i, curr, feat_id, 0.0)
+    return layer, blocked
+
+
+def _add_relaxed_edges(
+    layer: Layer,
+    states: Sequence[FootRow],
+    row: NoteRow,
+    blocked: Sequence[_Blocked],
+    features: _FeatureTable,
+) -> None:
+    """Give a row with no legal edge penalized edges so the path can continue.
+
+    If the only moves stepped on a mine, allow them at ``RELAXED_PENALTY``.
+    Otherwise nothing was physically possible (e.g. a malformed chart): every
+    state stays put at the same penalty, carrying the row's mines forward as a
+    no-press row would.
+    """
+    if blocked:
+        for prev_i, curr, feat_id in blocked:
+            layer.add_edge(prev_i, curr, feat_id, RELAXED_PENALTY)
+        return
+
+    empty = features.intern({})
+    for prev_i, prev in enumerate(states):
+        stay = replace(
+            prev,
+            moved=FootMove.NONE,
+            mines_since_press=prev.mines_since_press | row.mines,
+        )
+        layer.add_edge(prev_i, stay, empty, RELAXED_PENALTY)
+
+
+def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Trellis:
+    """Enumerate every reachable state per row (no beam) with edge features."""
+    features = _FeatureTable()
+    grace_rows = hold_grace(rows)
     layers: list[Layer] = []
     relaxed: list[int] = []
     states = [FootRow.initial()]
     last_press_time: float | None = None
-    grace_rows = hold_grace(rows)
 
     for row_index, row in enumerate(rows):
+        # Seconds since the previous press row (None on the first press or a no-press row).
         now = row.timestamp or 0.0
-        dt = (
-            now - last_press_time
-            if row.pressed and last_press_time is not None
-            else None
-        )
-        grace = grace_rows[row_index]
-        layer = Layer()
-        blocked: list[tuple[int, FootRow, int]] = []
-        check_mines = bool(row.mines and row.pressed)
-        for prev_i, prev in enumerate(states):
-            for curr in iter_legal_transitions(
-                prev, row, allow_brackets=allow_brackets, grace=grace.panels
-            ):
-                feat_id = intern(
-                    featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
-                )
-                if check_mines and hits_mine(curr, row.mines):
-                    blocked.append((prev_i, curr, feat_id))
-                    continue
-                layer.add_edge(prev_i, curr, feat_id, 0.0)
+        dt = now - last_press_time if row.pressed and last_press_time is not None else None
 
+        layer, blocked = _expand_layer(
+            states, row, dt, grace_rows[row_index], features, allow_brackets
+        )
         if not layer.prev_idx:
             relaxed.append(row_index)
-            if blocked:
-                for prev_i, curr, feat_id in blocked:
-                    layer.add_edge(prev_i, curr, feat_id, RELAXED_PENALTY)
-            else:
-                empty = intern({})
-                for prev_i, prev in enumerate(states):
-                    stay = replace(
-                        prev,
-                        moved=FootMove.NONE,
-                        mines_since_press=prev.mines_since_press | row.mines,
-                    )
-                    layer.add_edge(prev_i, stay, empty, RELAXED_PENALTY)
+            _add_relaxed_edges(layer, states, row, blocked, features)
 
         layers.append(layer)
         states = layer.states
@@ -127,7 +183,7 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
             last_press_time = now
 
     return Trellis(
-        rows=list(rows), layers=layers, feature_table=table, relaxed_rows=relaxed
+        rows=list(rows), layers=layers, feature_table=features.vectors, relaxed_rows=relaxed
     )
 
 
@@ -172,6 +228,8 @@ def viterbi(
         want = allowed.get(i) if allowed else None
         gold = loss.get(i) if loss else None
         states = layer.states
+        # Usually runs once. If the annotation (``want``) leaves no reachable state
+        # on this row, retry the row unconstrained and record it as relaxed.
         while True:
             cost = [math.inf] * len(states)
             bp = [-1] * len(states)
@@ -184,6 +242,8 @@ def viterbi(
                 if want is not None and moved != want:
                     continue
                 c = base + table_cost[layer.feat_ids[k]] + layer.penalty[k]
+                # Cost-augmented decoding: disagreeing with the gold path is made
+                # cheaper, so the gold path has to win by at least ``margin``.
                 if gold is not None and moved != gold:
                     c -= margin
                 if c < cost[s]:
@@ -231,6 +291,7 @@ def row_confidence(trellis: Trellis, weights: Sequence[float]) -> list[float | N
     """
     table_cost = _table_costs(trellis, weights)
     layers = trellis.layers
+    # forward[i][s]: cheapest cost from the start to state s of layer i.
     forward: list[list[float]] = []
     prev_cost = [0.0]
     for layer in layers:
@@ -242,6 +303,7 @@ def row_confidence(trellis: Trellis, weights: Sequence[float]) -> list[float | N
         forward.append(cost)
         prev_cost = cost
 
+    # backward[i][s]: cheapest cost from state s of layer i to the end.
     backward: list[list[float]] = [[] for _ in layers]
     if layers:
         backward[-1] = [0.0] * len(layers[-1].states)
@@ -258,6 +320,8 @@ def row_confidence(trellis: Trellis, weights: Sequence[float]) -> list[float | N
             cost[p] = min(cost[p], c)
         backward[i - 1] = cost
 
+    # forward + backward is the cheapest full path through a state. Per row, take the
+    # best such path for each FootMove; the margin is the runner-up minus the best.
     result: list[float | None] = []
     for i, layer in enumerate(layers):
         if not trellis.rows[i].pressed:

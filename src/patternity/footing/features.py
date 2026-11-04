@@ -6,6 +6,8 @@ references tech-pattern timing cutoffs; those live in ``patternity.patterns.dete
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from patternity.footing.grace import HOLD_GRACE_SEC, ROLL_GRACE_SEC, Remaining
 from patternity.footing.rules import held_panels
 from patternity.footing.stance import (
@@ -85,6 +87,175 @@ def hits_mine(curr: FootRow, mines: Panel) -> bool:
     return False
 
 
+@dataclass(frozen=True, slots=True)
+class _Step:
+    """One transition being scored: ``prev`` to ``curr`` on ``row``."""
+
+    prev: FootRow
+    curr: FootRow
+    row: NoteRow
+    speed: float  # See ``speed``.
+    grace_remaining: Remaining
+
+    @property
+    def moved(self) -> FootMove:
+        return self.curr.moved
+
+    @property
+    def single(self) -> bool:
+        """Exactly one foot moved (not a jump)."""
+        return self.moved != FootMove.BOTH
+
+    @property
+    def cue(self) -> Panel:
+        """Panels with a mine since the last press, including this row."""
+        return self.prev.mines_since_press | self.row.mines
+
+    @property
+    def same_foot(self) -> bool:
+        """The foot that pressed last presses again (any panels)."""
+        return self.single and self.prev.last_press_foot == self.moved
+
+    @property
+    def is_jack(self) -> bool:
+        """Same foot, same panel as the last press (see ``FootRow.last_repeat_jack``)."""
+        return self.curr.last_repeat_jack is True
+
+    @property
+    def is_switch(self) -> bool:
+        """Other foot, same panel as the last press (see ``FootRow.last_repeat_jack``)."""
+        return self.curr.last_repeat_jack is False
+
+
+class _Features(dict[str, float]):
+    """Feature values being accumulated for one transition."""
+
+    def add(self, name: str, value: float = 1.0) -> None:
+        if value:
+            self[name] = self.get(name, 0.0) + value
+
+
+def _hold_release_features(step: _Step, feats: _Features) -> FootMove:
+    """``hold_release`` and ``early_release``: a foot leaves its hold in the grace window.
+
+    Returns the feet that released a hold on this row.
+    """
+    held = held_panels(step.row)
+    still_owned = {panel for panel, _ in step.curr.hold_owners}
+    released = FootMove.NONE
+    for panel, foot in step.prev.hold_owners:
+        # Released: the hold is still underway, but no foot owns it any more.
+        if panel not in held or panel in still_owned:
+            continue
+        released |= foot
+        feats.add("hold_release")
+        remaining = step.grace_remaining[panel.column]
+        if remaining:
+            window = ROLL_GRACE_SEC if panel in step.row.rolls_active else HOLD_GRACE_SEC
+            feats.add("early_release", remaining / window)
+    return released
+
+
+def _repetition_features(step: _Step, feats: _Features, released_now: FootMove) -> None:
+    """Same foot pressing twice (``same_foot*``) and same-panel repeats (``jack*``,
+    ``switch*``, ``repeat_change``)."""
+    if step.same_foot:
+        # A double-step is natural when the other foot just let go of a hold (earlier
+        # since the last press, or on this row), so it gets its own weight.
+        released = step.prev.released_since_press | released_now
+        other_foot_released = bool(released & ~step.moved)
+        if other_foot_released:
+            feats.add("same_foot_after_release")
+        else:
+            feats.add("same_foot")
+            feats.add("same_foot_speed", step.speed)
+
+    if step.is_jack:
+        feats.add("jack")
+        feats.add("jack_speed", step.speed)
+        feats.add("jack_speed_sq", step.speed * step.speed)
+    elif step.is_switch:
+        feats.add("switch")
+        feats.add("switch_speed", step.speed)
+
+    # A same-panel run changed technique (jack then switch, or the reverse).
+    prev_repeat = step.prev.last_repeat_jack
+    curr_repeat = step.curr.last_repeat_jack
+    if prev_repeat is not None and curr_repeat is not None and prev_repeat != curr_repeat:
+        feats.add("repeat_change")
+
+
+def _mine_cue_features(step: _Step, feats: _Features) -> None:
+    """Mines since the last press hint at which foot comes next (``mine_cued_*``,
+    ``cued_foot_*``)."""
+    cue = step.cue
+    if not cue:
+        return
+    if step.same_foot:
+        feats.add("mine_cued_same_foot")
+    if step.is_switch:
+        feats.add("mine_cued_switch")
+
+    for foot in _FEET:
+        if step.moved & foot:
+            if _placement(step.prev, foot).panels & cue:
+                feats.add("cued_foot_moves")
+        elif _placement(step.curr, foot).panels & cue and not _displaced(step.curr, foot):
+            feats.add("cued_foot_stays")
+
+
+def _movement_features(step: _Step, feats: _Features) -> None:
+    """How far and onto what the moving feet go (``travel*``, ``bracket*``,
+    ``hold_bracket_tap``, ``jump*``)."""
+    travel = 0.0
+    brackets = 0
+    hold_owners = {foot for _, foot in step.prev.hold_owners}
+    for foot in _FEET:
+        if not step.moved & foot:
+            continue
+        before = _placement(step.prev, foot)
+        after = _placement(step.curr, foot)
+        travel += before.distance_to(after)
+        if after.is_bracket:
+            brackets += 1
+            if foot in hold_owners:
+                feats.add("hold_bracket_tap")
+
+    feats.add("travel", travel)
+    feats.add("travel_speed", travel * step.speed)
+    feats.add("bracket", brackets)
+    feats.add("bracket_speed", brackets * step.speed)
+
+    if not step.single:
+        feats.add("jump")
+        feats.add("jump_speed", step.speed)
+
+
+def _stance_features(step: _Step, feats: _Features) -> None:
+    """The shape of the stance the feet end up in (``overlap``, ``crossed``,
+    ``cross_entry``, ``inverted``, ``facing_flip``, ``twisted``)."""
+    stance = step.curr.stance
+    before = step.prev.stance
+    if step.single and stance.is_overlapping:
+        feats.add("overlap")
+    if stance.is_crossed:
+        feats.add("crossed")
+        if not before.is_crossed:
+            feats.add("cross_entry")
+    if stance.orientation == PlayerOrientation.INVERTED:
+        feats.add("inverted")
+
+    turned_to_other_side = (
+        stance.orientation.is_facing
+        and before.orientation.is_facing
+        and stance.orientation != before.orientation
+    )
+    if turned_to_other_side:
+        feats.add("facing_flip")
+    if stance.orientation.is_facing and not stance.is_crossed:
+        feats.add("twisted")
+
+
 def featurize(
     prev: FootRow,
     curr: FootRow,
@@ -93,108 +264,14 @@ def featurize(
     grace_remaining: Remaining = (None, None, None, None),
 ) -> dict[str, float]:
     """Feature values for moving from ``prev`` to ``curr`` on ``row``."""
-    moved = curr.moved
-    if moved == FootMove.NONE:
+    if curr.moved == FootMove.NONE:
         return {}
 
-    feats: dict[str, float] = {}
-
-    def add(name: str, value: float = 1.0) -> None:
-        if value:
-            feats[name] = feats.get(name, 0.0) + value
-
-    spd = speed(dt)
-    single = moved != FootMove.BOTH
-    prev_foot = prev.last_press_foot
-    cue = prev.mines_since_press | row.mines
-
-    held = held_panels(row)
-    kept = {panel for panel, _ in curr.hold_owners}
-    released_now = FootMove.NONE
-    for panel, foot in prev.hold_owners:
-        if panel not in held or panel in kept:
-            continue
-        released_now |= foot
-        add("hold_release")
-        rem = grace_remaining[panel.column]
-        if rem:
-            window = ROLL_GRACE_SEC if panel in row.rolls_active else HOLD_GRACE_SEC
-            add("early_release", rem / window)
-
-    release_context = prev.released_since_press | released_now
-
-    if single and prev_foot == moved:
-        if release_context & ~moved:
-            add("same_foot_after_release")
-        else:
-            add("same_foot")
-            add("same_foot_speed", spd)
-        if cue:
-            add("mine_cued_same_foot")
-
-    if (
-        single
-        and curr.last_press
-        and curr.last_press == prev.last_press
-        and prev_foot in _FEET
-    ):
-        if prev_foot == moved:
-            add("jack")
-            add("jack_speed", spd)
-            add("jack_speed_sq", spd * spd)
-        else:
-            add("switch")
-            add("switch_speed", spd)
-            if cue:
-                add("mine_cued_switch")
-        if (
-            curr.last_repeat_jack is not None
-            and prev.last_repeat_jack is not None
-            and curr.last_repeat_jack != prev.last_repeat_jack
-        ):
-            add("repeat_change")
-
-    travel = 0.0
-    brackets = 0
-    owners = {foot for _, foot in prev.hold_owners}
-    for foot in _FEET:
-        before = _placement(prev, foot)
-        after = _placement(curr, foot)
-        if moved & foot:
-            travel += before.distance_to(after)
-            if after.is_bracket:
-                brackets += 1
-            if before.panels & cue:
-                add("cued_foot_moves")
-            if foot in owners and after.is_bracket:
-                add("hold_bracket_tap")
-        elif after.panels & cue and not _displaced(curr, foot):
-            add("cued_foot_stays")
-
-    add("travel", travel)
-    add("travel_speed", travel * spd)
-    add("bracket", brackets)
-    add("bracket_speed", brackets * spd)
-
-    if not single:
-        add("jump")
-        add("jump_speed", spd)
-
-    stance = curr.stance
-    if single and stance.is_overlapping:
-        add("overlap")
-    if stance.is_crossed:
-        add("crossed")
-        if not prev.stance.is_crossed:
-            add("cross_entry")
-    if stance.orientation == PlayerOrientation.INVERTED:
-        add("inverted")
-    if (
-        stance.orientation.is_facing
-        and prev.stance.orientation.is_facing
-        and stance.orientation != prev.stance.orientation
-    ):
-        add("facing_flip")
-    if stance.orientation.is_facing and not stance.is_crossed:
-        add("twisted")
-    return feats
+    step = _Step(prev, curr, row, speed(dt), grace_remaining)
+    feats = _Features()
+    released_now = _hold_release_features(step, feats)
+    _repetition_features(step, feats, released_now)
+    _mine_cue_features(step, feats)
+    _movement_features(step, feats)
+    _stance_features(step, feats)
+    return dict(feats)

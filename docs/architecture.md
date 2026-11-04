@@ -117,13 +117,4 @@ Computed by `movement/detector.py` from the same decoded foot path as tech label
 | `total_cost` | Sum of weighted transition costs on the chosen path. |
 | `foot_path_feasible` | `False` if any row used a relaxed (penalized) fallback. |
 
-## Where to change what
-
-| You want to… | Change |
-|--------------|--------|
-| Fix how a pattern is *counted* (cutoffs, pairing rules) | `patterns/detector.py` |
-| Fix how a passage is *footed* | Annotate it and retrain ([Training workflow](training.md)). Only add or change a feature in `footing/features.py` (`featurize`) when the existing features cannot express the distinction ([Footing model](footing-model.md#adding-a-feature)). |
-| Allow or forbid a physical move outright | `footing/rules.py` (hard rules) |
-| Change what basic metrics count | `analysis/metrics.py` (`BasicMetrics.add_note`) |
-| Change movement counts (direction shifts) | `movement/detector.py` |
-| Support a new simfile tag | `simfile/parser.py`, `simfile/song.py` |
+For where to make common changes, see the [Development guide](development.md#where-to-change-what).

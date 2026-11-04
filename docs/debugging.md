@@ -83,7 +83,7 @@ for name, d, w in zip(FEATURE_NAMES, diff, weights):
 Positive contributions are what make the annotated footing more expensive. Use this to decide between:
 
 - **More data**: the features *can* tell the passages apart, but the corpus doesn't show the model which way to lean. Annotate more passages like this one.
-- **A new feature**: the two footings have the same features in every way that matters (often the difference list is short and balanced), so no weights could separate them. See [Footing model → Adding a feature](footing-model.md#adding-a-feature).
+- **A new feature**: the two footings have the same features in every way that matters (often the difference list is short and balanced), so no weights could separate them. See [Development guide → Adding a feature](development.md#adding-a-feature).
 
 To focus on one passage, restrict `allowed` to the rows outside it, so only that passage is free to differ:
 
@@ -120,12 +120,3 @@ for row in chart.notes[:20]:
 ```
 
 All-zero or `None` timestamps mean the `#BPMS` tag was not parsed. (A past bug: `#BPMS` values split across several lines were dropped.) Also check that `chart.metadata.difficulty` is the chart you expect; the CLI analyzes every chart in file order.
-
-## Running the checks
-
-```bash
-uv run pytest -q                       # all tests
-uv run pytest -q tests/integration     # regression layers only
-uv run ruff check src tests scripts
-uv run mypy
-```
