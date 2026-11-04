@@ -6,7 +6,7 @@ Most surprises fall into one of three buckets. Work out which one first, because
 |---------|--------------|--------|
 | The footing is right, but a pattern is counted (or not) wrongly | Labeling rule | `patterns/detector.py` |
 | A passage is footed in a way a player wouldn't | Weights or missing training data | Annotate and retrain ([Training workflow](training.md)) |
-| A passage is footed oddly even though the annotation says otherwise, and the trainer can't fix it | Missing feature or hard rule | `footing/features.py` or `footing/transitions.py` |
+| A passage is footed oddly even though the annotation says otherwise, and the trainer can't fix it | Missing feature or hard rule | `footing/features.py` or `footing/rules.py` |
 | Counts are wildly off everywhere (hundreds of jacks, all timestamps 0) | Parsing | `simfile/parser.py` |
 
 ## Look at the footing
@@ -108,7 +108,7 @@ Symptoms: training-set fit shows errors, or `footing_weights.json` says `"traine
 - a chart that is unplayable under the hard rules (for example a press with mines on every reachable panel), or
 - during evaluation, an annotation that no legal path can satisfy (reported as an impossible annotation).
 
-Check the row's notes and the hold/roll state around it. If the chart is fine and the rule is too strict, the fix is in `footing/transitions.py`: each rule in `_RULES` is a small named function, so find the one rejecting every candidate on that row.
+Check the row's notes and the hold/roll state around it. If the chart is fine and the rule is too strict, the fix is in `footing/rules.py`: each rule in `RULES` is a small named function, so find the one rejecting every candidate on that row.
 
 ## Parsing problems
 

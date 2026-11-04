@@ -12,7 +12,7 @@ Every field takes part in equality and hashing. Two paths only merge in the sear
 
 ### Transition Rules
 
-Between each pair of states are a set of possible transitions (`footing/transitions.py`). For each row, a `RowContext` names the panel sets involved (`pressed`, `held`, `releasable` in a grace window, and the derived `must_stay_held` and `touchable`). `_candidates` proposes every foot move, and a candidate is legal only if it passes every named rule in `_RULES`:
+Between each pair of states are a set of possible transitions (`footing/transitions.py`). For each row, a `RowContext` (`footing/rules.py`) names the panel sets involved (`pressed`, `held`, `releasable` in a grace window, and the derived `must_stay_held` and `touchable`). `_candidates` proposes every foot move, and a candidate is legal only if it passes every named rule in `rules.RULES`:
 
 - `presses_are_covered`: every pressed panel is under a moving foot
 - `moving_feet_touch_only_pressed_or_held`: no foot moves to an unpressed panel (unless it is already held)

@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from patternity.footing.transitions import held_panels
+from patternity.footing.rules import held_panels
 from patternity.simfile.notes import ANCHORED_NOTES, PANELS, NoteRow, NoteType, Panel
 
 # StepMania / ITG hold and roll life windows.

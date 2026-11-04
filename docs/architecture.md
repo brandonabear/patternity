@@ -35,7 +35,7 @@ src/patternity/
   __init__.py  cli.py
   analysis/    analyzer, metrics
   simfile/     reader, parser, song, notes, timing, serializer
-  footing/     stance, transitions, grace, features, search, model, resolve
+  footing/     stance, rules, transitions, grace, features, search, model, resolve
   patterns/    spans, detector
   movement/    detector
   training/    __main__, annotations, trainer, corpus, evaluation
@@ -53,7 +53,8 @@ src/patternity/
 | `simfile/timing.py` | `TimingEngine`: beat → seconds across `#BPMS` and `#STOPS`. |
 | `simfile/serializer.py` | Song ⇄ JSON. |
 | `footing/stance.py` | Foot geometry: `FootPlacement` (a panel or a two-panel bracket), `Stance` (both feet plus orientation), `FootMove`, and `FootRow` (the search state). |
-| `footing/transitions.py` | Hard physical rules: candidate foot moves filtered by named rules (`_RULES`) into every legal next `FootRow`. |
+| `footing/rules.py` | Hard physical rules: `RowContext`, `Candidate`, and the named rules in `RULES` that decide whether a proposed foot placement is legal. |
+| `footing/transitions.py` | Proposes candidate foot moves, filters them through `rules.RULES`, and builds every legal next `FootRow` (hold owners, jack/switch tracking). |
 | `footing/grace.py` | Grace windows before hold/roll tails, during which the owning foot may leave early. |
 | `footing/features.py` | `FEATURE_NAMES` and `featurize`: what the feet do on each transition. |
 | `footing/search.py` | Trellis construction, Viterbi, per-row confidence. |
@@ -122,7 +123,7 @@ Computed by `movement/detector.py` from the same decoded foot path as tech label
 |--------------|--------|
 | Fix how a pattern is *counted* (cutoffs, pairing rules) | `patterns/detector.py` |
 | Fix how a passage is *footed* | Annotate it and retrain ([Training workflow](training.md)). Only add or change a feature in `footing/features.py` (`featurize`) when the existing features cannot express the distinction ([Footing model](footing-model.md#adding-a-feature)). |
-| Allow or forbid a physical move outright | `footing/transitions.py` (hard rules) |
+| Allow or forbid a physical move outright | `footing/rules.py` (hard rules) |
 | Change what basic metrics count | `analysis/metrics.py` (`BasicMetrics.add_note`) |
 | Change movement counts (direction shifts) | `movement/detector.py` |
 | Support a new simfile tag | `simfile/parser.py`, `simfile/song.py` |

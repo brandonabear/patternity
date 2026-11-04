@@ -7,13 +7,13 @@ references tech-pattern timing cutoffs; those live in ``patternity.patterns.dete
 from __future__ import annotations
 
 from patternity.footing.grace import HOLD_GRACE_SEC, ROLL_GRACE_SEC, Remaining
+from patternity.footing.rules import held_panels
 from patternity.footing.stance import (
     FootMove,
     FootPlacement,
     FootRow,
     PlayerOrientation,
 )
-from patternity.footing.transitions import held_panels
 from patternity.simfile.notes import NoteRow, Panel
 
 FEATURE_NAMES: tuple[str, ...] = (

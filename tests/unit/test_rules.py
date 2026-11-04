@@ -1,16 +1,16 @@
-from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
-from patternity.footing.transitions import (
+from patternity.footing.rules import (
     Candidate,
     RowContext,
     each_jumping_foot_presses,
     held_panels_stay_covered,
     hold_owner_stays_on_panel,
-    iter_legal_transitions,
     jumping_feet_dont_share_a_panel,
     moving_feet_touch_only_pressed_or_held,
     no_bracket_onto_held_panel,
     presses_are_covered,
 )
+from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
+from patternity.footing.transitions import iter_legal_transitions
 from patternity.simfile import NoteRow, Panel
 
 P = FootPlacement

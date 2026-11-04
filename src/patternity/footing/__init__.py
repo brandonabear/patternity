@@ -1,7 +1,8 @@
 """Footing inference: exact Viterbi over legal foot states with learned linear costs.
 
 - ``stance``: foot geometry and the search state (``FootRow``).
-- ``transitions``: hard physical rules, every legal next state.
+- ``rules``: hard physical rules for whether a foot placement is legal.
+- ``transitions``: candidate moves filtered by the rules, every legal next state.
 - ``features``: smooth, pattern-agnostic description of each transition.
 - ``search``: trellis, Viterbi, per-row confidence.
 - ``model``: learned weights (``FootingModel``).
