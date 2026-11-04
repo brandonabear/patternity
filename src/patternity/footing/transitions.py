@@ -24,10 +24,7 @@ from patternity.footing.stance import (
     FootRow,
     Stance,
 )
-from patternity.simfile.notes import ANCHORED_NOTES, NoteRow, NoteType
-from patternity.simfile.panels import PANELS, Panel
-
-_TAILS = frozenset({NoteType.TAIL})
+from patternity.simfile.notes import ANCHORED_NOTES, PANELS, TAIL_NOTES, NoteRow, Panel
 
 
 def held_panels(row: NoteRow) -> Panel:
@@ -218,7 +215,7 @@ def _emit_foot_row(
     if moved == FootMove.NONE:
         # A hold or roll tail on this row releases its owner. The release is
         # remembered until the next press so the cost features can see it.
-        tails = row.panels_with(_TAILS)
+        tails = row.panels_with(TAIL_NOTES)
         released = prev.released_since_press
         for panel, owner in prev.hold_owners:
             if panel in tails:

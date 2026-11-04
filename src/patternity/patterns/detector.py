@@ -12,8 +12,7 @@ from patternity.analysis.metrics import TechMetrics
 from patternity.footing.resolve import ResolvedStep
 from patternity.footing.stance import FootMove, FootPlacement, PlayerOrientation
 from patternity.patterns.spans import PatternKind, PatternSpan
-from patternity.simfile.notes import NoteType
-from patternity.simfile.panels import PANELS, Panel
+from patternity.simfile.notes import PANELS, NoteType, Panel
 
 ITG_JACK_CUTOFF_SEC = 0.176
 # Inclusive of 90 BPM 8ths (exactly 1/3 s apart).

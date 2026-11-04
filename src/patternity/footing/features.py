@@ -14,8 +14,7 @@ from patternity.footing.stance import (
     PlayerOrientation,
 )
 from patternity.footing.transitions import held_panels
-from patternity.simfile.notes import NoteRow
-from patternity.simfile.panels import Panel
+from patternity.simfile.notes import NoteRow, Panel
 
 FEATURE_NAMES: tuple[str, ...] = (
     "same_foot",  # The same foot presses twice in a row (any panels).

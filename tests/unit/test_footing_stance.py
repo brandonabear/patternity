@@ -1,5 +1,5 @@
 from patternity.footing.stance import FootPlacement, PlayerOrientation, Stance
-from patternity.simfile.panels import Panel
+from patternity.simfile.notes import Panel
 
 
 def test_foot_placement_panels_and_coords() -> None:

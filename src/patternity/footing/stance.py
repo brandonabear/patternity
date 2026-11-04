@@ -4,7 +4,7 @@ import math
 from dataclasses import dataclass
 from enum import IntFlag, StrEnum
 
-from patternity.simfile.panels import Panel
+from patternity.simfile.notes import Panel
 
 
 class PlayerOrientation(StrEnum):

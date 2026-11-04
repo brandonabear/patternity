@@ -1,9 +1,43 @@
 from dataclasses import dataclass
 from dataclasses import fields as _fields
-from enum import StrEnum
+from enum import IntFlag, StrEnum
 from typing import Any, Literal
 
-from patternity.simfile.panels import PANELS, Panel
+
+class Panel(IntFlag):
+    """A set of pad panels (empty, one panel, or several).
+
+    This is the one place the bit layout lives: each panel is one bit, in the
+    LDUR column order StepMania uses (Left = bit 0 ... Right = bit 3). Everywhere
+    else, treat a ``Panel`` value as a set of panels:
+
+    - ``Panel.U in pressed``: is Up pressed?
+    - ``Panel.L | Panel.U``: both panels.
+    - ``pressed in covered``: is every pressed panel covered? (subset)
+    - ``held & ~releasable``: held panels that are not releasable.
+    - ``len(pressed)``, ``for panel in pressed``: count and iterate.
+    """
+
+    NONE = 0
+    L = 1
+    D = 2
+    U = 4
+    R = 8
+
+    @classmethod
+    def at(cls, col: int) -> Panel:
+        """The single panel at column index ``col`` (0-3, LDUR order)."""
+        return PANELS[col]
+
+    @property
+    def column(self) -> int:
+        """Column index (0-3, LDUR order) of a single panel."""
+        return PANELS.index(self)
+
+
+# Single panels in column (LDUR) order; zip with per-column data such as
+# ``NoteRow.notes``.
+PANELS: tuple[Panel, ...] = (Panel.L, Panel.D, Panel.U, Panel.R)
 
 
 class NoteType(StrEnum):
@@ -19,7 +53,8 @@ class NoteType(StrEnum):
 
 PRESSABLE_NOTES = frozenset({NoteType.TAP, NoteType.HOLD, NoteType.ROLL})
 ANCHORED_NOTES = frozenset({NoteType.HOLD, NoteType.ROLL})
-_MINES = frozenset({NoteType.MINE})
+TAIL_NOTES = frozenset({NoteType.TAIL})
+MINE_NOTES = frozenset({NoteType.MINE})
 
 
 @dataclass
@@ -57,7 +92,7 @@ class NoteRow:
     @property
     def mines(self) -> Panel:
         """Panels with a MINE on this row."""
-        return self.panels_with(_MINES)
+        return self.panels_with(MINE_NOTES)
 
     @classmethod
     def from_str(cls, row: str, **kwargs: Any) -> NoteRow:

@@ -34,7 +34,7 @@ The package is split by pipeline stage. Each subpackage's `__init__` re-exports 
 src/patternity/
   __init__.py  cli.py
   analysis/    analyzer, metrics
-  simfile/     reader, parser, song, notes, panels, timing, serializer
+  simfile/     reader, parser, song, notes, timing, serializer
   footing/     stance, transitions, grace, features, search, model, resolve
   patterns/    spans, detector
   movement/    detector
@@ -49,8 +49,7 @@ src/patternity/
 | `simfile/reader.py` | Read a simfile from disk (checks the extension). |
 | `simfile/parser.py` | Split sections, parse header tags, charts, measures, and timing. |
 | `simfile/song.py` | `Song`, `Header`, `Chart`, `ChartMetadata`, `GrooveRadar`, `Difficulty`. |
-| `simfile/notes.py` | `NoteRow` (one row of four columns plus derived timing), `NoteType`, and `AnchorTracker` (hold/roll state while parsing). |
-| `simfile/panels.py` | `Panel`, the set-of-panels flag (`Panel.U in row.pressed`) used for every panel set; the only place the bit layout lives. |
+| `simfile/notes.py` | `NoteRow` (one row of four columns plus derived timing), `NoteType`, `Panel` (the set-of-panels flag, e.g. `Panel.U in row.pressed`, and the only place the bit layout lives), and `AnchorTracker` (hold/roll state while parsing). |
 | `simfile/timing.py` | `TimingEngine`: beat → seconds across `#BPMS` and `#STOPS`. |
 | `simfile/serializer.py` | Song ⇄ JSON. |
 | `footing/stance.py` | Foot geometry: `FootPlacement` (a panel or a two-panel bracket), `Stance` (both feet plus orientation), `FootMove`, and `FootRow` (the search state). |

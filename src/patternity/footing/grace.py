@@ -10,8 +10,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from patternity.footing.transitions import held_panels
-from patternity.simfile.notes import ANCHORED_NOTES, NoteRow, NoteType
-from patternity.simfile.panels import PANELS, Panel
+from patternity.simfile.notes import ANCHORED_NOTES, PANELS, NoteRow, NoteType, Panel
 
 # StepMania / ITG hold and roll life windows.
 HOLD_GRACE_SEC = 0.32

@@ -20,7 +20,7 @@ Between each pair of states are a set of possible transitions (`footing/transiti
 - `held_panels_stay_covered`, `hold_owner_stays_on_panel`, `no_bracket_onto_held_panel`: active holds and rolls stay covered by their "owning" foot, and the other foot can't bracket onto them
 - Individual placements can only be single panel or legal two-panel presses (i.e. brackets)
 
-Panel sets are `Panel` values (`simfile/panels.py`): read `Panel.U in row.pressed` as "Up is pressed".
+Panel sets are `Panel` values (`simfile/notes.py`): read `Panel.U in row.pressed` as "Up is pressed".
 
 > [!NOTE] 
 > We account for the hold/roll grace windows (`footing/grace.py`) since StepMania doesn't instantly penalize a lifted foot as long as the panel is re-pressed within said window.
