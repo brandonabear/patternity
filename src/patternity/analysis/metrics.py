@@ -22,7 +22,7 @@ class BasicMetrics:
 
     def add_note(self, note_row: NoteRow) -> None:
         heads = 0
-        for panel in note_row.panels:
+        for panel in note_row.notes:
             match panel:
                 case NoteType.MINE:
                     self.mines += 1
@@ -47,8 +47,8 @@ class BasicMetrics:
             self.taps += 1
             if heads >= 2:
                 self.jumps += 1
-            ongoing_holds = note_row.hold_active_mask & ~note_row.press_mask
-            covered_panels = (note_row.press_mask | ongoing_holds).bit_count()
+            ongoing_holds = note_row.holds_active & ~note_row.pressed
+            covered_panels = len(note_row.pressed | ongoing_holds)
             if covered_panels >= 3:
                 self.hands += 1
 

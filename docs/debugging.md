@@ -17,6 +17,7 @@ Print the decoded path around a measure. `step.confidence` is the margin to the 
 from pathlib import Path
 
 from patternity import StepmaniaFileParser, detect_tech_patterns, read_simfile, resolve_chart
+from patternity.simfile import PANELS
 
 song = StepmaniaFileParser.parse(read_simfile(Path("tests/fixtures/charts/fots.sm")))
 chart = song.charts[0]
@@ -27,8 +28,8 @@ for span in detect_tech_patterns(result.steps).spans:
 
 for step in result.steps:
     row = step.note_row
-    if row.measure in (168, 169) and row.press_mask:
-        cols = "".join("LDUR"[c] if row.press_mask >> c & 1 else "." for c in range(4))
+    if row.measure in (168, 169) and row.pressed:
+        cols = "".join(p.name if p in row.pressed else "." for p in PANELS)
         fr = step.foot_row
         print(f"m{row.measure} beat {row.beat:7.2f} {cols} {fr.moved.name:5} "
               f"L={fr.stance.left} R={fr.stance.right} "
@@ -107,7 +108,7 @@ Symptoms: training-set fit shows errors, or `footing_weights.json` says `"traine
 - a chart that is unplayable under the hard rules (for example a press with mines on every reachable panel), or
 - during evaluation, an annotation that no legal path can satisfy (reported as an impossible annotation).
 
-Check the row's notes and the hold/roll state around it. If the chart is fine and the rule is too strict, the fix is in `footing/transitions.py`.
+Check the row's notes and the hold/roll state around it. If the chart is fine and the rule is too strict, the fix is in `footing/transitions.py`: each rule in `_RULES` is a small named function, so find the one rejecting every candidate on that row.
 
 ## Parsing problems
 

@@ -122,6 +122,6 @@ def test_accepting_all_suggestions_by_find_replace(
     )
     steps = resolve_chart(accepted.chart.notes, model).steps
     assert accepted.tagged_assignments == {
-        step.index: step.foot_row.moved for step in steps if step.note_row.press_mask
+        step.index: step.foot_row.moved for step in steps if step.note_row.pressed
     }
     assert any(row.patterns - {"jump"} for row in accepted.rows)

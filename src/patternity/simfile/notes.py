@@ -3,6 +3,8 @@ from dataclasses import fields as _fields
 from enum import StrEnum
 from typing import Any, Literal
 
+from patternity.simfile.panels import PANELS, Panel
+
 
 class NoteType(StrEnum):
     EMPTY = "0"
@@ -17,6 +19,7 @@ class NoteType(StrEnum):
 
 PRESSABLE_NOTES = frozenset({NoteType.TAP, NoteType.HOLD, NoteType.ROLL})
 ANCHORED_NOTES = frozenset({NoteType.HOLD, NoteType.ROLL})
+_MINES = frozenset({NoteType.MINE})
 
 
 @dataclass
@@ -29,31 +32,32 @@ class NoteRow:
     beat: float | None = None
     measure: int | None = None
     timestamp: float | None = None
-    hold_active_mask: int = 0
-    roll_active_mask: int = 0
+    # Panels with a hold / roll underway on this row (heads and tails included).
+    holds_active: Panel = Panel.NONE
+    rolls_active: Panel = Panel.NONE
 
     @property
-    def panels(self) -> tuple[NoteType | None, NoteType | None, NoteType | None, NoteType | None]:
-        """The four columns in LDUR order."""
+    def notes(self) -> tuple[NoteType | None, NoteType | None, NoteType | None, NoteType | None]:
+        """The four columns in LDUR order (pair with ``PANELS``)."""
         return (self.left, self.down, self.up, self.right)
 
-    @property
-    def press_mask(self) -> int:
-        """4-bit mask of columns requiring a foot press on this row (TAP, HOLD head, ROLL head)."""
-        mask = 0
-        for col, note in enumerate(self.panels):
-            if note in PRESSABLE_NOTES:
-                mask |= 1 << col
-        return mask
+    def panels_with(self, kinds: frozenset[NoteType]) -> Panel:
+        """Panels whose note on this row is one of ``kinds``."""
+        found = Panel.NONE
+        for panel, note in zip(PANELS, self.notes, strict=True):
+            if note in kinds:
+                found |= panel
+        return found
 
     @property
-    def mine_mask(self) -> int:
-        """4-bit mask of columns containing a MINE on this row."""
-        mask = 0
-        for col, note in enumerate(self.panels):
-            if note == NoteType.MINE:
-                mask |= 1 << col
-        return mask
+    def pressed(self) -> Panel:
+        """Panels requiring a foot press on this row (TAP, HOLD head, ROLL head)."""
+        return self.panels_with(PRESSABLE_NOTES)
+
+    @property
+    def mines(self) -> Panel:
+        """Panels with a MINE on this row."""
+        return self.panels_with(_MINES)
 
     @classmethod
     def from_str(cls, row: str, **kwargs: Any) -> NoteRow:
@@ -73,8 +77,8 @@ class NoteRow:
             beat=data.get("beat"),
             measure=data.get("measure"),
             timestamp=data.get("timestamp"),
-            hold_active_mask=int(data.get("hold_active_mask", 0)),
-            roll_active_mask=int(data.get("roll_active_mask", 0)),
+            holds_active=Panel(int(data.get(_HOLDS_KEY, 0))),
+            rolls_active=Panel(int(data.get(_ROLLS_KEY, 0))),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -83,49 +87,57 @@ class NoteRow:
             value = getattr(self, f.name)
             if value is None:
                 continue
-            if f.name in ("hold_active_mask", "roll_active_mask") and value == 0:
-                continue
-            if isinstance(value, StrEnum):
+            if isinstance(value, Panel):
+                # Stored as plain ints under their original JSON keys, omitted when empty.
+                if value:
+                    result[_ACTIVE_JSON_KEYS[f.name]] = int(value)
+            elif isinstance(value, StrEnum):
                 result[f.name] = value.value
             else:
                 result[f.name] = value
         return result
 
 
+# JSON keys for the active hold / roll panels (kept from the earlier mask fields).
+_HOLDS_KEY = "hold_active_mask"
+_ROLLS_KEY = "roll_active_mask"
+_ACTIVE_JSON_KEYS = {"holds_active": _HOLDS_KEY, "rolls_active": _ROLLS_KEY}
+
 _NUM_COLUMNS = 4
 _AnchorKind = Literal["idle", "hold", "roll"]
 
 
 class AnchorTracker:
-    """Per-column hold/roll state while parsing chart rows (``hold_active_mask`` /
-    ``roll_active_mask``)."""
+    """Per-column hold/roll state while parsing chart rows (``holds_active`` /
+    ``rolls_active``)."""
 
     def __init__(self) -> None:
         self._state: list[_AnchorKind] = ["idle"] * _NUM_COLUMNS
 
     def apply_heads(self, row: NoteRow) -> None:
-        for col, note in enumerate(row.panels):
+        for col, note in enumerate(row.notes):
             match note:
                 case NoteType.HOLD:
                     self._state[col] = "hold"
                 case NoteType.ROLL:
                     self._state[col] = "roll"
 
-    def snapshot(self) -> tuple[int, int]:
-        hold_mask = 0
-        roll_mask = 0
+    def snapshot(self) -> tuple[Panel, Panel]:
+        """Panels with a hold underway and panels with a roll underway."""
+        holds = Panel.NONE
+        rolls = Panel.NONE
 
-        for col in range(_NUM_COLUMNS):
-            match self._state[col]:
+        for panel, state in zip(PANELS, self._state, strict=True):
+            match state:
                 case "hold":
-                    hold_mask |= 1 << col
+                    holds |= panel
                 case "roll":
-                    roll_mask |= 1 << col
+                    rolls |= panel
 
-        return hold_mask, roll_mask
+        return holds, rolls
 
     def apply_tails(self, row: NoteRow) -> None:
-        for col, note in enumerate(row.panels):
+        for col, note in enumerate(row.notes):
             match note:
                 case NoteType.TAIL:
                     self._state[col] = "idle"

@@ -28,13 +28,13 @@ flowchart TD
 
 ## Modules
 
-The package is split by pipeline stage. Each subpackage's `__init__` re-exports its main entry points; the top-level `patternity` package exports `read_simfile`, `StepmaniaFileParser`, `Analyzer`, `resolve_chart`, `FootingModel`, and `detect_tech_patterns`.
+The package is split by pipeline stage. Each subpackage's `__init__` re-exports its main entry points; the top-level `patternity` package exports `read_simfile`, `StepmaniaFileParser`, `Panel`, `Analyzer`, `resolve_chart`, `FootingModel`, and `detect_tech_patterns`.
 
 ```text
 src/patternity/
   __init__.py  cli.py
   analysis/    analyzer, metrics
-  simfile/     reader, parser, song, notes, timing, serializer
+  simfile/     reader, parser, song, notes, panels, timing, serializer
   footing/     stance, transitions, grace, features, search, model, resolve
   patterns/    spans, detector
   movement/    detector
@@ -50,10 +50,11 @@ src/patternity/
 | `simfile/parser.py` | Split sections, parse header tags, charts, measures, and timing. |
 | `simfile/song.py` | `Song`, `Header`, `Chart`, `ChartMetadata`, `GrooveRadar`, `Difficulty`. |
 | `simfile/notes.py` | `NoteRow` (one row of four columns plus derived timing), `NoteType`, and `AnchorTracker` (hold/roll state while parsing). |
+| `simfile/panels.py` | `Panel`, the set-of-panels flag (`Panel.U in row.pressed`) used for every panel set; the only place the bit layout lives. |
 | `simfile/timing.py` | `TimingEngine`: beat → seconds across `#BPMS` and `#STOPS`. |
 | `simfile/serializer.py` | Song ⇄ JSON. |
 | `footing/stance.py` | Foot geometry: `FootPlacement` (a panel or a two-panel bracket), `Stance` (both feet plus orientation), `FootMove`, and `FootRow` (the search state). |
-| `footing/transitions.py` | Hard physical rules: every legal next `FootRow` from a given one on a given row. |
+| `footing/transitions.py` | Hard physical rules: candidate foot moves filtered by named rules (`_RULES`) into every legal next `FootRow`. |
 | `footing/grace.py` | Grace windows before hold/roll tails, during which the owning foot may leave early. |
 | `footing/features.py` | `FEATURE_NAMES` and `featurize`: what the feet do on each transition. |
 | `footing/search.py` | Trellis construction, Viterbi, per-row confidence. |

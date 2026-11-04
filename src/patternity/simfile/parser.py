@@ -134,7 +134,7 @@ def _parse_notedata(notes: str, timing: TimingEngine) -> list[NoteRow]:
             timestamp=timing.convert_beat_to_seconds(source.beat),
         )
         anchor_tracker.apply_heads(note_row)
-        note_row.hold_active_mask, note_row.roll_active_mask = anchor_tracker.snapshot()
+        note_row.holds_active, note_row.rolls_active = anchor_tracker.snapshot()
         anchor_tracker.apply_tails(note_row)
         note_rows.append(note_row)
     return note_rows

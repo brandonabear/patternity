@@ -64,7 +64,7 @@ from patternity import detect_tech_patterns, resolve_chart
 
 result = resolve_chart(chart.notes)          # packaged weights, with confidence
 for step in result.steps:
-    if step.note_row.press_mask:
+    if step.note_row.pressed:
         fr = step.foot_row
         print(step.note_row.measure, step.note_row.beat,
               fr.moved.name, fr.stance.left, fr.stance.right, step.confidence)

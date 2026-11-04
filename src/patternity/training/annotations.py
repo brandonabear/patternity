@@ -50,7 +50,7 @@ class AnnotatedRow:
 
     @property
     def pressable_cols(self) -> tuple[int, ...]:
-        return tuple(col for col, note in enumerate(self.row.panels) if note in _PRESSABLE)
+        return tuple(col for col, note in enumerate(self.row.notes) if note in _PRESSABLE)
 
     def expected_foot_move(self) -> FootMove | None:
         """Map ``@foot`` / ``@feet`` to ``FootMove`` for regression checks."""

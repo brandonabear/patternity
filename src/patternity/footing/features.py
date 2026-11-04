@@ -13,8 +13,9 @@ from patternity.footing.stance import (
     FootRow,
     PlayerOrientation,
 )
-from patternity.footing.transitions import anchored_mask
+from patternity.footing.transitions import held_panels
 from patternity.simfile.notes import NoteRow
+from patternity.simfile.panels import Panel
 
 FEATURE_NAMES: tuple[str, ...] = (
     "same_foot",  # The same foot presses twice in a row (any panels).
@@ -75,12 +76,12 @@ def _displaced(curr: FootRow, foot: FootMove) -> bool:
     )
 
 
-def hits_mine(curr: FootRow, mine_mask: int) -> bool:
+def hits_mine(curr: FootRow, mines: Panel) -> bool:
     """True if a foot that is down on this row covers a mine on this row."""
     for foot in _FEET:
         if not curr.moved & foot and _displaced(curr, foot):
             continue
-        if _placement(curr, foot).mask & mine_mask:
+        if _placement(curr, foot).panels & mines:
             return True
     return False
 
@@ -106,20 +107,19 @@ def featurize(
     spd = speed(dt)
     single = moved != FootMove.BOTH
     prev_foot = prev.last_press_foot
-    cue = prev.mines_since_press | row.mine_mask
+    cue = prev.mines_since_press | row.mines
 
-    anchored = anchored_mask(row)
-    kept = {col for col, _ in curr.hold_owners}
+    held = held_panels(row)
+    kept = {panel for panel, _ in curr.hold_owners}
     released_now = FootMove.NONE
-    for col, foot in prev.hold_owners:
-        bit = 1 << col
-        if not anchored & bit or col in kept:
+    for panel, foot in prev.hold_owners:
+        if panel not in held or panel in kept:
             continue
         released_now |= foot
         add("hold_release")
-        rem = grace_remaining[col]
+        rem = grace_remaining[panel.column]
         if rem:
-            window = ROLL_GRACE_SEC if row.roll_active_mask & bit else HOLD_GRACE_SEC
+            window = ROLL_GRACE_SEC if panel in row.rolls_active else HOLD_GRACE_SEC
             add("early_release", rem / window)
 
     release_context = prev.released_since_press | released_now
@@ -133,11 +133,10 @@ def featurize(
         if cue:
             add("mine_cued_same_foot")
 
-    press_col = curr.last_press_col
     if (
         single
-        and press_col is not None
-        and press_col == prev.last_press_col
+        and curr.last_press
+        and curr.last_press == prev.last_press
         and prev_foot in _FEET
     ):
         if prev_foot == moved:
@@ -166,11 +165,11 @@ def featurize(
             travel += before.distance_to(after)
             if after.is_bracket:
                 brackets += 1
-            if before.mask & cue:
+            if before.panels & cue:
                 add("cued_foot_moves")
             if foot in owners and after.is_bracket:
                 add("hold_bracket_tap")
-        elif after.mask & cue and not _displaced(curr, foot):
+        elif after.panels & cue and not _displaced(curr, foot):
             add("cued_foot_stays")
 
     add("travel", travel)

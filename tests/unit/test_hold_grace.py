@@ -7,7 +7,7 @@ from patternity.footing.grace import (
 )
 from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
 from patternity.footing.transitions import iter_legal_transitions
-from patternity.simfile import NoteRow
+from patternity.simfile import NoteRow, Panel
 from tests.helpers import chart_rows
 
 
@@ -21,14 +21,14 @@ def _left_holding_left() -> FootRow:
         stance=Stance.from_feet(FootPlacement.L, FootPlacement.R),
         moved=FootMove.LEFT,
         last_press_foot=FootMove.LEFT,
-        hold_owners=((0, FootMove.LEFT),),
+        hold_owners=((Panel.L, FootMove.LEFT),),
     )
 
 
 def _left_presses_down(rows: list[NoteRow], i: int) -> dict[str, float] | None:
     grace = hold_grace(rows)[i]
     prev = _left_holding_left()
-    for curr in iter_legal_transitions(prev, rows[i], grace=grace.mask):
+    for curr in iter_legal_transitions(prev, rows[i], grace=grace.panels):
         if curr.moved == FootMove.LEFT and curr.stance.left == FootPlacement.D:
             assert curr.hold_owners == ()
             return featurize(prev, curr, rows[i], 0.2, grace_remaining=grace.remaining)
@@ -40,10 +40,10 @@ def test_grace_covers_tail_row_and_rows_inside_window() -> None:
     rows = _rows(["2000", "0100", "3000", "0000"] * 2 + [","])
     grace = hold_grace(rows)
     assert grace[0] == GraceWindow()
-    assert grace[1].mask == 1
+    assert grace[1].panels == Panel.L
     left = grace[1].remaining[0]
     assert left is not None and 0.0 < left <= HOLD_GRACE_SEC
-    assert grace[2] == GraceWindow(1, (0.0, None, None, None))
+    assert grace[2] == GraceWindow(Panel.L, (0.0, None, None, None))
 
 
 def test_tail_row_release_costs_hold_release_only() -> None:
@@ -67,8 +67,8 @@ def test_owner_cannot_leave_before_window() -> None:
     rows = _rows(
         ["2000"] + ["0000"] * 3 + ["0100"] + ["0000"] * 9 + ["3000", "0000", ","]
     )
-    press = next(i for i, r in enumerate(rows) if r.press_mask == 0b0010)
-    assert not hold_grace(rows)[press].mask
+    press = next(i for i, r in enumerate(rows) if r.pressed == Panel.D)
+    assert not hold_grace(rows)[press].panels
     assert _left_presses_down(rows, press) is None
 
 
@@ -77,4 +77,4 @@ def test_roll_uses_roll_window() -> None:
     rows = _rows(["4000", "0100", "3000", ","], bpm=240.0)
     gap = (rows[2].timestamp or 0.0) - (rows[1].timestamp or 0.0)
     assert HOLD_GRACE_SEC < gap <= ROLL_GRACE_SEC
-    assert hold_grace(rows)[1].mask == 1
+    assert hold_grace(rows)[1].panels == Panel.L

@@ -9,8 +9,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from patternity.footing.transitions import anchored_mask
+from patternity.footing.transitions import held_panels
 from patternity.simfile.notes import ANCHORED_NOTES, NoteRow, NoteType
+from patternity.simfile.panels import PANELS, Panel
 
 # StepMania / ITG hold and roll life windows.
 HOLD_GRACE_SEC = 0.32
@@ -23,11 +24,11 @@ Remaining = tuple[float | None, float | None, float | None, float | None]
 class GraceWindow:
     """Grace state of one row.
 
-    ``mask``: anchored columns whose tail is within the grace window.
-    ``remaining``: seconds left to each such column's tail (``None`` elsewhere).
+    ``panels``: held panels whose tail is within the grace window.
+    ``remaining``: seconds left to each such panel's tail, by column (``None`` elsewhere).
     """
 
-    mask: int = 0
+    panels: Panel = Panel.NONE
     remaining: Remaining = (None, None, None, None)
 
 
@@ -36,25 +37,26 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[GraceWindow]:
     next_tail: list[float | None] = [None] * 4
     out: list[GraceWindow] = []
     for row in reversed(rows):
-        for col, note in enumerate(row.panels):
+        for col, note in enumerate(row.notes):
             if note == NoteType.TAIL:
                 next_tail[col] = row.timestamp
 
-        mask = 0
+        releasable = Panel.NONE
         remaining: list[float | None] = [None] * 4
-        anchored = anchored_mask(row)
-        for col in range(4):
-            bit = 1 << col
+        held = held_panels(row)
+        for col, panel in enumerate(PANELS):
             tail, now = next_tail[col], row.timestamp
-            if not anchored & bit or tail is None or now is None:
+            if panel not in held or tail is None or now is None:
                 continue
-            window = ROLL_GRACE_SEC if row.roll_active_mask & bit else HOLD_GRACE_SEC
+            window = ROLL_GRACE_SEC if panel in row.rolls_active else HOLD_GRACE_SEC
             if 0.0 <= tail - now <= window:
-                mask |= bit
+                releasable |= panel
                 remaining[col] = tail - now
-        out.append(GraceWindow(mask, (remaining[0], remaining[1], remaining[2], remaining[3])))
+        out.append(
+            GraceWindow(releasable, (remaining[0], remaining[1], remaining[2], remaining[3]))
+        )
 
-        for col, note in enumerate(row.panels):
+        for col, note in enumerate(row.notes):
             if note in ANCHORED_NOTES:
                 next_tail[col] = None
     out.reverse()

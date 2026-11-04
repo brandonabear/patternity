@@ -87,21 +87,21 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
         now = row.timestamp or 0.0
         dt = (
             now - last_press_time
-            if row.press_mask and last_press_time is not None
+            if row.pressed and last_press_time is not None
             else None
         )
         grace = grace_rows[row_index]
         layer = Layer()
         blocked: list[tuple[int, FootRow, int]] = []
-        check_mines = bool(row.mine_mask and row.press_mask)
+        check_mines = bool(row.mines and row.pressed)
         for prev_i, prev in enumerate(states):
             for curr in iter_legal_transitions(
-                prev, row, allow_brackets=allow_brackets, grace=grace.mask
+                prev, row, allow_brackets=allow_brackets, grace=grace.panels
             ):
                 feat_id = intern(
                     featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
                 )
-                if check_mines and hits_mine(curr, row.mine_mask):
+                if check_mines and hits_mine(curr, row.mines):
                     blocked.append((prev_i, curr, feat_id))
                     continue
                 layer.add_edge(prev_i, curr, feat_id, 0.0)
@@ -117,13 +117,13 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
                     stay = replace(
                         prev,
                         moved=FootMove.NONE,
-                        mines_since_press=prev.mines_since_press | row.mine_mask,
+                        mines_since_press=prev.mines_since_press | row.mines,
                     )
                     layer.add_edge(prev_i, stay, empty, RELAXED_PENALTY)
 
         layers.append(layer)
         states = layer.states
-        if row.press_mask:
+        if row.pressed:
             last_press_time = now
 
     return Trellis(
@@ -260,7 +260,7 @@ def row_confidence(trellis: Trellis, weights: Sequence[float]) -> list[float | N
 
     result: list[float | None] = []
     for i, layer in enumerate(layers):
-        if not trellis.rows[i].press_mask:
+        if not trellis.rows[i].pressed:
             result.append(None)
             continue
         best: dict[FootMove, float] = {}

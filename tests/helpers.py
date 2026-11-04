@@ -4,7 +4,7 @@ from patternity.footing import ResolvedStep
 from patternity.footing.features import FEATURE_NAMES
 from patternity.footing.search import build_trellis, viterbi
 from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
-from patternity.simfile import NoteRow
+from patternity.simfile import PANELS, NoteRow
 from patternity.training import parse_annotated_sm
 
 
@@ -52,7 +52,7 @@ def synthetic_steps(moves: list[tuple[str, str, str]]) -> list[ResolvedStep]:
     for i, (foot, left, right) in enumerate(moves):
         moved = FootMove.LEFT if foot == "L" else FootMove.RIGHT
         panel = FootPlacement(left if foot == "L" else right)
-        row = "".join("1" if panel.mask >> col & 1 else "0" for col in range(4))
+        row = "".join("1" if p in panel.panels else "0" for p in PANELS)
         steps.append(
             ResolvedStep(
                 index=i,

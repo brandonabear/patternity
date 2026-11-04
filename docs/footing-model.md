@@ -12,12 +12,15 @@ Every field takes part in equality and hashing. Two paths only merge in the sear
 
 ### Transition Rules
 
-Between each pair of states are a set of possible transitions (`footing/transitions.py`). We iterate over physically possible next states with several requirements:
+Between each pair of states are a set of possible transitions (`footing/transitions.py`). For each row, a `RowContext` names the panel sets involved (`pressed`, `held`, `releasable` in a grace window, and the derived `must_stay_held` and `touchable`). `_candidates` proposes every foot move, and a candidate is legal only if it passes every named rule in `_RULES`:
 
-- Every pressed panel is covered by a moving foot
-- No foot moves to an unpressed panel (unless it is already held)
-- Active holds and rolls stay covered by the "owning" foot at that point in time
+- `presses_are_covered`: every pressed panel is under a moving foot
+- `moving_feet_touch_only_pressed_or_held`: no foot moves to an unpressed panel (unless it is already held)
+- `each_jumping_foot_presses` / `jumping_feet_dont_share_a_panel`: in a jump, each foot presses something and the feet don't overlap
+- `held_panels_stay_covered`, `hold_owner_stays_on_panel`, `no_bracket_onto_held_panel`: active holds and rolls stay covered by their "owning" foot, and the other foot can't bracket onto them
 - Individual placements can only be single panel or legal two-panel presses (i.e. brackets)
+
+Panel sets are `Panel` values (`simfile/panels.py`): read `Panel.U in row.pressed` as "Up is pressed".
 
 > [!NOTE] 
 > We account for the hold/roll grace windows (`footing/grace.py`) since StepMania doesn't instantly penalize a lifted foot as long as the panel is re-pressed within said window.

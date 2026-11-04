@@ -4,6 +4,8 @@ import math
 from dataclasses import dataclass
 from enum import IntFlag, StrEnum
 
+from patternity.simfile.panels import Panel
+
 
 class PlayerOrientation(StrEnum):
     """Player orientation on a 4-panel pad."""
@@ -33,9 +35,9 @@ class FootPlacement(StrEnum):
     RU = "RU"
 
     @property
-    def mask(self) -> int:
-        """4-bit LDUR mask for panels covered by given foot placement."""
-        return _PLACEMENT_MASKS[self]
+    def panels(self) -> Panel:
+        """Panels under this foot placement (two for a bracket)."""
+        return _PLACEMENT_PANELS[self]
 
     @property
     def coords(self) -> tuple[float, float]:
@@ -44,7 +46,7 @@ class FootPlacement(StrEnum):
 
     def shares_panel_with(self, other: FootPlacement) -> bool:
         """True if both foot placements include at least one common panel."""
-        return bool(self.mask & other.mask)
+        return bool(self.panels & other.panels)
 
     @property
     def is_bracket(self) -> bool:
@@ -56,15 +58,15 @@ class FootPlacement(StrEnum):
         return math.dist(self.coords, other.coords)
 
 
-_PLACEMENT_MASKS: dict[FootPlacement, int] = {
-    FootPlacement.L: 0b0001,
-    FootPlacement.D: 0b0010,
-    FootPlacement.U: 0b0100,
-    FootPlacement.R: 0b1000,
-    FootPlacement.LD: 0b0011,
-    FootPlacement.LU: 0b0101,
-    FootPlacement.RD: 0b1010,
-    FootPlacement.RU: 0b1100,
+_PLACEMENT_PANELS: dict[FootPlacement, Panel] = {
+    FootPlacement.L: Panel.L,
+    FootPlacement.D: Panel.D,
+    FootPlacement.U: Panel.U,
+    FootPlacement.R: Panel.R,
+    FootPlacement.LD: Panel.L | Panel.D,
+    FootPlacement.LU: Panel.L | Panel.U,
+    FootPlacement.RD: Panel.R | Panel.D,
+    FootPlacement.RU: Panel.R | Panel.U,
 }
 
 _PLACEMENT_COORDS: dict[FootPlacement, tuple[float, float]] = {
@@ -78,8 +80,8 @@ _PLACEMENT_COORDS: dict[FootPlacement, tuple[float, float]] = {
     FootPlacement.RU: (0.5, 0.5),
 }
 
-MASK_TO_PLACEMENT: dict[int, FootPlacement] = {
-    mask: placement for placement, mask in _PLACEMENT_MASKS.items()
+PANELS_TO_PLACEMENT: dict[Panel, FootPlacement] = {
+    panels: placement for placement, panels in _PLACEMENT_PANELS.items()
 }
 ALL_PLACEMENTS: tuple[FootPlacement, ...] = tuple(FootPlacement)
 CARDINAL_PLACEMENTS: tuple[FootPlacement, ...] = (
@@ -167,9 +169,9 @@ class Stance:
         )
 
     @property
-    def covered_mask(self) -> int:
-        """Combined 4-bit mask of all panels currently covered by either foot."""
-        return self.left.mask | self.right.mask
+    def covered(self) -> Panel:
+        """Panels currently under either foot."""
+        return self.left.panels | self.right.panels
 
     @property
     def is_overlapping(self) -> bool:
@@ -181,9 +183,9 @@ class Stance:
         """True if the left foot is strictly right of the right foot (geometric cross)."""
         return self.left.coords[0] > self.right.coords[0]
 
-    def covers_mask(self, required_mask: int) -> bool:
-        """True if this stance covers all bits in `required_mask`."""
-        return (self.covered_mask & required_mask) == required_mask
+    def covers(self, required: Panel) -> bool:
+        """True if every panel in ``required`` is under a foot."""
+        return required in self.covered
 
     def placement(self, foot: FootMove) -> FootPlacement:
         """Placement of a single foot (``LEFT`` or ``RIGHT``)."""
@@ -199,20 +201,20 @@ class FootRow:
 
     stance: The position of the player at the current FootRow
     moved: The footing used to obtain the current position.
-    mines_since_press: Mask of panels that had a mine since the last press row
-    last_press_col: The most recently pressed column
+    mines_since_press: Panels that had a mine since the last press row
+    last_press: The panel of the most recent press row (NONE unless a single panel)
     last_press_foot: The most recent footing of the last pressed column
-    hold_owners: Foot/Feet currently anchored by a hold or roll
+    hold_owners: Sorted (panel, foot) pairs: which foot is anchored to each held panel
     released_since_press: Feet that released a hold/roll tail since the last press row
     last_repeat_jack: Flag indicating if last press repeated the preceding panel/foot
     """
 
     stance: Stance
     moved: FootMove
-    mines_since_press: int = 0
-    last_press_col: int | None = None
+    mines_since_press: Panel = Panel.NONE
+    last_press: Panel = Panel.NONE
     last_press_foot: FootMove | None = None
-    hold_owners: tuple[tuple[int, FootMove], ...] = ()
+    hold_owners: tuple[tuple[Panel, FootMove], ...] = ()
     released_since_press: FootMove = FootMove.NONE
     last_repeat_jack: bool | None = None
 
@@ -224,17 +226,18 @@ class FootRow:
             moved=FootMove.NONE,
         )
 
-    def hold_owner_for(self, col: int) -> FootMove | None:
-        for owned_col, foot in self.hold_owners:
-            if owned_col == col:
+    def hold_owner_for(self, panel: Panel) -> FootMove | None:
+        """The foot anchored to the hold or roll on ``panel``, if any."""
+        for owned, foot in self.hold_owners:
+            if owned == panel:
                 return foot
         return None
 
-    def active_columns_mask(self) -> int:
-        """4-bit mask of panels actively pressed on this specific row."""
-        mask = 0
+    def pressed_panels(self) -> Panel:
+        """Panels under the foot or feet that moved on this row."""
+        pressed = Panel.NONE
         if self.moved & FootMove.LEFT:
-            mask |= self.stance.left.mask
+            pressed |= self.stance.left.panels
         if self.moved & FootMove.RIGHT:
-            mask |= self.stance.right.mask
-        return mask
+            pressed |= self.stance.right.panels
+        return pressed

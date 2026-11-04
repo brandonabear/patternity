@@ -26,14 +26,14 @@ def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
             return
         row = rows[i]
         now = row.timestamp or 0.0
-        dt = now - last_press if row.press_mask and last_press is not None else None
+        dt = now - last_press if row.pressed and last_press is not None else None
         grace = grace_rows[i]
-        for curr in iter_legal_transitions(prev, row, grace=grace.mask):
-            if row.press_mask and row.mine_mask and hits_mine(curr, row.mine_mask):
+        for curr in iter_legal_transitions(prev, row, grace=grace.panels):
+            if row.pressed and row.mines and hits_mine(curr, row.mines):
                 continue
             feats = featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
             edge = sum(weights[FEATURE_NAMES.index(k)] * v for k, v in feats.items())
-            walk(i + 1, curr, cost + edge, now if row.press_mask else last_press)
+            walk(i + 1, curr, cost + edge, now if row.pressed else last_press)
 
     walk(0, FootRow.initial(), 0.0, None)
     return best
