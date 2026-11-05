@@ -76,10 +76,10 @@ src/patternity/
 |-----------------|----------------|
 | `training/annotations.py` | Parse `@foot` / `@feet` / `@pattern` comments in fixture charts and align them to parsed rows. |
 | `training/trainer.py` | Structured perceptron trainer, leave-one-chart-out, `row_errors`. |
-| `training/corpus.py` | Reads `tests/fixtures/training_corpus.txt` and finds the fixtures root. |
+| `training/corpus.py` | Reads `tests/fixtures/training_corpus.txt` and `holdout_corpus.txt`, and finds the fixtures root. |
 | `training/evaluation.py` | Per-row footing accuracy, per-pattern precision/recall, and disagreement reports against annotations. |
 | `training/__main__.py` | `python -m patternity.training`: retrains and writes the packaged weights. |
-| `scripts/evaluate.py` | Prints evaluation reports for the training corpus (optionally leave-one-chart-out). |
+| `scripts/evaluate.py` | Prints evaluation reports for the training corpus (optionally leave-one-chart-out) or, with `--holdout`, the hold-out charts. |
 | `scripts/suggest_annotations.py` | Writes model foot and pattern suggestions into a chart as `@suggest_foot=` / `@suggest_feet=` / `@suggest_pattern=` tags for human review. |
 
 ### Tests
@@ -87,7 +87,7 @@ src/patternity/
 | Path | What it covers |
 |------|----------------|
 | `tests/unit/` | Parser, reader, CLI, stance geometry (`test_footing_stance.py`), footing (Viterbi vs brute force, confidence, training smoke test), labeler rules. |
-| `tests/integration/test_foot_path.py` | Per-row footing accuracy thresholds and pattern-tag F1 on annotated fixtures. |
+| `tests/integration/test_foot_path.py` | Per-row footing accuracy thresholds and pattern-tag F1 on annotated fixtures (including hold-out charts); hold-out and training lists stay disjoint. |
 | `tests/integration/test_canonical.py` | End-to-end counts against hand-counted `tests/fixtures/canonical/*.json`. |
 | `tests/integration/test_chart_basic_metrics.py` | Basic metrics on real charts. |
 

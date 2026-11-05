@@ -4,7 +4,11 @@ Run training with ``python -m patternity.training``.
 """
 
 from patternity.training.annotations import AnnotatedChart, parse_annotated_sm
-from patternity.training.corpus import default_fixtures_root, load_corpus
+from patternity.training.corpus import (
+    default_fixtures_root,
+    load_corpus,
+    load_holdout,
+)
 from patternity.training.evaluation import evaluate_annotated, format_report
 from patternity.training.trainer import (
     Example,
@@ -23,6 +27,7 @@ __all__ = [
     "format_report",
     "leave_one_out",
     "load_corpus",
+    "load_holdout",
     "load_example",
     "load_examples",
     "parse_annotated_sm",

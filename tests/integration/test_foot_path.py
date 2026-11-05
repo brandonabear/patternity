@@ -3,7 +3,13 @@ from pathlib import Path
 import pytest
 
 from patternity.simfile import read_simfile
-from patternity.training import evaluate_annotated, format_report, parse_annotated_sm
+from patternity.training import (
+    evaluate_annotated,
+    format_report,
+    load_corpus,
+    load_holdout,
+    parse_annotated_sm,
+)
 from patternity.training.annotations import AnnotatedChart
 from patternity.training.evaluation import FixtureReport
 
@@ -18,6 +24,9 @@ _MIN_ACCURACY = {
     "patterns/sideswitches.sm": 1.0,
     "patterns/doublesteps.sm": 1.0,
     "charts/burger.ssc": 1.0,
+    # Hold-out charts (holdout_corpus.txt): never trained on.
+    "charts/kiss_me_more.ssc": 1.0,
+    "charts/boomshakalaka.ssc": 1.0,
 }
 _MIN_PATTERN_F1 = 0.75
 
@@ -46,3 +55,11 @@ def test_pattern_tags_match_labels(fixture_relpath: str) -> None:
             continue
         f1 = 2 * score.precision * score.recall / (score.precision + score.recall or 1)
         assert f1 >= _MIN_PATTERN_F1, f"{kind}: " + format_report(report, annotated)
+
+
+def test_holdout_charts_are_not_trained_on() -> None:
+    assert not set(load_holdout(FIXTURES)) & set(load_corpus(FIXTURES))
+
+
+def test_holdout_charts_have_accuracy_thresholds() -> None:
+    assert set(load_holdout(FIXTURES)) <= set(_MIN_ACCURACY)

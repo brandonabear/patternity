@@ -18,6 +18,7 @@ from patternity.training import (
     leave_one_out,
     load_corpus,
     load_examples,
+    load_holdout,
     parse_annotated_sm,
 )
 
@@ -39,6 +40,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--loo", action="store_true", help="also train/score leave-one-chart-out"
     )
+    parser.add_argument(
+        "--holdout",
+        action="store_true",
+        help="evaluate holdout_corpus.txt instead of training_corpus.txt",
+    )
     return parser
 
 
@@ -46,9 +52,14 @@ def main(argv: list[str] | None = None) -> int:
     console = Console()
     parser = build_parser()
     args = parser.parse_args(args=argv)
+    if args.holdout and (args.fixtures or args.loo):
+        parser.error("--holdout cannot be combined with fixtures or --loo")
 
     root = args.fixtures_root or default_fixtures_root()
-    fixtures = args.fixtures or load_corpus(root)
+    if args.holdout:
+        fixtures = load_holdout(root)
+    else:
+        fixtures = args.fixtures or load_corpus(root)
 
     model = FootingModel.load(args.weights) if args.weights else FootingModel.default()
     total_rows = total_errors = 0

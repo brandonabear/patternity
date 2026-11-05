@@ -16,7 +16,13 @@ from pathlib import Path
 
 from patternity.footing.features import FEATURE_INDEX, FEATURE_NAMES
 from patternity.footing.model import FootingModel
-from patternity.footing.search import Trellis, build_trellis, path_features, viterbi
+from patternity.footing.search import (
+    Decoded,
+    Trellis,
+    build_trellis,
+    path_features,
+    viterbi,
+)
 from patternity.footing.stance import FootMove
 from patternity.simfile.reader import read_simfile
 from patternity.training.annotations import AnnotatedChart, parse_annotated_sm
@@ -63,16 +69,8 @@ def load_examples(relpaths: Sequence[str], root: Path) -> list[Example]:
     return [load_example(root / rel, rel) for rel in relpaths]
 
 
-def _project(weights: list[float]) -> None:
-    for name in NONNEGATIVE:
-        i = FEATURE_INDEX[name]
-        weights[i] = max(weights[i], 0.0)
-
-
 def row_errors(example: Example, weights: Sequence[float]) -> int:
-    decoded = viterbi(example.trellis, weights)
-    states = decoded.states(example.trellis)
-    return sum(1 for i, move in example.gold.items() if states[i].moved != move)
+    return _disagreements(example, viterbi(example.trellis, weights))
 
 
 def train(
@@ -89,48 +87,90 @@ def train(
     margin, those weights are returned as-is; averaging (which mixes in the
     early, worse weights) is only the fallback when annotations conflict.
     """
-    n = len(FEATURE_NAMES)
-    weights = [0.0] * n
-    total = [0.0] * n
-    steps = 0
-    order = list(examples)
+    weights = [0.0] * len(FEATURE_NAMES)
+    history = _RunningMean(len(FEATURE_NAMES))
+    order = _scaled_steps(examples, learning_rate)
     rng = random.Random(seed)
-    # Scale each chart's update by its size so one long chart cannot drown out
-    # the short pattern fixtures.
-    mean_rows = sum(len(e.gold) for e in examples) / max(len(examples), 1)
-    scale = {id(e): mean_rows / max(len(e.gold), 1) for e in examples}
 
-    converged = False
     for _ in range(epochs):
         rng.shuffle(order)
         mistakes = 0
-        for example in order:
-            gold = example.gold
-            predicted = viterbi(example.trellis, weights, loss=gold, margin=margin)
-            pred_states = predicted.states(example.trellis)
-            if any(pred_states[i].moved != move for i, move in gold.items()):
+        for example, step in order:
+            if _perceptron_update(weights, example, margin, step):
                 mistakes += 1
-                target = viterbi(example.trellis, weights, allowed=gold)
-                phi_gold = path_features(example.trellis, target)
-                phi_pred = path_features(example.trellis, predicted)
-                step = learning_rate * scale[id(example)]
-                for i in range(n):
-                    weights[i] -= step * (phi_gold[i] - phi_pred[i])
-                _project(weights)
-            for i in range(n):
-                total[i] += weights[i]
-            steps += 1
+            history.add(weights)
         if mistakes == 0:
-            converged = True
-            break
+            return _model(weights, "structured-perceptron", examples, epochs, margin)
 
-    averaged = [t / max(steps, 1) for t in total]
+    return _model(history.mean(), "averaged-structured-perceptron", examples, epochs, margin)
+
+
+class _RunningMean:
+    """Mean of the weight vectors seen after each update (averaged perceptron)."""
+
+    def __init__(self, size: int) -> None:
+        self._total = [0.0] * size
+        self._count = 0
+
+    def add(self, weights: Sequence[float]) -> None:
+        for i, w in enumerate(weights):
+            self._total[i] += w
+        self._count += 1
+
+    def mean(self) -> list[float]:
+        return [t / max(self._count, 1) for t in self._total]
+
+
+def _scaled_steps(examples: Sequence[Example], learning_rate: float) -> list[tuple[Example, float]]:
+    """Pair each chart with its update size, scaled inversely to its row count.
+
+    Scaling keeps one long chart from drowning out the short pattern fixtures.
+    """
+    mean_rows = sum(len(e.gold) for e in examples) / max(len(examples), 1)
+    return [(e, learning_rate * mean_rows / max(len(e.gold), 1)) for e in examples]
+
+
+def _perceptron_update(weights: list[float], example: Example, margin: float, step: float) -> bool:
+    """Decode ``example``; on a mistake, move ``weights`` toward the gold path.
+
+    Returns whether a mistake (and so an update) occurred.
+    """
+    predicted = viterbi(example.trellis, weights, loss=example.gold, margin=margin)
+    if not _disagreements(example, predicted):
+        return False
+    target = viterbi(example.trellis, weights, allowed=example.gold)
+    phi_gold = path_features(example.trellis, target)
+    phi_pred = path_features(example.trellis, predicted)
+    for i, (gold, pred) in enumerate(zip(phi_gold, phi_pred, strict=True)):
+        weights[i] -= step * (gold - pred)
+    _project(weights)
+    return True
+
+
+def _disagreements(example: Example, decoded: Decoded) -> int:
+    """Annotated rows where ``decoded`` moves a different foot than tagged."""
+    states = decoded.states(example.trellis)
+    return sum(1 for i, move in example.gold.items() if states[i].moved != move)
+
+
+def _project(weights: list[float]) -> None:
+    """Clamp features that can only add effort to be nonnegative."""
+    for name in NONNEGATIVE:
+        i = FEATURE_INDEX[name]
+        weights[i] = max(weights[i], 0.0)
+
+
+def _model(
+    weights: list[float],
+    trainer: str,
+    examples: Sequence[Example],
+    epochs: int,
+    margin: float,
+) -> FootingModel:
     return FootingModel.from_vector(
-        weights if converged else averaged,
+        weights,
         metadata={
-            "trainer": "structured-perceptron"
-            if converged
-            else "averaged-structured-perceptron",
+            "trainer": trainer,
             "epochs": epochs,
             "margin": margin,
             "examples": [example.name for example in examples],

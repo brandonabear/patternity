@@ -1,0 +1,4 @@
+# Annotated charts never used for training; they measure generalization.
+# Move a chart to training_corpus.txt once features are tuned to fix it here.
+charts/kiss_me_more.ssc
+charts/boomshakalaka.ssc

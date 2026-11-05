@@ -101,6 +101,16 @@ charts/my_chart.ssc
 
 `#` starts a comment, so a chart can be dropped from training by commenting it out. Charts in `tests/fixtures/` that are *not* listed (for example `# charts/fots.sm`) are still useful for evaluation, but don't influence the weights.
 
+### Hold-out charts
+
+If the model already footing-annotates a new chart correctly on the first pass, consider holding it out instead: list it in [`tests/fixtures/holdout_corpus.txt`](../tests/fixtures/holdout_corpus.txt) and add it to `_MIN_ACCURACY` in `tests/integration/test_foot_path.py`. Hold-out charts are never trained on, so they measure how well the model generalizes, and the test suite flags a retrain that regresses them.
+
+```bash
+uv run python scripts/evaluate.py --holdout
+```
+
+If you fix a hold-out regression by tuning features or annotations, the chart is no longer unseen: move it to `training_corpus.txt`, and hold out the next new chart instead.
+
 ## 3. Retrain
 
 ```bash
