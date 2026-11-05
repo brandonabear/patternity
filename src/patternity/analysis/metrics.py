@@ -71,6 +71,7 @@ class TechMetrics:
     spans: list[PatternSpan] = field(default_factory=list)
 
     def count(self, kind: PatternKind) -> int:
+        """Return count of a given pattern across all spans."""
         return sum(1 for span in self.spans if span.kind == kind)
 
     @property

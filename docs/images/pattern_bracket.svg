@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 414 664" width="414" height="664" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14">
+<title>Bracket example</title>
+<desc>Bracket at 120 BPM: L (4th, L), R (8th, R), L+U (4th, L/L), R (8th, R); 1 bracket detected.</desc>
+<style>.title{font-size:20px;font-weight:700} .cap{font-weight:600} .lbl{font-size:12px} .foot{font-size:17px;font-weight:700;fill:#fff;stroke:#000;stroke-width:0.6;paint-order:stroke}</style>
+<rect width="414" height="664" fill="#1f2023"/>
+<text x="28" y="38" class="title" fill="#ececec">Bracket</text>
+<text x="28" y="58" class="lbl" fill="#9a9a9a">120 BPM</text>
+<rect x="28" y="76.0" width="208" height="516.0" rx="6" fill="#2a2b2f"/>
+<line x1="28" y1="166.0" x2="236" y2="166.0" stroke="#6a6b70" stroke-width="2"/>
+<line x1="28" y1="366.0" x2="236" y2="366.0" stroke="#3a3b40" stroke-width="1"/>
+<line x1="28" y1="566.0" x2="236" y2="566.0" stroke="#3a3b40" stroke-width="1"/>
+<g transform="translate(54.0 102.0) rotate(270) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="none" stroke="#5a5b60" stroke-width="1.2" stroke-linejoin="round"/></g>
+<g transform="translate(106.0 102.0) rotate(180) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="none" stroke="#5a5b60" stroke-width="1.2" stroke-linejoin="round"/></g>
+<g transform="translate(158.0 102.0) rotate(0) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="none" stroke="#5a5b60" stroke-width="1.2" stroke-linejoin="round"/></g>
+<g transform="translate(210.0 102.0) rotate(90) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="none" stroke="#5a5b60" stroke-width="1.2" stroke-linejoin="round"/></g>
+<path d="M246,344.0 h8 V388.0 h-8" fill="none" stroke="#f5c542" stroke-width="2"/>
+<text x="260" y="371.0" class="cap" fill="#f5c542">bracket</text>
+<g transform="translate(54.0 166.0) rotate(270) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#ff4d4d" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g>
+<text x="54.0" y="172.0" text-anchor="middle" class="foot">L</text>
+<g transform="translate(210.0 266.0) rotate(90) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#3b82f6" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g>
+<text x="210.0" y="272.0" text-anchor="middle" class="foot">R</text>
+<g transform="translate(54.0 366.0) rotate(270) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#ff4d4d" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g>
+<text x="54.0" y="372.0" text-anchor="middle" class="foot">L</text>
+<g transform="translate(158.0 366.0) rotate(0) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#ff4d4d" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g>
+<text x="158.0" y="372.0" text-anchor="middle" class="foot">L</text>
+<g transform="translate(210.0 466.0) rotate(90) scale(1.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#3b82f6" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></g>
+<text x="210.0" y="472.0" text-anchor="middle" class="foot">R</text>
+<g transform="translate(36 632) scale(0.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#ff4d4d" stroke="#000" stroke-width="2" stroke-linejoin="round"/></g>
+<text x="48" y="636" class="lbl" fill="#ececec">4th note</text>
+<g transform="translate(126 632) scale(0.6)"><polygon points="0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0" fill="#3b82f6" stroke="#000" stroke-width="2" stroke-linejoin="round"/></g>
+<text x="138" y="636" class="lbl" fill="#ececec">8th note</text>
+</svg>

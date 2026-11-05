@@ -5,6 +5,7 @@ Patternity parses StepMania `.sm` / `.ssc` charts (4-panel singles), works out w
 | Page | Read it when you want to… |
 |------|---------------------------|
 | [Usage](usage.md) | Install, run the CLI, or call Patternity from Python |
+| [Patterns](patterns.md) | See what each tech pattern means and the rules that limit it |
 | [Architecture](architecture.md) | Understand the pipeline and where each piece of code lives |
 | [Footing model](footing-model.md) | Understand how footing is inferred: states, features, Viterbi, the perceptron |
 | [Training workflow](training.md) | Annotate charts, retrain the weights, and check the result |
