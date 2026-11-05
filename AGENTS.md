@@ -31,5 +31,6 @@ Use `ty` for type checking, not `mypy`. Suppressions are `# ty: ignore[rule]`;
 
 ## Coding Conventions
 
+- Prefer simple `dataclass` for data containers.
 - Use `slots=True` and/or `frozen=True` in dataclasses where applicable.
 - Ensure complete type hints for clarity (`ty` will help call out gaps).
