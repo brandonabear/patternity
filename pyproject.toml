@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "patternity"
-version = "0.3.1"
+version = "0.4.0"
 description = "A StepMania file parser and pattern analyzer."
 readme = "README.md"
 authors = [
