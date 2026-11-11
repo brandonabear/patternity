@@ -38,10 +38,10 @@ def _span(kind: PatternKind, steps: tuple[ResolvedStep, ...]) -> PatternSpan:
     first, last = steps[0].note_row, steps[-1].note_row
     return PatternSpan(
         kind=kind,
-        start_beat=first.beat or 0.0,
-        end_beat=last.beat or 0.0,
-        start_measure=first.measure or 0,
-        end_measure=last.measure or 0,
+        start_beat=first.beat,
+        end_beat=last.beat,
+        start_measure=first.measure,
+        end_measure=last.measure,
         steps=steps,
     )
 
@@ -141,7 +141,7 @@ class _TechDetector:
 
     def feed(self, step: ResolvedStep) -> None:
         row = step.note_row
-        now = row.timestamp or 0.0
+        now = row.timestamp
         self._record_mines(step, now)
 
         epoch_before = self.press_rows

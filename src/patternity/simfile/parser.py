@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 
-from patternity.simfile.notes import AnchorTracker, InvalidNoteRow, NoteRow
+from patternity.simfile.notes import AnchorTracker, InvalidNoteRow, NoteRow, parse_columns
 from patternity.simfile.song import (
     HEADER_SETTERS,
     Chart,
@@ -134,17 +134,19 @@ def _parse_notedata(notes: str, timing: TimingEngine) -> list[NoteRow]:
     anchor_tracker = AnchorTracker()
     note_rows: list[NoteRow] = []
     for source in source_rows(notes):
-        note_row = NoteRow.from_str(
-            source.text,
-            quantization=source.quantization,
-            beat=source.beat,
-            measure=source.measure,
-            timestamp=timing.convert_beat_to_seconds(source.beat),
+        columns = parse_columns(source.text)
+        holds_active, rolls_active = anchor_tracker.advance(columns)
+        note_rows.append(
+            NoteRow(
+                notes=columns,
+                measure=source.measure,
+                quantization=source.quantization,
+                beat=source.beat,
+                timestamp=timing.convert_beat_to_seconds(source.beat),
+                holds_active=holds_active,
+                rolls_active=rolls_active,
+            )
         )
-        anchor_tracker.apply_heads(note_row)
-        note_row.holds_active, note_row.rolls_active = anchor_tracker.snapshot()
-        anchor_tracker.apply_tails(note_row)
-        note_rows.append(note_row)
     return note_rows
 
 

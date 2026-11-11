@@ -163,7 +163,7 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
 
     for row_index, row in enumerate(rows):
         # Seconds since the previous press row (None on the first press or a no-press row).
-        now = row.timestamp or 0.0
+        now = row.timestamp
         dt = now - last_press_time if row.pressed and last_press_time is not None else None
 
         layer, blocked = _expand_layer(

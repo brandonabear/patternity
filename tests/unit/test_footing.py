@@ -29,7 +29,7 @@ def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
             best = min(best, cost)
             return
         row = rows[i]
-        now = row.timestamp or 0.0
+        now = row.timestamp
         dt = now - last_press if row.pressed and last_press is not None else None
         grace = grace_rows[i]
         for curr in iter_legal_transitions(prev, row, grace=grace.panels):

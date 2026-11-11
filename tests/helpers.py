@@ -4,8 +4,29 @@ from patternity.footing import ResolvedStep
 from patternity.footing.features import FEATURE_NAMES
 from patternity.footing.search import build_trellis, viterbi
 from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
-from patternity.simfile import PANELS, NoteRow
+from patternity.simfile import PANELS, NoteRow, Panel
+from patternity.simfile.notes import parse_columns
 from patternity.training import parse_annotated_sm
+
+
+def note_row(
+    text: str,
+    *,
+    beat: float = 0.0,
+    timestamp: float = 0.0,
+    holds_active: Panel = Panel.NONE,
+    rolls_active: Panel = Panel.NONE,
+) -> NoteRow:
+    """A standalone ``NoteRow`` from row text such as ``"1M20"``, for tests that need no chart."""
+    return NoteRow(
+        notes=parse_columns(text),
+        measure=int(beat // 4),
+        quantization=4,
+        beat=beat,
+        timestamp=timestamp,
+        holds_active=holds_active,
+        rolls_active=rolls_active,
+    )
 
 
 def chart_text(rows: list[str], bpm: float = 120.0) -> str:
@@ -56,7 +77,7 @@ def synthetic_steps(moves: list[tuple[str, str, str]]) -> list[ResolvedStep]:
         steps.append(
             ResolvedStep(
                 index=i,
-                note_row=NoteRow.from_str(row, beat=i * 0.5, timestamp=i * 0.25),
+                note_row=note_row(row, beat=i * 0.5, timestamp=i * 0.25),
                 foot_row=FootRow(
                     stance=Stance.from_feet(FootPlacement(left), FootPlacement(right)),
                     moved=moved,

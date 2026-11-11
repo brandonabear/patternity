@@ -49,7 +49,7 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[GraceWindow]:
             tail, now = next_tail[col], row.timestamp
             
             # Skip non hold-related panel state
-            if panel not in held or tail is None or now is None:
+            if panel not in held or tail is None:
                 continue
             
             window = ROLL_GRACE_SEC if panel in row.rolls_active else HOLD_GRACE_SEC

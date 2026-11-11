@@ -437,7 +437,7 @@ def _span_marker(span: PatternSpan, x: float, top: float, label: str) -> list[st
             f'<text x="{x + 14}" y="{middle + 5}" class="cap" fill="{HIGHLIGHT}">{label}</text>'
         )
         return parts
-    gap = (span.steps[-1].note_row.timestamp or 0.0) - (span.steps[0].note_row.timestamp or 0.0)
+    gap = span.steps[-1].note_row.timestamp - span.steps[0].note_row.timestamp
     return [
         f'<path d="M{x},{y1} h8 V{y2} h-8" fill="none" stroke="{HIGHLIGHT}" stroke-width="2"/>',
         f'<text x="{x + 14}" y="{middle - 2}" class="cap" fill="{HIGHLIGHT}">{label}</text>',
@@ -499,7 +499,7 @@ def _lane_x(x: float, column: int) -> float:
 
 
 def _beat(step: ResolvedStep) -> float:
-    return step.note_row.beat or 0.0
+    return step.note_row.beat
 
 
 def _pressed(step: ResolvedStep) -> bool:

@@ -14,7 +14,6 @@ def test_multiline_header_values_are_parsed() -> None:
     song = StepmaniaFileParser.parse(data)
     assert song.header.bpms == {0.0: 128.0, 4.0: 64.0}
     second = song.charts[0].notes[1]
-    assert second.timestamp is not None
     assert abs(second.timestamp - 4 * 60 / 128) < 1e-9
 
 

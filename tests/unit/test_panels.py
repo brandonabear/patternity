@@ -1,4 +1,5 @@
 from patternity.simfile import PANELS, NoteRow, Panel
+from tests.helpers import note_row
 
 
 def test_panels_in_column_order() -> None:
@@ -19,13 +20,13 @@ def test_panel_set_operations() -> None:
 
 
 def test_note_row_panel_sets() -> None:
-    row = NoteRow.from_str("1M20")
+    row = note_row("1M20")
     assert row.pressed == Panel.L | Panel.U
     assert row.mines == Panel.D
 
 
 def test_note_row_active_panels_round_trip_json_keys() -> None:
-    row = NoteRow.from_str("0000", holds_active=Panel.L, rolls_active=Panel.R)
+    row = note_row("0000", holds_active=Panel.L, rolls_active=Panel.R)
     data = row.to_dict()
     assert data["hold_active_mask"] == 1
     assert data["roll_active_mask"] == 8
@@ -33,4 +34,4 @@ def test_note_row_active_panels_round_trip_json_keys() -> None:
     restored = NoteRow.from_dict(data)
     assert restored.holds_active == Panel.L
     assert restored.rolls_active == Panel.R
-    assert "hold_active_mask" not in NoteRow.from_str("0000").to_dict()
+    assert "hold_active_mask" not in note_row("0000").to_dict()

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from dataclasses import fields as _fields
 from enum import IntFlag, StrEnum
 from typing import Any, Literal
 
@@ -57,28 +56,40 @@ TAIL_NOTES = frozenset({NoteType.TAIL})
 MINE_NOTES = frozenset({NoteType.MINE})
 
 
+# One note per column, in LDUR order (pair with ``PANELS``).
+Columns = tuple[NoteType, NoteType, NoteType, NoteType]
+
+_NUM_COLUMNS = len(PANELS)
+
+
 class InvalidNoteRow(ValueError):
     """A note row that is not four columns of known note characters."""
 
 
-@dataclass
+def parse_columns(text: str) -> Columns:
+    """The four notes of a row as written in a simfile, e.g. ``"1M20"``."""
+    if len(text) != _NUM_COLUMNS:
+        raise InvalidNoteRow(f"expected {_NUM_COLUMNS} columns, got {text!r}")
+    try:
+        left, down, up, right = (NoteType(char) for char in text)
+    except ValueError:
+        raise InvalidNoteRow(f"unsupported note character in {text!r}") from None
+    return (left, down, up, right)
+
+
+@dataclass(frozen=True, slots=True)
 class NoteRow:
-    left: NoteType | None = None
-    down: NoteType | None = None
-    up: NoteType | None = None
-    right: NoteType | None = None
-    quantization: int | None = None
-    beat: float | None = None
-    measure: int | None = None
-    timestamp: float | None = None
+    """One non-empty chart row: its notes, and where and when it falls."""
+
+    notes: Columns
+    measure: int
+    quantization: int
+    beat: float
+    # Seconds from beat 0 (see ``TimingEngine``).
+    timestamp: float
     # Panels with a hold / roll underway on this row (heads and tails included).
     holds_active: Panel = Panel.NONE
     rolls_active: Panel = Panel.NONE
-
-    @property
-    def notes(self) -> tuple[NoteType | None, NoteType | None, NoteType | None, NoteType | None]:
-        """The four columns in LDUR order (pair with ``PANELS``)."""
-        return (self.left, self.down, self.up, self.right)
 
     def panels_with(self, kinds: frozenset[NoteType]) -> Panel:
         """Panels whose note on this row is one of ``kinds``."""
@@ -99,73 +110,70 @@ class NoteRow:
         return self.panels_with(MINE_NOTES)
 
     @classmethod
-    def from_str(cls, row: str, **kwargs: Any) -> NoteRow:
-        if len(row) != _NUM_COLUMNS:
-            raise InvalidNoteRow(f"expected {_NUM_COLUMNS} columns, got {row!r}")
-        try:
-            left, down, up, right = (NoteType(char) for char in row)
-        except ValueError:
-            raise InvalidNoteRow(f"unsupported note character in {row!r}") from None
-        return cls(left=left, down=down, up=up, right=right, **kwargs)
-
-    @classmethod
     def from_dict(cls, data: dict[str, Any]) -> NoteRow:
+        left, down, up, right = (NoteType(data[key]) for key in _COLUMN_KEYS)
         return cls(
-            left=NoteType(data["left"]) if data.get("left") else None,
-            down=NoteType(data["down"]) if data.get("down") else None,
-            up=NoteType(data["up"]) if data.get("up") else None,
-            right=NoteType(data["right"]) if data.get("right") else None,
-            quantization=data.get("quantization"),
-            beat=data.get("beat"),
-            measure=data.get("measure"),
-            timestamp=data.get("timestamp"),
+            notes=(left, down, up, right),
+            measure=int(data["measure"]),
+            quantization=int(data["quantization"]),
+            beat=float(data["beat"]),
+            timestamp=float(data["timestamp"]),
             holds_active=Panel(int(data.get(_HOLDS_KEY, 0))),
             rolls_active=Panel(int(data.get(_ROLLS_KEY, 0))),
         )
 
     def to_dict(self) -> dict[str, Any]:
-        result: dict[str, Any] = {}
-        for f in _fields(self):
-            value = getattr(self, f.name)
-            if value is None:
-                continue
-            if isinstance(value, Panel):
-                # Stored as plain ints under their original JSON keys, omitted when empty.
-                if value:
-                    result[_ACTIVE_JSON_KEYS[f.name]] = int(value)
-            elif isinstance(value, StrEnum):
-                result[f.name] = value.value
-            else:
-                result[f.name] = value
+        result: dict[str, Any] = {
+            key: note.value for key, note in zip(_COLUMN_KEYS, self.notes, strict=True)
+        }
+        result |= {
+            "quantization": self.quantization,
+            "beat": self.beat,
+            "measure": self.measure,
+            "timestamp": self.timestamp,
+        }
+        # Active panels are stored as plain ints, omitted when empty.
+        if self.holds_active:
+            result[_HOLDS_KEY] = int(self.holds_active)
+        if self.rolls_active:
+            result[_ROLLS_KEY] = int(self.rolls_active)
         return result
 
 
-# JSON keys for the active hold / roll panels (kept from the earlier mask fields).
+# JSON keys: one per column, and the active hold / roll panels (names kept from
+# the earlier mask fields).
+_COLUMN_KEYS = ("left", "down", "up", "right")
 _HOLDS_KEY = "hold_active_mask"
 _ROLLS_KEY = "roll_active_mask"
-_ACTIVE_JSON_KEYS = {"holds_active": _HOLDS_KEY, "rolls_active": _ROLLS_KEY}
 
-_NUM_COLUMNS = 4
 _AnchorKind = Literal["idle", "hold", "roll"]
 
 
 class AnchorTracker:
-    """Per-column hold/roll state while parsing chart rows (``holds_active`` /
-    ``rolls_active``)."""
+    """Per-column hold/roll state while parsing chart rows, in order."""
 
     def __init__(self) -> None:
         self._state: list[_AnchorKind] = ["idle"] * _NUM_COLUMNS
 
-    def apply_heads(self, row: NoteRow) -> None:
-        for col, note in enumerate(row.notes):
+    def advance(self, notes: Columns) -> tuple[Panel, Panel]:
+        """Feed the next row; return its ``(holds_active, rolls_active)`` panels.
+
+        A hold counts as active on both its head row and its tail row.
+        """
+        self._apply_heads(notes)
+        active = self._snapshot()
+        self._apply_tails(notes)
+        return active
+
+    def _apply_heads(self, notes: Columns) -> None:
+        for col, note in enumerate(notes):
             match note:
                 case NoteType.HOLD:
                     self._state[col] = "hold"
                 case NoteType.ROLL:
                     self._state[col] = "roll"
 
-    def snapshot(self) -> tuple[Panel, Panel]:
-        """Panels with a hold underway and panels with a roll underway."""
+    def _snapshot(self) -> tuple[Panel, Panel]:
         holds = Panel.NONE
         rolls = Panel.NONE
 
@@ -178,8 +186,8 @@ class AnchorTracker:
 
         return holds, rolls
 
-    def apply_tails(self, row: NoteRow) -> None:
-        for col, note in enumerate(row.notes):
+    def _apply_tails(self, notes: Columns) -> None:
+        for col, note in enumerate(notes):
             match note:
                 case NoteType.TAIL:
                     self._state[col] = "idle"

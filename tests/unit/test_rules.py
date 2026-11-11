@@ -11,7 +11,8 @@ from patternity.footing.rules import (
 )
 from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
 from patternity.footing.transitions import iter_legal_transitions
-from patternity.simfile import NoteRow, Panel
+from patternity.simfile import Panel
+from tests.helpers import note_row
 
 P = FootPlacement
 START = FootRow.initial()  # L on Left, R on Right
@@ -37,7 +38,7 @@ def _holding_left() -> FootRow:
 
 
 def test_row_context_from_row() -> None:
-    row = NoteRow.from_str("0100", holds_active=Panel.L | Panel.D)
+    row = note_row("0100", holds_active=Panel.L | Panel.D)
     ctx = RowContext.from_row(row, grace=Panel.L)
     assert ctx.pressed == Panel.D
     assert ctx.held == Panel.L  # Down is a new press, not held yet
@@ -101,6 +102,6 @@ def test_no_bracket_onto_held_panel() -> None:
 
 def test_iter_legal_transitions_keeps_hold_owner_on_panel() -> None:
     prev = _holding_left()
-    row = NoteRow.from_str("0010", holds_active=Panel.L)
+    row = note_row("0010", holds_active=Panel.L)
     nexts = {(n.stance.left, n.stance.right) for n in iter_legal_transitions(prev, row)}
     assert nexts == {(P.L, P.U), (P.LU, P.R)}

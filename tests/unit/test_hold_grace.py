@@ -75,6 +75,6 @@ def test_owner_cannot_leave_before_window() -> None:
 def test_roll_uses_roll_window() -> None:
     # 0.33s before the tail: outside the hold window, inside the roll window.
     rows = _rows(["4000", "0100", "3000", ","], bpm=240.0)
-    gap = (rows[2].timestamp or 0.0) - (rows[1].timestamp or 0.0)
+    gap = rows[2].timestamp - rows[1].timestamp
     assert HOLD_GRACE_SEC < gap <= ROLL_GRACE_SEC
     assert hold_grace(rows)[1].panels == Panel.L
