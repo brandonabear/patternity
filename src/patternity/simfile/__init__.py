@@ -12,7 +12,7 @@ from patternity.simfile.notes import (
     NoteType,
     Panel,
 )
-from patternity.simfile.parser import MissingTimingError, StepmaniaFileParser
+from patternity.simfile.parser import MissingTimingError, SimfileError, StepmaniaFileParser
 from patternity.simfile.reader import UnsupportedSimfileSuffix, read_simfile
 from patternity.simfile.song import (
     Chart,
@@ -38,6 +38,7 @@ __all__ = [
     "NoteRow",
     "NoteType",
     "Panel",
+    "SimfileError",
     "SkippedChart",
     "Song",
     "StepmaniaFileParser",

@@ -9,15 +9,13 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from patternity.footing.model import FootingModel
-from patternity.footing.resolve import resolve_chart
+from patternity.footing.resolve import resolve_trellis
 from patternity.footing.search import Trellis, build_trellis, viterbi
 from patternity.footing.stance import FootMove
 from patternity.patterns import PatternKind, detect_tech_patterns
-from patternity.simfile.reader import read_simfile
-from patternity.training.annotations import PATTERN_TAGS, AnnotatedChart, parse_annotated_sm
+from patternity.training.annotations import PATTERN_TAGS, AnnotatedChart
 
 SCORED_KINDS: tuple[PatternKind, ...] = tuple(dict.fromkeys(PATTERN_TAGS.values()))
 
@@ -106,7 +104,7 @@ def evaluate_annotated(
 ) -> FixtureReport:
     model = model or FootingModel.default()
     trellis = trellis or build_trellis(annotated.chart.notes)
-    result = resolve_chart(annotated.chart.notes, model, trellis=trellis)
+    result = resolve_trellis(trellis, model)
     gold = annotated.tagged_assignments
 
     disagreements = []
@@ -139,10 +137,6 @@ def evaluate_annotated(
         patterns=score_patterns(annotated, detected),
         impossible_annotations=impossible,
     )
-
-
-def evaluate_fixture(path: Path, model: FootingModel | None = None) -> FixtureReport:
-    return evaluate_annotated(path.name, parse_annotated_sm(read_simfile(path)), model)
 
 
 def format_report(

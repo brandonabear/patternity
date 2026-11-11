@@ -1,7 +1,7 @@
-"""Inline corpus annotations for pattern fixtures (evaluation only).
+"""Inline annotations in fixture charts, used for training and evaluation.
 
-Annotations are read from simfile comments and aligned to ``Chart.notes`` indices
-produced by ``StepmaniaFileParser`` (including skipped ``0000`` rows).
+Annotations are read from the comments on note rows and aligned to the indices
+of ``Chart.notes``.
 """
 
 from __future__ import annotations
@@ -12,14 +12,8 @@ from dataclasses import dataclass
 from patternity.footing.stance import FootMove
 from patternity.patterns.spans import PatternKind
 from patternity.simfile.notes import NoteRow
-from patternity.simfile.parser import (
-    StepmaniaFileParser,
-    source_rows,
-    strip_leading_comments,
-)
+from patternity.simfile.parser import parse_simfile_with_notes, source_rows
 from patternity.simfile.song import Chart, Song
-
-_NOTE_ROW_RE = re.compile(r"^[0-4MFL]{4}", re.IGNORECASE)
 
 # Legal values of the tags read from a note row's comment.
 _TAG_VALUE_RES = {
@@ -86,44 +80,6 @@ class AnnotatedChart:
             for row in self.rows
             if (move := row.expected_foot_move()) is not None
         }
-
-
-def _is_flat_notes_section(lines: list[str]) -> bool:
-    """True when note rows follow ``#NOTES:`` directly (``.ssc`` flat body)."""
-    for line in lines[1:]:
-        note_text = line.split("//", 1)[0].strip()
-        if not note_text or note_text.startswith("//"):
-            continue
-        if note_text.startswith((",", ";")):
-            return True
-        return bool(_NOTE_ROW_RE.match(note_text))
-    return False
-
-
-def _notes_body(data: str) -> tuple[str, int]:
-    for raw_section in data.split(";"):
-        section_text = strip_leading_comments(raw_section)
-        if not section_text.lstrip().startswith("#NOTES:"):
-            continue
-
-        lines = section_text.splitlines()
-        first = lines[0].strip() if lines else ""
-        if first in ("#NOTES:", "#NOTES2:") and _is_flat_notes_section(lines):
-            body = "\n".join(lines[1:])
-            notes_idx = data.find(first)
-            if notes_idx < 0:
-                notes_idx = data.find("#NOTES:")
-            line_end = data.find("\n", notes_idx)
-            body_line = data[: line_end + 1].count("\n") + 1
-            return body, body_line
-
-        parts = [part.strip() for part in section_text.split(":", 6)][1:]
-        if len(parts) < 6:
-            raise AnnotationError("malformed #NOTES section")
-        body = parts[5]
-        prefix = data[: data.find(body)]
-        return body, prefix.count("\n") + 1
-    raise AnnotationError("no #NOTES chart found")
 
 
 def _tag_values(comment: str, *, line_number: int) -> dict[str, str]:
@@ -205,25 +161,19 @@ def parse_annotated_sm(data: str, *, require_complete: bool = False) -> Annotate
     Row positions come from the parser's ``source_rows``; this function only adds
     what the parser discards: comments, source line numbers, and sections.
     """
-    song = StepmaniaFileParser.parse(data)
+    song, bodies = parse_simfile_with_notes(data)
     if not song.charts:
         raise AnnotationError("simfile has no parsed chart")
     notes = song.charts[0].notes
+    body = bodies[0]
 
-    body, body_line = _notes_body(data)
-    lines = body.splitlines()
-    sources = source_rows(body)
-    # Guards _notes_body locating the same text the parser read.
-    if len(sources) != len(notes):
-        raise AnnotationError(
-            "annotation row alignment differs from parser: "
-            f"{len(sources)} annotated vs {len(notes)} parsed"
-        )
+    lines = body.text.splitlines()
+    sources = source_rows(body.text)
     sections = _sections_by_line(lines)
 
     annotated: list[AnnotatedRow] = []
     for index, (source, note_row) in enumerate(zip(sources, notes, strict=True)):
-        line_number = body_line + source.line_index
+        line_number = body.first_line + source.line_index
         _, _, comment = lines[source.line_index].partition("//")
         feet, patterns = _parse_tags(comment.strip(), line_number=line_number)
         item = AnnotatedRow(

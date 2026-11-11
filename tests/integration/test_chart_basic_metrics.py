@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from patternity import Analyzer, StepmaniaFileParser, read_simfile
+from patternity import StepmaniaFileParser, analyze_chart, read_simfile
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 
@@ -16,7 +16,7 @@ def test_burger_challenge_file_basic_metrics() -> None:
     chart = song.charts[0]
     assert chart.metadata.rating == 10.0
 
-    result = Analyzer(chart).analyze()["basic"]
+    result = analyze_chart(chart).basic.to_dict()
     assert result == {
         "taps": 587,
         "jumps": 14,
@@ -45,7 +45,7 @@ def test_fots_basic_metrics_match_groove_radar(
     chart = song.charts[chart_index]
     assert chart.metadata.rating == expected_rating
 
-    basic = Analyzer(chart).analyze()["basic"]
+    basic = analyze_chart(chart).basic.to_dict()
     radar = chart.metadata.radar
     assert radar is not None
     assert basic["taps"] == radar.taps

@@ -31,7 +31,8 @@ from rich.console import Console
 from patternity.footing import FootingModel, FootMove, ResolvedStep, resolve_chart
 from patternity.patterns import PatternKind, detect_tech_patterns
 from patternity.simfile import read_simfile
-from patternity.training.annotations import _notes_body, parse_annotated_sm
+from patternity.simfile.parser import parse_simfile_with_notes
+from patternity.training.annotations import parse_annotated_sm
 from patternity.training.evaluation import PATTERN_TAGS
 
 _NOTE_ROW_RE = re.compile(r"^[0-4MFL]{4}", re.IGNORECASE)
@@ -102,13 +103,16 @@ def _format_comma_measure(line: str, measure: int) -> str:
 def _add_measure_markers(lines: list[str], endings: list[str]) -> None:
     """Label ``// measure 0`` and comma lines in the first chart's note body."""
     text = "".join(body + end for body, end in zip(lines, endings, strict=True))
-    body, body_line = _notes_body(text)
-    body_start = body_line - 1
+    _, bodies = parse_simfile_with_notes(text)
+    if not bodies:
+        return
+    notes = bodies[0]
+    body_start = notes.first_line - 1
 
     first_note_offset: int | None = None
     comma_updates: list[tuple[int, int]] = []
 
-    for offset, raw_line in enumerate(body.splitlines()):
+    for offset, raw_line in enumerate(notes.text.splitlines()):
         stripped = raw_line.strip()
         if not stripped:
             continue

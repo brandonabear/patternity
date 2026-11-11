@@ -14,21 +14,21 @@ flowchart TD
     steps --> detector["patterns.detect_tech_patterns<br/>(ITG cutoffs)"]
     footing --> movement["MovementMetrics<br/>(direction shifts, cost, feasible)"]
     detector --> tech["TechMetrics"]
-    basic --> report["Analyzer.analyze()"]
+    basic --> report["analyze_chart()"]
     tech --> report
     movement --> report
 ```
 
 1. **Read and parse.** `read_simfile` loads the text; `StepmaniaFileParser.parse` turns it into a `Song` with a `Header` and one `Chart` per difficulty. Each chart's `notes` is a list of `NoteRow`s (empty `0000` rows are dropped) carrying measure, beat, quantization, timestamp (seconds from beat 0, from `#BPMS` / `#STOPS`; `#OFFSET` is not applied since only time differences matter), and which holds/rolls are active. See [File format](format.md).
 2. **Footing.** `footing.resolve_chart` finds the cheapest physically legal sequence of foot positions for the whole chart and returns one **`ResolvedStep`** per row (`note_row` plus decoded `foot_row`). The cost of each move is a learned linear function of a few generic features. The same decode supplies **`MovementMetrics`**: total path cost and whether any row needed a relaxed (penalized) fallback. See [Footing model](footing-model.md).
-3. **Basic metrics.** `Analyzer` walks `resolved.steps` and feeds each `note_row` into `BasicMetrics`. Counts are chart notation only (taps, jumps, holds, …); they do **not** use `foot_row` and do not change when footing weights change.
+3. **Basic metrics.** `count_basic` feeds each chart row into `BasicMetrics`. Counts are chart notation only (taps, jumps, holds, …); they do **not** use `foot_row` and do not change when footing weights change.
 4. **Tech labels.** `patterns.detect_tech_patterns` walks the same steps and labels jacks, switches, doublesteps, brackets, crossovers, and candles using community / ITGmania timing cutoffs into **`TechMetrics`**.
 5. **Movement metrics.** `movement.detect_movement` counts `direction_shifts` on the same steps and copies path cost and feasibility from the decode.
-6. **Report.** `Analyzer.analyze()` returns the `basic`, `tech`, and `movement` dictionaries (see [Usage → Output](usage.md#output)).
+6. **Report.** `analyze_chart` returns a `ChartAnalysis` holding `basic`, `tech`, and `movement`; `to_dict()` gives the dictionaries (see [Usage → Output](usage.md#output)).
 
 ## Modules
 
-The package is split by pipeline stage. Each subpackage's `__init__` re-exports its main entry points; the top-level `patternity` package exports `read_simfile`, `StepmaniaFileParser`, `Panel`, `Analyzer`, `resolve_chart`, `FootingModel`, and `detect_tech_patterns`.
+The package is split by pipeline stage. Each subpackage's `__init__` re-exports its main entry points; the top-level `patternity` package exports `read_simfile`, `StepmaniaFileParser`, `Panel`, `analyze_chart`, `resolve_chart`, `FootingModel`, and `detect_tech_patterns`.
 
 ```text
 src/patternity/
@@ -56,10 +56,10 @@ src/patternity/
 | `footing/rules.py` | Hard physical rules: `RowContext`, `Candidate`, and the named rules in `RULES` that decide whether a proposed foot placement is legal. |
 | `footing/transitions.py` | Proposes candidate foot moves, filters them through `rules.RULES`, and builds every legal next `FootRow` (hold owners, jack/switch tracking). |
 | `footing/grace.py` | Grace windows before hold/roll tails, during which the owning foot may leave early. |
-| `footing/features.py` | `FEATURE_NAMES` and `featurize`: what the feet do on each transition. |
+| `footing/features.py` | `Feature` and `featurize`: what the feet do on each transition. |
 | `footing/search.py` | Trellis construction, Viterbi, per-row confidence. |
 | `footing/model.py` | `FootingModel` (weights) and the packaged-weights path. |
-| `footing/resolve.py` | `resolve_chart`, `ResolvedStep`, `FootingResult`. |
+| `footing/resolve.py` | `resolve_chart`, `resolve_trellis`, `ResolvedStep`, `FootingResult`. |
 | `patterns/spans.py` | `PatternKind` and `PatternSpan` (one detection with its steps). |
 | `patterns/detector.py` | Tech-pattern labeling on a decoded path. The only place ITG timing cutoffs appear. |
 | `patterns/metrics.py` | `TechMetrics` (spans plus counts). |

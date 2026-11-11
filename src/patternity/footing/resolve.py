@@ -38,17 +38,23 @@ def resolve_chart(
     *,
     allow_brackets: bool = True,
     with_confidence: bool = True,
-    trellis: Trellis | None = None,
 ) -> FootingResult:
     """Decode the minimum-cost foot path for ``rows``."""
-    if not rows:
-        return FootingResult(steps=[], cost=0.0)
-    model = model or FootingModel.default()
-    weights = model.vector()
-    trellis = trellis or build_trellis(rows, allow_brackets=allow_brackets)
+    trellis = build_trellis(rows, allow_brackets=allow_brackets)
+    return resolve_trellis(trellis, model, with_confidence=with_confidence)
+
+
+def resolve_trellis(
+    trellis: Trellis,
+    model: FootingModel | None = None,
+    *,
+    with_confidence: bool = True,
+) -> FootingResult:
+    """Decode the minimum-cost foot path through a trellis that is already built."""
+    weights = (model or FootingModel.default()).vector()
     decoded = viterbi(trellis, weights)
-    confidence: list[float | None] = (
-        row_confidence(trellis, weights) if with_confidence else [None] * len(rows)
+    confidence: Sequence[float | None] = (
+        row_confidence(trellis, weights) if with_confidence else [None] * len(trellis.rows)
     )
     steps = [
         ResolvedStep(index=i, note_row=row, foot_row=state, confidence=confidence[i])

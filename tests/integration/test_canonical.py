@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from patternity import Analyzer, StepmaniaFileParser, read_simfile
+from patternity import StepmaniaFileParser, analyze_chart, read_simfile
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 CANONICAL_DIR = FIXTURES / "canonical"
@@ -19,7 +19,7 @@ def _analyze_fixture(
 ) -> dict[str, Any]:
     fixture_path = FIXTURES / canonical["fixture"]
     song = StepmaniaFileParser.parse(read_simfile(fixture_path))
-    return Analyzer(song.charts[chart_entry["chart_index"]]).analyze()
+    return analyze_chart(song.charts[chart_entry["chart_index"]]).to_dict()
 
 
 def _metric_mismatches(

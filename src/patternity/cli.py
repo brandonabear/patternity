@@ -8,8 +8,8 @@ from pathlib import Path
 
 from rich.console import Console
 
-from patternity.analysis import Analyzer
-from patternity.simfile.parser import MissingTimingError, StepmaniaFileParser
+from patternity.analysis import analyze_chart
+from patternity.simfile.parser import SimfileError, StepmaniaFileParser
 from patternity.simfile.reader import UnsupportedSimfileSuffix, read_simfile
 from patternity.simfile.serializer import output_path, serialize
 
@@ -63,7 +63,7 @@ def main(argv: list[str] | None = None) -> int:
         data = read_simfile(args.file)
         console.print(f"Read file: {args.file.name}")
         song = StepmaniaFileParser.parse(data)
-    except (OSError, UnsupportedSimfileSuffix, MissingTimingError) as exc:
+    except (OSError, UnsupportedSimfileSuffix, SimfileError) as exc:
         console.print(f"Error: {exc}")
         return 1
     console.print(f"Parsed song: {song.header.title}")
@@ -73,7 +73,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.analyze:
         for chart in song.charts:
             console.print(f"{chart.metadata.difficulty} {chart.metadata.rating:g}")
-            console.print(Analyzer(chart).analyze())
+            console.print(analyze_chart(chart).to_dict())
 
     if args.serialize:
         out_dir = args.output or Path("data/")

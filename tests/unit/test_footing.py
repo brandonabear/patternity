@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from patternity import Analyzer, resolve_chart
-from patternity.footing import FootingModel
+from patternity import Analyzer, analyze_chart, resolve_chart
+from patternity.footing import FootingModel, resolve_trellis
 from patternity.footing.features import FEATURE_NAMES, featurize
 from patternity.footing.grace import hold_grace
 from patternity.footing.rules import hits_mine
@@ -14,7 +14,15 @@ from patternity.footing.stance import FootMove, FootRow
 from patternity.footing.transitions import iter_legal_transitions
 from patternity.patterns import PatternKind, detect_tech_patterns
 from patternity.simfile import NoteRow, Panel
-from patternity.training import Example, load_example, parse_annotated_sm, row_errors, train
+from patternity.training import (
+    Example,
+    leave_one_out,
+    load_example,
+    parse_annotated_sm,
+    row_errors,
+    train,
+    trainer,
+)
 from patternity.training.annotations import AnnotationError
 from tests.helpers import chart_rows, chart_text, gold_steps
 
@@ -194,9 +202,41 @@ def test_weights_missing_a_feature_default_to_zero() -> None:
 
 def test_lifts_and_fakes_are_counted_but_never_stepped_on() -> None:
     chart = parse_annotated_sm(chart_text(["1000", "0L0F", "0100", ","])).chart
-    result = Analyzer(chart).analyze()
+    basic = analyze_chart(chart).basic
 
-    assert (result["basic"]["lifts"], result["basic"]["fakes"]) == (1, 1)
-    assert result["basic"]["taps"] == 2
+    assert (basic.lifts, basic.fakes, basic.taps) == (1, 1, 2)
     moves = [step.foot_row.moved for step in resolve_chart(chart.notes).steps]
     assert moves[1] == FootMove.NONE
+
+
+def test_analyzer_wrapper_matches_analyze_chart_and_is_repeatable() -> None:
+    chart = parse_annotated_sm(chart_text(["1000", "0100", "0110", ","])).chart
+    analyzer = Analyzer(chart)
+
+    assert analyzer.analyze() == analyzer.analyze() == analyze_chart(chart).to_dict()
+
+
+def test_resolve_trellis_matches_resolve_chart() -> None:
+    rows = chart_rows(["1000", "0100", "0110", "0001", ","])
+    assert resolve_trellis(build_trellis(rows)) == resolve_chart(rows)
+
+
+def test_empty_chart_resolves_to_an_empty_feasible_path() -> None:
+    result = resolve_chart([])
+    assert (result.steps, result.cost, result.feasible) == ([], 0.0, True)
+
+
+def test_leave_one_out_passes_training_options_through(mocker) -> None:
+    rows = ["1000 // @foot=L", "0100 // @foot=R", ","]
+    examples = [
+        Example(name, annotated, build_trellis(annotated.chart.notes))
+        for name in ("a", "b")
+        for annotated in [parse_annotated_sm(chart_text(rows))]
+    ]
+    spy = mocker.spy(trainer, "train")
+
+    leave_one_out(examples, epochs=3, margin=2.0, learning_rate=0.5, seed=9)
+
+    assert [call.kwargs for call in spy.call_args_list] == [
+        {"epochs": 3, "margin": 2.0, "learning_rate": 0.5, "seed": 9}
+    ] * 2

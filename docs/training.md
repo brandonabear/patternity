@@ -118,7 +118,7 @@ If you fix a hold-out regression by tuning features or annotations, the chart is
 uv run python -m patternity.training
 ```
 
-This prints leave-one-chart-out accuracy, then trains on all listed charts, prints the training-set fit, writes `src/patternity/data/footing_weights.json` (which the CLI and `Analyzer` load by default), and prints the weights.
+This prints leave-one-chart-out accuracy, then trains on all listed charts, prints the training-set fit, writes `src/patternity/data/footing_weights.json` (which the CLI and `analyze_chart` load by default), and prints the weights.
 
 | Option | Default | Meaning |
 |--------|---------|---------|

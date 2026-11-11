@@ -35,7 +35,7 @@ def test_parse_only_valid(mocker, simfile) -> None:
         "patternity.cli.read_simfile",
         return_value=MINIMAL_SIMFILE,
     )
-    analyzer = mocker.patch("patternity.cli.Analyzer")
+    analyzer = mocker.patch("patternity.cli.analyze_chart")
     serialize = mocker.patch("patternity.cli.serialize")
 
     exit_code = cli.main(["-f", str(simfile)])
@@ -52,8 +52,8 @@ def test_analyze_valid(mocker, simfile) -> None:
         return_value=MINIMAL_SIMFILE,
     )
 
-    analyzer = mocker.patch("patternity.cli.Analyzer")
-    analyzer.return_value.analyze.return_value = {
+    analyzer = mocker.patch("patternity.cli.analyze_chart")
+    analyzer.return_value.to_dict.return_value = {
         "basic": {},
         "tech": {},
         "movement": {},
@@ -63,7 +63,7 @@ def test_analyze_valid(mocker, simfile) -> None:
 
     assert exit_code == 0
     analyzer.assert_called_once()
-    analyzer.return_value.analyze.assert_called_once()
+    analyzer.return_value.to_dict.assert_called_once()
 
 
 def test_serialize_valid(mocker, simfile) -> None:

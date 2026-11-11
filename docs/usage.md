@@ -50,12 +50,15 @@ Without `-a`, the CLI only parses the file and prints the song title.
 ```python
 from pathlib import Path
 
-from patternity import Analyzer, StepmaniaFileParser, read_simfile
+from patternity import StepmaniaFileParser, analyze_chart, read_simfile
 
 song = StepmaniaFileParser.parse(read_simfile(Path("chart.ssc")))
 for chart in song.charts:
-    print(chart.metadata.difficulty, Analyzer(chart).analyze())
+    analysis = analyze_chart(chart)
+    print(chart.metadata.difficulty, analysis.tech.jacks, analysis.to_dict())
 ```
+
+`analyze_chart` returns a `ChartAnalysis` holding `basic`, `tech` and `movement`; `to_dict()` gives the dictionaries shown above.
 
 To inspect the foot path itself rather than the counts:
 
@@ -74,13 +77,13 @@ for span in tech.spans:                      # each detection, with its steps
     print(span.kind, span.start_measure, span.start_beat)
 ```
 
-`resolve_chart` and `Analyzer` accept a `model=` argument to use other weights:
+`resolve_chart` and `analyze_chart` accept a `model` argument to use other weights:
 
 ```python
 from patternity import FootingModel
 
 model = FootingModel.load(Path("/tmp/experiment.json"))
-Analyzer(chart, model=model).analyze()
+analyze_chart(chart, model)
 ```
 
 ## Limits

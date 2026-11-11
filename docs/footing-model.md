@@ -30,7 +30,7 @@ Panel sets are `Panel` values (`simfile/notes.py`): read `Panel.U in row.pressed
 
 ### Cost Features
 
-Each transition is stored in a feature vector `FEATURE_NAMES` (see `footing/features.py`). These are physical player stance, movement, or state descriptions, not pattern names. To add one, see [Development guide → Adding a feature](development.md#adding-a-feature).
+Each transition is stored in a feature vector, one value per `Feature` (see `footing/features.py`). These are physical player stance, movement, or state descriptions, not pattern names. To add one, see [Development guide → Adding a feature](development.md#adding-a-feature).
 
 > [!IMPORTANT]
 > The cost of a transition is the dot product of its `weights` and `features`. The cost of a path is simply the sum over its moves!

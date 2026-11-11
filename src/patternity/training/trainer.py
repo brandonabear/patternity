@@ -14,7 +14,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from patternity.footing.features import FEATURE_INDEX, FEATURE_NAMES
+from patternity.footing.features import FEATURE_INDEX, FEATURE_NAMES, Feature
 from patternity.footing.model import FootingModel
 from patternity.footing.search import (
     Decoded,
@@ -31,19 +31,23 @@ from patternity.training.annotations import (
     parse_annotated_sm,
 )
 
+# Maximum passes over the charts, and how much the annotated foot must win by.
+DEFAULT_EPOCHS = 100
+DEFAULT_MARGIN = 5.0
+
 # Physically these can only add effort; with little data the perceptron could
 # otherwise learn to reward them.
-NONNEGATIVE: frozenset[str] = frozenset(
+NONNEGATIVE: frozenset[Feature] = frozenset(
     {
-        "travel",
-        "travel_speed",
-        "inverted",
-        "cross_entry",
-        "repeat_change",
-        "jack_speed_sq",
-        "bracket_speed",
-        "hold_release",
-        "early_release",
+        Feature.TRAVEL,
+        Feature.TRAVEL_SPEED,
+        Feature.INVERTED,
+        Feature.CROSS_ENTRY,
+        Feature.REPEAT_CHANGE,
+        Feature.JACK_SPEED_SQ,
+        Feature.BRACKET_SPEED,
+        Feature.HOLD_RELEASE,
+        Feature.EARLY_RELEASE,
     }
 )
 
@@ -93,8 +97,8 @@ def row_errors(example: Example, weights: Sequence[float]) -> int:
 def train(
     examples: Sequence[Example],
     *,
-    epochs: int = 100,
-    margin: float = 5.0,
+    epochs: int = DEFAULT_EPOCHS,
+    margin: float = DEFAULT_MARGIN,
     learning_rate: float = 1.0,
     seed: int = 0,
 ) -> FootingModel:
@@ -207,13 +211,20 @@ class FoldResult:
 
 
 def leave_one_out(
-    examples: Sequence[Example], *, epochs: int = 100, margin: float = 5.0
+    examples: Sequence[Example],
+    *,
+    epochs: int = DEFAULT_EPOCHS,
+    margin: float = DEFAULT_MARGIN,
+    learning_rate: float = 1.0,
+    seed: int = 0,
 ) -> list[FoldResult]:
     """Train on all charts but one and score per-row accuracy on the held-out chart."""
     results: list[FoldResult] = []
     for held in examples:
         rest = [e for e in examples if e is not held]
-        model = train(rest, epochs=epochs, margin=margin)
+        model = train(
+            rest, epochs=epochs, margin=margin, learning_rate=learning_rate, seed=seed
+        )
         results.append(
             FoldResult(
                 held_out=held.name,

@@ -3,37 +3,13 @@ SM/SSC File Reference:
 https://outfox.wiki/en/dev/mode-support/sm-support
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from dataclasses import fields as _fields
 from enum import StrEnum
 from typing import Any
 
 from patternity.simfile.notes import NoteRow
-
-HEADER_SETTERS = {
-    "#TITLE": "set_title",
-    "#SUBTITLE": "set_subtitle",
-    "#ARTIST": "set_artist",
-    "#TITLETRANSLIT": "set_titletranslit",
-    "#SUBTITLETRANSLIT": "set_subtitletranslit",
-    "#ARTISTTRANSLIT": "set_artisttranslit",
-    "#GENRE": "set_genre",
-    "#CREDIT": "set_credit",
-    "#BANNER": "set_banner",
-    "#BACKGROUND": "set_background",
-    "#LYRICSPATH": "set_lyricspath",
-    "#CDTITLE": "set_cdtitle",
-    "#MUSIC": "set_music",
-    "#SAMPLESTART": "set_samplestart",
-    "#SAMPLELENGTH": "set_samplelength",
-    "#DISPLAYBPM": "set_displaybpm",
-    "#SELECTABLE": "set_selectable",
-    "#BGCHANGES": "set_bgchanges",
-    "#FGCHANGES": "set_fgchanges",
-    "#OFFSET": "set_offset",
-    "#STOPS": "set_stops",
-    "#BPMS": "set_bpms",
-}
 
 
 def parse_beat_value_map(value: str) -> dict[float, float]:
@@ -71,74 +47,14 @@ class Header:
     stops: dict[float, float] | None = None
     bpms: dict[float, float] | None = None
 
-    def set_title(self, value: str) -> None:
-        self.title = value
+    def set_tag(self, tag: str, value: str) -> None:
+        """Store a header tag such as ``#TITLE`` in the field of the same name.
 
-    def set_subtitle(self, value: str) -> None:
-        self.subtitle = value
-
-    def set_artist(self, value: str) -> None:
-        self.artist = value
-
-    def set_titletranslit(self, value: str) -> None:
-        self.titletranslit = value
-
-    def set_subtitletranslit(self, value: str) -> None:
-        self.subtitletranslit = value
-
-    def set_artisttranslit(self, value: str) -> None:
-        self.artisttranslit = value
-
-    def set_genre(self, value: str) -> None:
-        self.genre = value
-
-    def set_credit(self, value: str) -> None:
-        self.credit = value
-
-    def set_banner(self, value: str) -> None:
-        self.banner = value
-
-    def set_background(self, value: str) -> None:
-        self.background = value
-
-    def set_lyricspath(self, value: str) -> None:
-        self.lyricspath = value
-
-    def set_cdtitle(self, value: str) -> None:
-        self.cdtitle = value
-
-    def set_music(self, value: str) -> None:
-        self.music = value
-
-    def set_samplestart(self, value: str) -> None:
-        self.samplestart = float(value)
-
-    def set_samplelength(self, value: str) -> None:
-        self.samplelength = float(value)
-
-    def set_displaybpm(self, value: str) -> None:
-        try:
-            self.displaybpm = float(value)
-        except ValueError:
-            self.displaybpm = value
-
-    def set_selectable(self, value: str) -> None:
-        self.selectable = value.lower() == "yes"
-
-    def set_bgchanges(self, value: str) -> None:
-        self.bgchanges = value
-
-    def set_fgchanges(self, value: str) -> None:
-        self.fgchanges = value
-
-    def set_offset(self, value: str) -> None:
-        self.offset = float(value)
-
-    def set_stops(self, value: str) -> None:
-        self.stops = parse_beat_value_map(value)
-
-    def set_bpms(self, value: str) -> None:
-        self.bpms = parse_beat_value_map(value)
+        Tags with no matching field are ignored.
+        """
+        name = tag.removeprefix("#").lower()
+        if name in _HEADER_FIELDS:
+            setattr(self, name, _HEADER_CONVERTERS.get(name, str)(value))
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -171,6 +87,31 @@ class Header:
         return obj
 
 
+def _number_or_text(value: str) -> str | float:
+    """``#DISPLAYBPM`` is a number, or text such as a ``120:180`` range or ``*``."""
+    try:
+        return float(value)
+    except ValueError:
+        return value
+
+
+def _is_yes(value: str) -> bool:
+    return value.lower() == "yes"
+
+
+_HEADER_FIELDS = frozenset(f.name for f in _fields(Header))
+# How a header tag's text becomes its field value; fields not listed stay text.
+_HEADER_CONVERTERS: dict[str, Callable[[str], Any]] = {
+    "samplestart": float,
+    "samplelength": float,
+    "displaybpm": _number_or_text,
+    "selectable": _is_yes,
+    "offset": float,
+    "stops": parse_beat_value_map,
+    "bpms": parse_beat_value_map,
+}
+
+
 class Difficulty(StrEnum):
     BEGINNER = "Beginner"
     EASY = "Easy"
@@ -185,21 +126,6 @@ class Difficulty(StrEnum):
             if member.value.lower() == sm_string.lower():
                 return member
         raise ValueError(f"Unable to parse difficulty: {sm_string}")
-
-
-RADAR_FIELDS = [
-    "stream",
-    "voltage",
-    "air",
-    "freeze",
-    "chaos",
-    "steps",
-    "taps",
-    "jumps",
-    "holds",
-    "mines",
-    "hands",
-]
 
 
 @dataclass
@@ -324,14 +250,3 @@ class Song:
             header=Header.from_dict(data["header"]),
             charts=[Chart.from_dict(c) for c in data.get("charts", [])],
         )
-
-    def format_info(self) -> str:
-        h = self.header
-        lines = [
-            "=== Song Information ===",
-            f"Title: {h.title}",
-            f"Artist: {h.artist}",
-            f"BPMs: {h.displaybpm or h.bpms}",
-            "",
-        ]
-        return "\n".join(lines)

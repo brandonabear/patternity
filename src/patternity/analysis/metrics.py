@@ -9,15 +9,15 @@ from patternity.simfile.notes import NoteRow, NoteType
 class BasicMetrics:
     """Basic metrics for a chart."""
 
-    taps: int = 0  # Count of pressable rows (jumps/hands = 1)
-    jumps: int = 0  # Count of pressable notes
-    hands: int = 0
-    holds: int = 0
-    rolls: int = 0
+    taps: int = 0  # Press rows (a jump or hand is one tap).
+    jumps: int = 0  # Press rows with two or more pressed panels.
+    hands: int = 0  # Press rows with three or more panels pressed or held.
+    holds: int = 0  # Hold heads.
+    rolls: int = 0  # Roll heads.
     mines: int = 0
     lifts: int = 0
     fakes: int = 0
-    steps: int = 0
+    steps: int = 0  # Pressed notes (a jump is two steps).
 
     def add_note(self, note_row: NoteRow) -> None:
         heads = 0
@@ -46,6 +46,7 @@ class BasicMetrics:
             self.taps += 1
             if heads >= 2:
                 self.jumps += 1
+            # An ongoing hold occupies a foot or hand. Ongoing rolls are not counted.
             ongoing_holds = note_row.holds_active & ~note_row.pressed
             covered_panels = len(note_row.pressed | ongoing_holds)
             if covered_panels >= 3:
@@ -53,8 +54,3 @@ class BasicMetrics:
 
     def to_dict(self) -> dict[str, Any]:
         return {f.name: getattr(self, f.name) for f in _fields(self)}
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> BasicMetrics:
-        kwargs = {f.name: int(data.get(f.name, 0)) for f in _fields(cls)}
-        return cls(**kwargs)

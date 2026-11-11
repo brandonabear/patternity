@@ -28,7 +28,7 @@ uv run ty check                        # type check
 
 Add a feature only when the existing features can't produce the expected footing (see [Debugging](debugging.md#why-does-the-model-prefer-its-footing)); otherwise annotate more passages and retrain.
 
-1. Add the name to `FEATURE_NAMES` in `footing/features.py` with a one-line comment. Describe what the feet do, not a pattern name, and avoid tech-pattern timing cutoffs.
+1. Add a member to `Feature` in `footing/features.py` with a one-line comment. Describe what the feet do, not a pattern name, and avoid tech-pattern timing cutoffs.
 2. Set it in the matching group helper that `featurize` calls (`_hold_release_features`, `_repetition_features`, `_mine_cue_features`, `_movement_features`, or `_stance_features`). If none fits, add a new helper and call it from `featurize`.
 3. Add a unit test that checks the feature fires on a minimal passage.
 4. Retrain ([Training workflow](training.md#3-retrain)). Weights are keyed by name, so older weight files load with the new feature at `0.0`.

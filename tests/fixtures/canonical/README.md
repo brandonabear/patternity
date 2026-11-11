@@ -1,13 +1,13 @@
 # Canonical tech regressions
 
-Files here are **hand-counted ground truth** for basic/tech metrics on pattern fixtures. They are not generated from `Analyzer.analyze()` output.
+Files here are **hand-counted ground truth** for basic/tech metrics on pattern fixtures. They are not generated from `analyze_chart` output.
 
 ## Workflow
 
 1. Count metrics on the linked `.sm` fixture (ITG/docs/community rules you intend to match).
 2. Fill in `charts[].basic` and `charts[].tech` in the JSON file.
 3. Set top-level `"validated": true`.
-4. CI runs equality on those keys via `tests/integration/test_canonical.py`. Basic counts are always exact; tech counts may differ by an optional top-level `"tech_tolerance"` (default 0) when the footing model has a known, documented miss on the fixture.
+4. The test suite checks equality on those keys via `tests/integration/test_canonical.py`. Basic counts are always exact; tech counts may differ by an optional top-level `"tech_tolerance"` (default 0) when the footing model has a known, documented miss on the fixture.
 
 Until `validated` is `true`, tests only smoke-check that the fixture parses and analyzes; they **do not** assert counts.
 

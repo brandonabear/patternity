@@ -1,9 +1,9 @@
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 from patternity.simfile.notes import AnchorTracker, InvalidNoteRow, NoteRow, parse_columns
 from patternity.simfile.song import (
-    HEADER_SETTERS,
     Chart,
     ChartMetadata,
     Difficulty,
@@ -32,8 +32,41 @@ _SSC_CHART_TAGS = frozenset(
 SUPPORTED_MODE = "dance-single"
 
 
-class MissingTimingError(ValueError):
+class SimfileError(ValueError):
+    """The simfile text can't be parsed into a song."""
+
+
+class MissingTimingError(SimfileError):
     """A chart has no ``#BPMS``, so its rows cannot be given timestamps."""
+
+
+@dataclass(frozen=True)
+class NotesBody:
+    """A chart's note data as written, and where it sits in the file.
+
+    ``first_line`` is the 1-based file line of ``text``'s first line, so line
+    ``i`` of ``text.splitlines()`` is file line ``first_line + i``.
+    """
+
+    text: str
+    first_line: int
+
+
+@dataclass(frozen=True)
+class _Section:
+    """One ``;``-terminated section, leading comments stripped, and its 1-based file line."""
+
+    text: str
+    first_line: int
+
+
+def _leading_comment_lines(lines: list[str]) -> int:
+    """How many blank or comment-only lines come before the first line of content."""
+    for idx, line in enumerate(lines):
+        stripped_line = line.strip()
+        if stripped_line and not stripped_line.startswith("//"):
+            return idx
+    return len(lines)
 
 
 def strip_leading_comments(section: str) -> str:
@@ -47,25 +80,30 @@ def strip_leading_comments(section: str) -> str:
     ```
     """
     lines = section.splitlines()
-    for idx, line in enumerate(lines):
-        stripped_line = line.strip()
-        # Keep only non-comment lines
-        if stripped_line and not stripped_line.startswith("//"):
-            return "\n".join(lines[idx:]).strip()
-    return ""
+    return "\n".join(lines[_leading_comment_lines(lines) :]).strip()
 
 
-_HEADER_RE = re.compile(r"^(#[A-Z][A-Z0-9]*)\s*:\s*(.*)$", re.DOTALL)
+def _sections(data: str) -> Iterator[_Section]:
+    """The non-empty sections of a simfile, in order."""
+    line = 1
+    for raw in data.split(";"):
+        text = strip_leading_comments(raw)
+        if text:
+            yield _Section(text, line + _leading_comment_lines(raw.splitlines()))
+        line += raw.count("\n")
 
 
-def _parse_header(raw: str) -> tuple[str, str]:
-    """Extract the key/value pair as a tuple using regex."""
+_TAG_RE = re.compile(r"^(#[A-Z][A-Z0-9]*)\s*:\s*(.*)$", re.DOTALL)
+
+
+def _parse_tag(raw: str) -> tuple[str, str]:
+    """Split a ``#KEY:value`` section into its key and value (empty strings if it isn't one)."""
     fallback = ("", "")
     if not raw:
         return fallback
 
     cleaned = "\n".join(_strip_comment(line) for line in raw.splitlines()).strip()
-    m = _HEADER_RE.match(cleaned)
+    m = _TAG_RE.match(cleaned)
     return (m.group(1), m.group(2).strip()) if m else fallback
 
 
@@ -222,101 +260,106 @@ def _build_chart(
     return Chart(metadata, note_rows)
 
 
-class StepmaniaFileParser:
-    """Parses StepMania .sm and .ssc files."""
+def _timing(header: Header, chart_tags: dict[str, str] | None = None) -> TimingEngine:
+    """Timing from the chart's own ``#BPMS`` / ``#STOPS`` (.ssc split timing), else the header's."""
+    bpms = header.bpms
+    stops = header.stops
 
-    @classmethod
-    def _build_timing(
-        cls, song: Song, chart_fields: dict[str, str] | None = None
-    ) -> TimingEngine:
-        """Build TimingEngine using chart-level split timing if present, else song header."""
-        bpms = song.header.bpms
-        stops = song.header.stops
+    if chart_tags:
+        if chart_tags.get("#BPMS"):
+            bpms = parse_beat_value_map(chart_tags["#BPMS"])
+        if chart_tags.get("#STOPS"):
+            stops = parse_beat_value_map(chart_tags["#STOPS"])
 
-        if chart_fields:
-            if chart_fields.get("#BPMS"):
-                bpms = parse_beat_value_map(chart_fields["#BPMS"])
-            if chart_fields.get("#STOPS"):
-                stops = parse_beat_value_map(chart_fields["#STOPS"])
+    if not bpms:
+        raise MissingTimingError("simfile has charts but no #BPMS")
+    return TimingEngine(bpms=bpms, stops=stops)
 
-        if not bpms:
-            raise MissingTimingError("simfile has charts but no #BPMS")
-        return TimingEngine(bpms=bpms, stops=stops)
 
-    @classmethod
-    def parse(cls, data: str) -> Song:
-        """Parse a .sm or .ssc file."""
-        song = Song(header=Header())
-        chart_fields: dict[str, str] | None = None
+def _sm_chart(section: _Section, header: Header) -> tuple[Chart | SkippedChart, NotesBody]:
+    """A chart from a .sm ``#NOTES:`` section, which packs metadata and notes into
+    colon-separated fields: ``#NOTES:mode:credit:difficulty:meter:radar:notes``."""
+    pieces = section.text.split(":", 6)
+    if len(pieces) != 7:
+        raise SimfileError(f"line {section.first_line}: malformed #NOTES section")
+    _, mode, credit, difficulty, meter, radar, raw_notes = pieces
 
-        for raw_section in data.split(";"):
-            section = strip_leading_comments(raw_section)
-            if not section:
-                continue
-            head = section.upper()
+    # The notes start after the last colon and any whitespace that follows it.
+    before_notes = section.text[: len(section.text) - len(raw_notes.lstrip())]
+    notes = NotesBody(raw_notes.strip(), section.first_line + before_notes.count("\n"))
 
-            # Instantiate dictionary for chart metadata (SSC only).
-            if head.startswith("#NOTEDATA"):
-                chart_fields = {}
-                continue
+    chart = _build_chart(
+        mode=mode.strip(),
+        credit=credit.strip(),
+        difficulty=difficulty.strip(),
+        rating=float(meter.strip()),
+        radar_raw=radar.strip(),
+        notes=notes.text,
+        timing=_timing(header),
+    )
+    return chart, notes
 
-            # Read chart metadata from SSC.
-            if chart_fields is not None:
-                if head.startswith(("#NOTES:", "#NOTES2:")):
-                    timing = cls._build_timing(song, chart_fields)
-                    cls._add_chart(song, cls._chart_from_fields(chart_fields, section, timing))
-                    chart_fields = None
-                    continue
 
-                key, value = _parse_header(section)
-                if key in _SSC_CHART_TAGS:
-                    chart_fields[key] = value
-                continue
+def _ssc_chart(
+    tags: dict[str, str], section: _Section, header: Header
+) -> tuple[Chart | SkippedChart, NotesBody]:
+    """A chart from an .ssc ``#NOTEDATA`` block: its tags, then the ``#NOTES:`` section."""
+    notes = NotesBody(section.text.split(":", 1)[1], section.first_line)
+    chart = _build_chart(
+        mode=tags.get("#STEPSTYPE", ""),
+        credit=tags.get("#CREDIT") or tags.get("#DESCRIPTION") or "",
+        difficulty=tags.get("#DIFFICULTY", ""),
+        rating=float(tags.get("#METER", 0)),
+        radar_raw=tags.get("#RADARVALUES", ""),
+        notes=notes.text,
+        timing=_timing(header, tags),
+    )
+    return chart, notes
 
-            if head.startswith("#NOTES:"):
-                timing = cls._build_timing(song)
-                cls._add_chart(song, cls._chart_from_packed_notes(section, timing))
-                continue
 
-            key, value = _parse_header(section)
-            if key in HEADER_SETTERS:
-                getattr(song.header, HEADER_SETTERS[key])(value)
+def parse_simfile_with_notes(data: str) -> tuple[Song, list[NotesBody]]:
+    """Parse a .sm or .ssc file, also returning each chart's note data as written.
 
-        return song
+    The second value lines up with ``song.charts``. It is for tools that read
+    what the parser discards (comments, source line numbers).
+    """
+    song = Song(header=Header())
+    bodies: list[NotesBody] = []
+    # Tags of the #NOTEDATA block being read (.ssc only); None outside one.
+    ssc_tags: dict[str, str] | None = None
 
-    @staticmethod
-    def _add_chart(song: Song, chart: Chart | SkippedChart) -> None:
+    def add(chart: Chart | SkippedChart, notes: NotesBody) -> None:
         if isinstance(chart, Chart):
             song.charts.append(chart)
+            bodies.append(notes)
         else:
             song.skipped_charts.append(chart)
 
-    @classmethod
-    def _chart_from_fields(
-        cls, fields: dict[str, str], section: str, timing: TimingEngine
-    ) -> Chart | SkippedChart:
-        """Build a chart from .ssc ``#NOTEDATA:`` tags."""
-        return _build_chart(
-            mode=fields.get("#STEPSTYPE", ""),
-            credit=fields.get("#CREDIT") or fields.get("#DESCRIPTION") or "",
-            difficulty=fields.get("#DIFFICULTY", ""),
-            rating=float(fields.get("#METER", 0)),
-            radar_raw=fields.get("#RADARVALUES", ""),
-            notes=section.split(":", 1)[1],
-            timing=timing,
-        )
+    for section in _sections(data):
+        head = section.text.upper()
+        if head.startswith("#NOTEDATA"):
+            ssc_tags = {}
+        elif ssc_tags is not None:
+            if head.startswith(("#NOTES:", "#NOTES2:")):
+                add(*_ssc_chart(ssc_tags, section, song.header))
+                ssc_tags = None
+            else:
+                key, value = _parse_tag(section.text)
+                if key in _SSC_CHART_TAGS:
+                    ssc_tags[key] = value
+        elif head.startswith("#NOTES:"):
+            add(*_sm_chart(section, song.header))
+        else:
+            song.header.set_tag(*_parse_tag(section.text))
 
-    @classmethod
-    def _chart_from_packed_notes(cls, section: str, timing: TimingEngine
-    ) -> Chart | SkippedChart:
-        """Build a chart from a .sm ``#NOTES:`` value."""
-        parts = [part.strip() for part in section.split(":", 6)][1:]
-        return _build_chart(
-            mode=parts[0],
-            credit=parts[1],
-            difficulty=parts[2],
-            rating=float(parts[3]),
-            radar_raw=parts[4],
-            notes=parts[5],
-            timing=timing,
-        )
+    return song, bodies
+
+
+class StepmaniaFileParser:
+    """Parses StepMania .sm and .ssc files."""
+
+    @staticmethod
+    def parse(data: str) -> Song:
+        """Parse a .sm or .ssc file."""
+        song, _ = parse_simfile_with_notes(data)
+        return song

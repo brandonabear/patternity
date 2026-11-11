@@ -51,7 +51,7 @@ class FootPlacement(StrEnum):
     @property
     def is_bracket(self) -> bool:
         """True if this foot placement bridges two adjacent panels."""
-        return len(self.value) == 2
+        return self in _BRACKETS
 
     def distance_to(self, other: FootPlacement) -> float:
         """Euclidean distance between two foot placements on the pad."""
@@ -79,6 +79,10 @@ _PLACEMENT_COORDS: dict[FootPlacement, tuple[float, float]] = {
     FootPlacement.RD: (0.5, -0.5),
     FootPlacement.RU: (0.5, 0.5),
 }
+
+_BRACKETS = frozenset(
+    placement for placement, panels in _PLACEMENT_PANELS.items() if len(panels) == 2
+)
 
 PANELS_TO_PLACEMENT: dict[Panel, FootPlacement] = {
     panels: placement for placement, panels in _PLACEMENT_PANELS.items()
