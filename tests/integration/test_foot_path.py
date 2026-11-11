@@ -53,12 +53,17 @@ _ACCURACY_FLOOR = _MIN_ACCURACY | _HOLDOUT_ACCURACY
 # Known misses pinned here rather than hidden:
 # - False-positive candles on hoot, move_mint, too_much and mazy_metroplex are
 #   candles the chart doesn't tag, not wrong detections.
-# - hoot misses its 3 tagged jacks; too_much misses 6 doublesteps.
+# - hoot misses its 3 tagged jacks.
 # - jacks.sm has one detected jack with no tag.
 # - senpai_notice_me's bracket miss and extra candle follow from its one
 #   misfooted row (see _HOLDOUT_ACCURACY).
 _PATTERN_SCORES: dict[str, dict[str, tuple[int, int, int]]] = {
-    "patterns/footswitches.sm": {"jack": (4, 0, 0), "footswitch": (11, 0, 0), "candle": (8, 0, 0)},
+    "patterns/footswitches.sm": {
+        "jack": (4, 0, 0),
+        "footswitch": (11, 0, 0),
+        "doublestep": (3, 0, 0),
+        "candle": (8, 0, 0),
+    },
     "patterns/jacks.sm": {"jack": (3, 1, 0), "candle": (2, 0, 0)},
     "patterns/brackets.sm": {"footswitch": (1, 0, 0), "bracket": (11, 0, 0), "candle": (7, 0, 0)},
     "patterns/sideswitches.sm": {"jack": (1, 0, 0), "sideswitch": (1, 0, 0), "candle": (1, 0, 0)},
@@ -87,7 +92,7 @@ _PATTERN_SCORES: dict[str, dict[str, tuple[int, int, int]]] = {
     "charts/too_much.ssc": {
         "jack": (20, 0, 0),
         "footswitch": (9, 0, 0),
-        "doublestep": (23, 0, 6),
+        "doublestep": (29, 0, 0),
         "candle": (0, 13, 0),
     },
     "charts/godspeed.ssc": {"bracket": (4, 0, 0)},

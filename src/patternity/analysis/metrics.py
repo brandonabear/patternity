@@ -46,9 +46,9 @@ class BasicMetrics:
             self.taps += 1
             if heads >= 2:
                 self.jumps += 1
-            # An ongoing hold occupies a foot or hand. Ongoing rolls are not counted.
-            ongoing_holds = note_row.holds_active & ~note_row.pressed
-            covered_panels = len(note_row.pressed | ongoing_holds)
+            # An ongoing hold or roll occupies a foot or hand, as in ITGmania.
+            ongoing = (note_row.holds_active | note_row.rolls_active) & ~note_row.pressed
+            covered_panels = len(note_row.pressed | ongoing)
             if covered_panels >= 3:
                 self.hands += 1
 

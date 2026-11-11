@@ -101,7 +101,9 @@ def test_switch_after_hold_release_needs_mine_cue() -> None:
     cued = gold_steps([*base, "000M", "0010 // @foot=R", "0000", "0000", "0000", ","], 200)
     assert detect_tech_patterns(plain).footswitches == 0
     assert detect_tech_patterns(cued).footswitches == 1
-    assert detect_tech_patterns(cued).doublesteps == 0
+    # The right foot stepped twice either way, so both are doublesteps too.
+    assert detect_tech_patterns(plain).doublesteps == 1
+    assert detect_tech_patterns(cued).doublesteps == 1
 
 
 def test_same_foot_panel_change_is_doublestep() -> None:
@@ -165,9 +167,10 @@ def test_loading_a_training_example_rejects_impossible_annotations(tmp_path: Pat
         load_example(path)
 
 
-def test_hold_tail_on_its_own_row_exempts_the_doublestep() -> None:
+def test_hold_released_before_the_press_is_still_a_doublestep() -> None:
+    # The left foot was free, but the right foot still took both steps.
     rows = ["2000 // @foot=L", "0100 // @foot=R", "3000", "0001 // @foot=R", ","]
-    assert detect_tech_patterns(gold_steps(rows)).doublesteps == 0
+    assert detect_tech_patterns(gold_steps(rows)).doublesteps == 1
 
 
 def test_hold_tail_on_the_press_row_is_a_hold_cued_doublestep() -> None:

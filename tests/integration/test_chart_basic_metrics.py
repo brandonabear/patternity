@@ -52,3 +52,14 @@ def test_fots_basic_metrics_match_groove_radar(chart_index: int, expected_rating
     assert basic["holds"] == radar.holds
     assert basic["hands"] == radar.hands
     assert basic["mines"] == radar.mines
+
+
+@pytest.mark.regression
+def test_senpai_hands_count_a_press_on_a_roll_tail_row() -> None:
+    """ITGMania counts 5 hands; one is a hold head and a tap on the row a roll ends."""
+    path = FIXTURES / "charts" / "senpai_notice_me.ssc"
+    chart = StepmaniaFileParser.parse(read_simfile(path)).charts[0]
+    radar = chart.metadata.radar
+    assert radar is not None
+
+    assert analyze_chart(chart).basic.hands == radar.hands == 5

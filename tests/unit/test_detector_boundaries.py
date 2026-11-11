@@ -50,10 +50,10 @@ def test_mine_on_another_panel_leaves_the_jack_clock_alone() -> None:
     assert _tech(rows, 200.0).jacks == 0
 
 
-def test_mine_elsewhere_on_the_second_press_row_still_counts_as_a_jack() -> None:
-    # docs/patterns.md says a mine on the second press's row rules out a jack.
-    # The detector only checks the pressed panel, which can't also hold a mine,
-    # so nothing is ruled out. This pins what the code does today.
+def test_mine_on_the_second_press_row_does_not_rule_out_a_jack() -> None:
+    # A mine beside the second press only matters through the footing: if it
+    # pushes the other foot onto the panel, the path is a footswitch, not a jack.
+    # When the same foot repeats anyway, it is still a jack.
     assert _tech(["1000 // @foot=L", "1M00 // @foot=L"], 200.0).jacks == 1
 
 
