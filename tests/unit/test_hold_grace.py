@@ -5,7 +5,7 @@ from patternity.footing.grace import (
     GraceWindow,
     hold_grace,
 )
-from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
+from patternity.footing.stance import Foot, FootMove, FootPlacement, FootRow, Stance
 from patternity.footing.transitions import iter_legal_transitions
 from patternity.simfile import NoteRow, Panel
 from tests.helpers import chart_rows
@@ -20,8 +20,8 @@ def _left_holding_left() -> FootRow:
     return FootRow(
         stance=Stance.from_feet(FootPlacement.L, FootPlacement.R),
         moved=FootMove.LEFT,
-        last_press_foot=FootMove.LEFT,
-        hold_owners=((Panel.L, FootMove.LEFT),),
+        last_press_moved=FootMove.LEFT,
+        hold_owners=((Panel.L, Foot.LEFT),),
     )
 
 

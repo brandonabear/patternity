@@ -52,7 +52,7 @@ src/patternity/
 | `simfile/notes.py` | `NoteRow` (one row of four columns plus derived timing), `NoteType`, `Panel` (the set-of-panels flag, e.g. `Panel.U in row.pressed`, and the only place the bit layout lives), and `AnchorTracker` (hold/roll state while parsing). |
 | `simfile/timing.py` | `TimingEngine`: beat → seconds across `#BPMS` and `#STOPS`. |
 | `simfile/serializer.py` | Song ⇄ JSON. |
-| `footing/stance.py` | Foot geometry: `FootPlacement` (a panel or a two-panel bracket), `Stance` (both feet plus orientation), `FootMove`, and `FootRow` (the search state). |
+| `footing/stance.py` | Foot geometry: `FootPlacement` (a panel or a two-panel bracket), `Stance` (both feet plus orientation), `Foot`, `FootMove` (a set of feet), and `FootRow` (the search state). |
 | `footing/rules.py` | Hard physical rules: `RowContext`, `Candidate`, and the named rules in `RULES` that decide whether a proposed foot placement is legal. |
 | `footing/transitions.py` | Proposes candidate foot moves, filters them through `rules.RULES`, and builds every legal next `FootRow` (hold owners, jack/switch tracking). |
 | `footing/grace.py` | Grace windows before hold/roll tails, during which the owning foot may leave early. |

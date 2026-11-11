@@ -18,7 +18,7 @@ from pathlib import Path
 from patternity import FootingModel, detect_tech_patterns
 from patternity.footing import ResolvedStep
 from patternity.footing.search import build_trellis, viterbi
-from patternity.footing.stance import FootMove
+from patternity.footing.stance import Foot
 from patternity.patterns.detector import column_foot
 from patternity.patterns.spans import PatternKind, PatternSpan
 from patternity.simfile.notes import PANELS, PRESSABLE_NOTES, NoteType, Panel
@@ -51,7 +51,7 @@ OTHER_QUANT = ("#9ca3af", "finer")
 
 ARROW = "0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0"
 ROTATION = {Panel.L: 270, Panel.D: 180, Panel.U: 0, Panel.R: 90}
-FOOT_LABEL = {FootMove.LEFT: "L", FootMove.RIGHT: "R"}
+FOOT_LABEL = {Foot.LEFT: "L", Foot.RIGHT: "R"}
 
 LANE_WIDTH = 52
 PLAYFIELD_WIDTH = LANE_WIDTH * len(PANELS)

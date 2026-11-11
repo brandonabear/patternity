@@ -9,7 +9,7 @@ from patternity.footing.rules import (
     no_bracket_onto_held_panel,
     presses_are_covered,
 )
-from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
+from patternity.footing.stance import Foot, FootMove, FootPlacement, FootRow, Stance
 from patternity.footing.transitions import iter_legal_transitions
 from patternity.simfile import Panel
 from tests.helpers import note_row
@@ -33,7 +33,7 @@ def _holding_left() -> FootRow:
     return FootRow(
         stance=Stance.from_feet(P.L, P.R),
         moved=FootMove.LEFT,
-        hold_owners=((Panel.L, FootMove.LEFT),),
+        hold_owners=((Panel.L, Foot.LEFT),),
     )
 
 

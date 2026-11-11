@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
-from patternity.footing.stance import FootMove, FootPlacement, FootRow
+from patternity.footing.stance import Foot, FootMove, FootPlacement, FootRow
 from patternity.simfile.notes import NoteRow, Panel
 
 
@@ -54,8 +54,8 @@ class Candidate:
     right: FootPlacement
     moved: FootMove
 
-    def placement(self, foot: FootMove) -> FootPlacement:
-        return self.left if foot == FootMove.LEFT else self.right
+    def placement(self, foot: Foot) -> FootPlacement:
+        return self.left if foot is Foot.LEFT else self.right
 
     @property
     def landed(self) -> Panel:
@@ -105,7 +105,7 @@ def held_panels_stay_covered(prev: FootRow, ctx: RowContext, c: Candidate) -> bo
     return ctx.must_stay_held in c.covered
 
 
-def _anchored_owners(prev: FootRow, ctx: RowContext) -> Iterator[tuple[Panel, FootMove]]:
+def _anchored_owners(prev: FootRow, ctx: RowContext) -> Iterator[tuple[Panel, Foot]]:
     """(panel, owning foot) for each hold that still needs its foot."""
     for panel, owner in prev.hold_owners:
         if panel in ctx.must_stay_held:
@@ -115,7 +115,7 @@ def _anchored_owners(prev: FootRow, ctx: RowContext) -> Iterator[tuple[Panel, Fo
 def no_bracket_onto_held_panel(prev: FootRow, ctx: RowContext, c: Candidate) -> bool:
     """The foot that doesn't own a hold can't bracket onto its panel."""
     for panel, owner in _anchored_owners(prev, ctx):
-        other = c.right if owner == FootMove.LEFT else c.left
+        other = c.placement(owner.other)
         if other.is_bracket and panel in other.panels:
             return False
     return True

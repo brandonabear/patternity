@@ -9,7 +9,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from patternity.footing.resolve import ResolvedStep
-from patternity.footing.stance import FootMove, FootPlacement, PlayerOrientation
+from patternity.footing.stance import Foot, FootMove, FootPlacement, PlayerOrientation
 from patternity.patterns.metrics import TechMetrics
 from patternity.patterns.spans import PatternKind, PatternSpan
 from patternity.simfile.notes import PANELS, NoteType, Panel
@@ -19,7 +19,6 @@ ITG_JACK_CUTOFF_SEC = 0.176
 ITG_FOOTSWITCH_CUTOFF_SEC = (1.0 / 3.0) + 1e-6
 
 _SIDE_PANELS = Panel.L | Panel.R
-_FEET = (FootMove.LEFT, FootMove.RIGHT)
 _OPPOSITE_PANELS = ((Panel.U, Panel.D), (Panel.L, Panel.R))
 
 
@@ -45,13 +44,13 @@ def _span(kind: PatternKind, steps: tuple[ResolvedStep, ...]) -> PatternSpan:
     )
 
 
-def column_foot(step: ResolvedStep, panel: Panel) -> FootMove | None:
+def column_foot(step: ResolvedStep, panel: Panel) -> Foot | None:
     """Foot acting on ``panel``: the moving foot for a press, the hold owner for a tail."""
     note = step.note_row.notes[panel.column]
     fr = step.foot_row
     if panel in step.note_row.pressed:
-        for foot in _FEET:
-            if fr.moved & foot and panel in fr.stance.placement(foot).panels:
+        for foot in fr.moved.feet:
+            if panel in fr.stance.placement(foot).panels:
                 return foot
         return None
     if note == NoteType.TAIL:
@@ -79,13 +78,13 @@ class _ColumnHistory:
 
     # Last event of any kind (press or hold/roll tail).
     last_event: ResolvedStep | None = None
-    last_foot: FootMove | None = None
+    last_foot: Foot | None = None
     last_time: float = -math.inf
     last_was_tail: bool = False
     event_epoch: int = -1
     # Last press (tails excluded).
     last_press: ResolvedStep | None = None
-    press_foot: FootMove | None = None
+    press_foot: Foot | None = None
     press_time: float = -math.inf
     press_epoch: int = -1
     # Latest mine on this panel since its last press.
@@ -105,7 +104,7 @@ class _ColumnHistory:
             return self.mine_time
         return None
 
-    def record_press(self, step: ResolvedStep, foot: FootMove, now: float, epoch: int) -> None:
+    def record_press(self, step: ResolvedStep, foot: Foot, now: float, epoch: int) -> None:
         self.last_press = step
         self.press_foot = foot
         self.press_time = now
@@ -113,7 +112,7 @@ class _ColumnHistory:
         self.mine_time = None
 
     def record_event(
-        self, step: ResolvedStep, foot: FootMove, now: float, epoch: int, is_tail: bool
+        self, step: ResolvedStep, foot: Foot, now: float, epoch: int, is_tail: bool
     ) -> None:
         self.last_event = step
         self.last_foot = foot
@@ -134,7 +133,7 @@ class _TechDetector:
         self.prev_row: ResolvedStep | None = None
         # Each foot's previous press, for candles (the other foot's presses in
         # between don't matter).
-        self.foot_press: dict[FootMove, ResolvedStep] = {}
+        self.foot_press: dict[Foot, ResolvedStep] = {}
         # Orientation of the current crossed stance, or None while uncrossed.
         self.crossed_orientation: PlayerOrientation | None = None
 
@@ -172,9 +171,7 @@ class _TechDetector:
         """A bracket: one foot presses two panels. A candle: a foot's press lands
         opposite its own previous press."""
         fr = step.foot_row
-        for mover in _FEET:
-            if not fr.moved & mover:
-                continue
+        for mover in fr.moved.feet:
             placement = fr.stance.placement(mover)
             if len(placement.panels & step.note_row.pressed) >= 2:
                 self.spans.append(_span(PatternKind.BRACKET, (step,)))
@@ -202,7 +199,7 @@ class _TechDetector:
         )
         if (
             prev is not None
-            and moved in _FEET
+            and len(moved.feet) == 1
             and prev.foot_row.moved == moved
             and press
             and _single_press(prev) not in (Panel.NONE, press)
@@ -225,7 +222,7 @@ class _TechDetector:
         self.crossed_orientation = orientation
 
     def _jack_or_switch(
-        self, step: ResolvedStep, panel: Panel, foot: FootMove, now: float, epoch_before: int
+        self, step: ResolvedStep, panel: Panel, foot: Foot, now: float, epoch_before: int
     ) -> None:
         """Pair this press with the panel's event on the previous press row."""
         history = self.columns[panel]

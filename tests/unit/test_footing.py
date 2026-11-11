@@ -172,7 +172,7 @@ def test_row_with_no_legal_state_stays_put_like_a_no_press_row() -> None:
     stayed = trellis.layers[1].states
     assert all(state.moved == FootMove.NONE for state in stayed)
     # Either foot may have taken the hold; whichever did is the one released.
-    assert all(state.released_since_press == state.hold_owner_for(Panel.L) for state in stayed)
+    assert all(state.released_since_press == state.owners_of(Panel.L) for state in stayed)
     assert all(state.hold_owner_for(Panel.L) is None for state in trellis.layers[2].states)
 
 

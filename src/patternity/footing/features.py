@@ -11,10 +11,12 @@ from dataclasses import dataclass
 from patternity.footing.grace import HOLD_GRACE_SEC, ROLL_GRACE_SEC, Remaining
 from patternity.footing.rules import held_panels
 from patternity.footing.stance import (
+    Foot,
     FootMove,
     FootPlacement,
     FootRow,
     PlayerOrientation,
+    Repeat,
 )
 from patternity.simfile.notes import NoteRow, Panel
 
@@ -55,7 +57,6 @@ FEATURE_NAMES: tuple[str, ...] = (
 FEATURE_INDEX: dict[str, int] = {name: i for i, name in enumerate(FEATURE_NAMES)}
 
 _MAX_NPS = 20.0
-_FEET = (FootMove.LEFT, FootMove.RIGHT)
 
 
 def speed(dt: float | None) -> float:
@@ -65,22 +66,21 @@ def speed(dt: float | None) -> float:
     return min(1.0 / dt, _MAX_NPS) / 10.0
 
 
-def _placement(row: FootRow, foot: FootMove) -> FootPlacement:
+def _placement(row: FootRow, foot: Foot) -> FootPlacement:
     return row.stance.placement(foot)
 
 
-def _displaced(curr: FootRow, foot: FootMove) -> bool:
+def _displaced(curr: FootRow, foot: Foot) -> bool:
     """A stationary foot whose panel the moving foot just took over (it has lifted)."""
-    other = FootMove.RIGHT if foot == FootMove.LEFT else FootMove.LEFT
-    return bool(curr.moved & other) and _placement(curr, foot).shares_panel_with(
-        _placement(curr, other)
+    return curr.moved.includes(foot.other) and _placement(curr, foot).shares_panel_with(
+        _placement(curr, foot.other)
     )
 
 
 def hits_mine(curr: FootRow, mines: Panel) -> bool:
     """True if a foot that is down on this row covers a mine on this row."""
-    for foot in _FEET:
-        if not curr.moved & foot and _displaced(curr, foot):
+    for foot in Foot:
+        if not curr.moved.includes(foot) and _displaced(curr, foot):
             continue
         if _placement(curr, foot).panels & mines:
             return True
@@ -114,17 +114,15 @@ class _Step:
     @property
     def same_foot(self) -> bool:
         """The foot that pressed last presses again (any panels)."""
-        return self.single and self.prev.last_press_foot == self.moved
+        return self.single and self.prev.last_press_moved == self.moved
 
     @property
     def is_jack(self) -> bool:
-        """Same foot, same panel as the last press (see ``FootRow.last_repeat_jack``)."""
-        return self.curr.last_repeat_jack is True
+        return self.curr.last_repeat is Repeat.JACK
 
     @property
     def is_switch(self) -> bool:
-        """Other foot, same panel as the last press (see ``FootRow.last_repeat_jack``)."""
-        return self.curr.last_repeat_jack is False
+        return self.curr.last_repeat is Repeat.SWITCH
 
 
 class _Features(dict[str, float]):
@@ -147,7 +145,7 @@ def _hold_release_features(step: _Step, feats: _Features) -> FootMove:
         # Released: the hold is still underway, but no foot owns it any more.
         if panel not in held or panel in still_owned:
             continue
-        released |= foot
+        released |= foot.move
         feats.add("hold_release")
         remaining = step.grace_remaining[panel.column]
         if remaining:
@@ -179,9 +177,8 @@ def _repetition_features(step: _Step, feats: _Features, released_now: FootMove) 
         feats.add("switch_speed", step.speed)
 
     # A same-panel run changed technique (jack then switch, or the reverse).
-    prev_repeat = step.prev.last_repeat_jack
-    curr_repeat = step.curr.last_repeat_jack
-    if prev_repeat is not None and curr_repeat is not None and prev_repeat != curr_repeat:
+    repeats = (step.prev.last_repeat, step.curr.last_repeat)
+    if Repeat.NONE not in repeats and repeats[0] is not repeats[1]:
         feats.add("repeat_change")
 
 
@@ -196,8 +193,8 @@ def _mine_cue_features(step: _Step, feats: _Features) -> None:
     if step.is_switch:
         feats.add("mine_cued_switch")
 
-    for foot in _FEET:
-        if step.moved & foot:
+    for foot in Foot:
+        if step.moved.includes(foot):
             if _placement(step.prev, foot).panels & cue:
                 feats.add("cued_foot_moves")
         elif _placement(step.curr, foot).panels & cue and not _displaced(step.curr, foot):
@@ -210,9 +207,7 @@ def _movement_features(step: _Step, feats: _Features) -> None:
     travel = 0.0
     brackets = 0
     hold_owners = {foot for _, foot in step.prev.hold_owners}
-    for foot in _FEET:
-        if not step.moved & foot:
-            continue
+    for foot in step.moved.feet:
         before = _placement(step.prev, foot)
         after = _placement(step.curr, foot)
         travel += before.distance_to(after)
