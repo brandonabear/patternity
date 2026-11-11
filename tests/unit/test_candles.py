@@ -1,5 +1,4 @@
-from patternity.patterns import PatternKind
-from patternity.patterns.detector import detect_tech_patterns
+from patternity.patterns import PatternKind, detect_tech_patterns
 from tests.helpers import synthetic_steps
 
 

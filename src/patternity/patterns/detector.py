@@ -8,9 +8,9 @@ import math
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from patternity.analysis.metrics import TechMetrics
 from patternity.footing.resolve import ResolvedStep
 from patternity.footing.stance import FootMove, FootPlacement, PlayerOrientation
+from patternity.patterns.metrics import TechMetrics
 from patternity.patterns.spans import PatternKind, PatternSpan
 from patternity.simfile.notes import PANELS, NoteType, Panel
 

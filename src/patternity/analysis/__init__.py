@@ -1,9 +1,6 @@
-from patternity.analysis.analyzer import Analyzer
-from patternity.analysis.metrics import BasicMetrics, MovementMetrics, TechMetrics
+"""Ties parsing, footing, and the pattern and movement detectors together for one chart."""
 
-__all__ = [
-    "Analyzer",
-    "BasicMetrics",
-    "MovementMetrics",
-    "TechMetrics",
-]
+from patternity.analysis.analyzer import Analyzer
+from patternity.analysis.metrics import BasicMetrics
+
+__all__ = ["Analyzer", "BasicMetrics"]

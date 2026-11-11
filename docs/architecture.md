@@ -22,7 +22,7 @@ flowchart TD
 1. **Read and parse.** `read_simfile` loads the text; `StepmaniaFileParser.parse` turns it into a `Song` with a `Header` and one `Chart` per difficulty. Each chart's `notes` is a list of `NoteRow`s (empty `0000` rows are dropped) carrying measure, beat, quantization, timestamp (seconds from beat 0, from `#BPMS` / `#STOPS`; `#OFFSET` is not applied since only time differences matter), and which holds/rolls are active. See [File format](format.md).
 2. **Footing.** `footing.resolve_chart` finds the cheapest physically legal sequence of foot positions for the whole chart and returns one **`ResolvedStep`** per row (`note_row` plus decoded `foot_row`). The cost of each move is a learned linear function of a few generic features. The same decode supplies **`MovementMetrics`**: total path cost and whether any row needed a relaxed (penalized) fallback. See [Footing model](footing-model.md).
 3. **Basic metrics.** `Analyzer` walks `resolved.steps` and feeds each `note_row` into `BasicMetrics`. Counts are chart notation only (taps, jumps, holds, …); they do **not** use `foot_row` and do not change when footing weights change.
-4. **Tech labels.** `patterns.detector.detect_tech_patterns` walks the same steps and labels jacks, switches, doublesteps, brackets, crossovers, and candles using community / ITGmania timing cutoffs into **`TechMetrics`**.
+4. **Tech labels.** `patterns.detect_tech_patterns` walks the same steps and labels jacks, switches, doublesteps, brackets, crossovers, and candles using community / ITGmania timing cutoffs into **`TechMetrics`**.
 5. **Movement metrics.** `movement.detect_movement` counts `direction_shifts` on the same steps and copies path cost and feasibility from the decode.
 6. **Report.** `Analyzer.analyze()` returns the `basic`, `tech`, and `movement` dictionaries (see [Usage → Output](usage.md#output)).
 
@@ -36,8 +36,8 @@ src/patternity/
   analysis/    analyzer, metrics
   simfile/     reader, parser, song, notes, timing, serializer
   footing/     stance, rules, transitions, grace, features, search, model, resolve
-  patterns/    spans, detector
-  movement/    detector
+  patterns/    spans, metrics, detector
+  movement/    metrics, detector
   training/    __main__, annotations, trainer, corpus, evaluation
   data/        footing_weights.json
 ```
@@ -62,13 +62,13 @@ src/patternity/
 | `footing/resolve.py` | `resolve_chart`, `ResolvedStep`, `FootingResult`. |
 | `patterns/spans.py` | `PatternKind` and `PatternSpan` (one detection with its steps). |
 | `patterns/detector.py` | Tech-pattern labeling on a decoded path. The only place ITG timing cutoffs appear. |
-| `analysis/metrics.py` | `BasicMetrics`, `TechMetrics` (spans plus counts), `MovementMetrics`. |
+| `patterns/metrics.py` | `TechMetrics` (spans plus counts). |
+| `analysis/metrics.py` | `BasicMetrics`. |
+| `movement/metrics.py` | `MovementMetrics`. |
 | `movement/detector.py` | `detect_movement`: direction shifts, path cost, and feasibility on a resolved path. |
 | `analysis/analyzer.py` | Ties the steps above together for one chart. |
 | `cli.py` | The `patternity` command. |
 | `data/footing_weights.json` | The trained weights loaded by default. |
-
-`patterns/__init__` re-exports only the span types. `analysis/metrics.py` depends on them and `patterns/detector.py` depends on `analysis/metrics.py`, so import the detector from `patternity.patterns.detector` (or `patternity`).
 
 ### Training and evaluation (developer tooling)
 

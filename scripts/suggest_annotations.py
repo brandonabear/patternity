@@ -29,8 +29,7 @@ from pathlib import Path
 from rich.console import Console
 
 from patternity.footing import FootingModel, FootMove, ResolvedStep, resolve_chart
-from patternity.patterns.detector import detect_tech_patterns
-from patternity.patterns.spans import PatternKind
+from patternity.patterns import PatternKind, detect_tech_patterns
 from patternity.simfile import read_simfile
 from patternity.training.annotations import _notes_body, parse_annotated_sm
 from patternity.training.evaluation import PATTERN_TAGS

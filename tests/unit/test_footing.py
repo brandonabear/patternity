@@ -10,8 +10,7 @@ from patternity.footing.grace import hold_grace
 from patternity.footing.search import build_trellis, row_confidence, viterbi
 from patternity.footing.stance import FootMove, FootRow
 from patternity.footing.transitions import iter_legal_transitions
-from patternity.patterns import PatternKind
-from patternity.patterns.detector import detect_tech_patterns
+from patternity.patterns import PatternKind, detect_tech_patterns
 from patternity.simfile import NoteRow, Panel
 from patternity.training import Example, load_example, parse_annotated_sm, row_errors, train
 from patternity.training.annotations import AnnotationError

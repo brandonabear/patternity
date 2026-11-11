@@ -15,8 +15,7 @@ from patternity.footing.model import FootingModel
 from patternity.footing.resolve import resolve_chart
 from patternity.footing.search import Trellis, build_trellis, viterbi
 from patternity.footing.stance import FootMove
-from patternity.patterns.detector import detect_tech_patterns
-from patternity.patterns.spans import PatternKind
+from patternity.patterns import PatternKind, detect_tech_patterns
 from patternity.simfile.reader import read_simfile
 from patternity.training.annotations import PATTERN_TAGS, AnnotatedChart, parse_annotated_sm
 
