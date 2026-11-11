@@ -1,0 +1,24 @@
+{
+  "fixture": "patterns/brackets.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "rows": 78,
+      "last_beat": 52.0,
+      "last_timestamp": 26.0,
+      "rows_digest": "ae3f9f8369b657b1",
+      "basic": {
+        "taps": 78,
+        "jumps": 15,
+        "hands": 0,
+        "holds": 1,
+        "rolls": 0,
+        "mines": 1,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 93
+      }
+    }
+  ]
+}

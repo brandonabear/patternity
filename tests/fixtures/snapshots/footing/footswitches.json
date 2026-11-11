@@ -1,0 +1,31 @@
+{
+  "fixture": "patterns/footswitches.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "tech": {
+        "crossovers": 0,
+        "footswitches": 11,
+        "sideswitches": 0,
+        "jacks": 4,
+        "brackets": 0,
+        "doublesteps": 0,
+        "candles": 8
+      },
+      "movement": {
+        "direction_shifts": 23,
+        "total_cost": 1804.398854,
+        "foot_path_feasible": true
+      },
+      "moved": [
+        "0: LRLRLRLRLRLRLRLR",
+        "1: LRLRLRLRLRLRLRL",
+        "2: RLRLRLRLRL",
+        "3: R--RLR--RLR--RLRL",
+        "4: LRRLRRLR-LRL",
+        "5: RLRLLR-LRRLR"
+      ]
+    }
+  ]
+}

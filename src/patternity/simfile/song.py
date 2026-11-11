@@ -77,9 +77,7 @@ class Header:
                 selectable = value if isinstance(value, bool) else str(value).lower() == "yes"
                 setattr(obj, field_name.name, selectable)
             elif isinstance(value, dict):
-                setattr(
-                    obj, field_name.name, {float(k): float(v) for k, v in value.items()}
-                )
+                setattr(obj, field_name.name, {float(k): float(v) for k, v in value.items()})
             elif field_name.name in {"samplestart", "samplelength", "offset"}:
                 setattr(obj, field_name.name, float(value))
             else:

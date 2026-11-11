@@ -1,0 +1,24 @@
+{
+  "fixture": "charts/burger.ssc",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 10.0,
+      "rows": 644,
+      "last_beat": 252.0,
+      "last_timestamp": 120.0,
+      "rows_digest": "131545f999e3e4e7",
+      "basic": {
+        "taps": 587,
+        "jumps": 14,
+        "hands": 14,
+        "holds": 135,
+        "rolls": 5,
+        "mines": 20,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 601
+      }
+    }
+  ]
+}

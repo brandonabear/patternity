@@ -51,9 +51,7 @@ def gold_steps(rows: list[str], bpm: float = 120.0) -> list[ResolvedStep]:
     """The path that satisfies every ``@foot`` / ``@feet`` tag, decoded with zero weights."""
     annotated = parse_annotated_sm(chart_text(rows, bpm))
     trellis = build_trellis(annotated.chart.notes)
-    decoded = viterbi(
-        trellis, [0.0] * len(FEATURE_NAMES), allowed=annotated.tagged_assignments
-    )
+    decoded = viterbi(trellis, [0.0] * len(FEATURE_NAMES), allowed=annotated.tagged_assignments)
     return [
         ResolvedStep(index=i, note_row=row, foot_row=state)
         for i, (row, state) in enumerate(

@@ -1,0 +1,24 @@
+{
+  "fixture": "charts/too_much.ssc",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 9.0,
+      "rows": 525,
+      "last_beat": 210.0,
+      "last_timestamp": 140.0,
+      "rows_digest": "104d0df0fad2cfe6",
+      "basic": {
+        "taps": 495,
+        "jumps": 2,
+        "hands": 0,
+        "holds": 86,
+        "rolls": 0,
+        "mines": 22,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 497
+      }
+    }
+  ]
+}

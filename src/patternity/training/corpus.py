@@ -15,9 +15,7 @@ def default_fixtures_root(start: Path | None = None) -> Path:
         candidate = directory / "tests" / "fixtures"
         if candidate.is_dir():
             return candidate
-    raise FileNotFoundError(
-        f"no tests/fixtures directory at or above {here}; pass --fixtures-root"
-    )
+    raise FileNotFoundError(f"no tests/fixtures directory at or above {here}; pass --fixtures-root")
 
 
 def _read_fixture_list(path: Path) -> list[str]:

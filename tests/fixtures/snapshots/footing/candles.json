@@ -1,0 +1,27 @@
+{
+  "fixture": "patterns/candles.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "tech": {
+        "crossovers": 1,
+        "footswitches": 0,
+        "sideswitches": 0,
+        "jacks": 0,
+        "brackets": 0,
+        "doublesteps": 2,
+        "candles": 5
+      },
+      "movement": {
+        "direction_shifts": 5,
+        "total_cost": 618.204821,
+        "foot_path_feasible": true
+      },
+      "moved": [
+        "0: LRLRLRLRLRLRLRLR",
+        "1: LRRR-"
+      ]
+    }
+  ]
+}

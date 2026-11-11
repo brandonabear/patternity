@@ -1,0 +1,24 @@
+{
+  "fixture": "patterns/jacks.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "rows": 20,
+      "last_beat": 6.3333,
+      "last_timestamp": 2.53332,
+      "rows_digest": "1f0e0f02f483dda8",
+      "basic": {
+        "taps": 20,
+        "jumps": 1,
+        "hands": 0,
+        "holds": 0,
+        "rolls": 0,
+        "mines": 0,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 21
+      }
+    }
+  ]
+}

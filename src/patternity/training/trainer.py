@@ -222,9 +222,7 @@ def leave_one_out(
     results: list[FoldResult] = []
     for held in examples:
         rest = [e for e in examples if e is not held]
-        model = train(
-            rest, epochs=epochs, margin=margin, learning_rate=learning_rate, seed=seed
-        )
+        model = train(rest, epochs=epochs, margin=margin, learning_rate=learning_rate, seed=seed)
         results.append(
             FoldResult(
                 held_out=held.name,

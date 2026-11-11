@@ -1,0 +1,43 @@
+{
+  "fixture": "charts/fots.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 17.0,
+      "rows": 4205,
+      "last_beat": 1345.0,
+      "last_timestamp": 403.5,
+      "rows_digest": "8c4dbc091ee3b5bd",
+      "basic": {
+        "taps": 4174,
+        "jumps": 29,
+        "hands": 1,
+        "holds": 132,
+        "rolls": 34,
+        "mines": 0,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 4203
+      }
+    },
+    {
+      "difficulty": "Hard",
+      "rating": 15.0,
+      "rows": 3819,
+      "last_beat": 1344.3333,
+      "last_timestamp": 403.29999,
+      "rows_digest": "d9894595e66841bf",
+      "basic": {
+        "taps": 3736,
+        "jumps": 93,
+        "hands": 8,
+        "holds": 178,
+        "rolls": 12,
+        "mines": 90,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 3832
+      }
+    }
+  ]
+}

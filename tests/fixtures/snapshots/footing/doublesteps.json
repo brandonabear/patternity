@@ -1,0 +1,27 @@
+{
+  "fixture": "patterns/doublesteps.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "tech": {
+        "crossovers": 0,
+        "footswitches": 0,
+        "sideswitches": 0,
+        "jacks": 0,
+        "brackets": 0,
+        "doublesteps": 4,
+        "candles": 0
+      },
+      "movement": {
+        "direction_shifts": 0,
+        "total_cost": 581.956997,
+        "foot_path_feasible": true
+      },
+      "moved": [
+        "0: LRRLLRLR",
+        "1: LRRLLRLR"
+      ]
+    }
+  ]
+}

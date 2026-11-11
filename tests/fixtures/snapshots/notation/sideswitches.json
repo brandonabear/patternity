@@ -1,0 +1,24 @@
+{
+  "fixture": "patterns/sideswitches.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "rows": 11,
+      "last_beat": 4.9412,
+      "last_timestamp": 2.4706,
+      "rows_digest": "f090ce999f402537",
+      "basic": {
+        "taps": 10,
+        "jumps": 0,
+        "hands": 0,
+        "holds": 0,
+        "rolls": 0,
+        "mines": 1,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 10
+      }
+    }
+  ]
+}

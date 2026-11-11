@@ -19,9 +19,7 @@ class TechMetrics:
 
     @property
     def crossovers(self) -> int:
-        return self.count(PatternKind.CROSSOVER) + self.count(
-            PatternKind.INVERTED_CROSSOVER
-        )
+        return self.count(PatternKind.CROSSOVER) + self.count(PatternKind.INVERTED_CROSSOVER)
 
     @property
     def footswitches(self) -> int:

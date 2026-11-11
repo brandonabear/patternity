@@ -1,0 +1,24 @@
+{
+  "fixture": "charts/godspeed.ssc",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 12.0,
+      "rows": 804,
+      "last_beat": 318.5,
+      "last_timestamp": 137.482014,
+      "rows_digest": "c4b51e0a811fef12",
+      "basic": {
+        "taps": 801,
+        "jumps": 51,
+        "hands": 9,
+        "holds": 44,
+        "rolls": 0,
+        "mines": 41,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 852
+      }
+    }
+  ]
+}

@@ -87,7 +87,8 @@ src/patternity/
 | Path | What it covers |
 |------|----------------|
 | `tests/unit/` | Parser, reader, CLI, stance geometry (`test_footing_stance.py`), footing (Viterbi vs brute force, confidence, training smoke test), labeler rules. |
-| `tests/integration/test_foot_path.py` | Per-row footing accuracy thresholds and pattern-tag F1 on annotated fixtures (including hold-out charts); hold-out and training lists stay disjoint. |
+| `tests/integration/test_foot_path.py` | Per-row footing accuracy thresholds and exact pattern-tag scores on annotated fixtures (training and hold-out charts); hold-out and training lists stay disjoint. |
+| `tests/integration/test_snapshots.py` | Current output for every fixture chart against `tests/fixtures/snapshots/` (`--update-snapshots` rewrites them). Catches unintended change; not ground truth. |
 | `tests/integration/test_canonical.py` | End-to-end counts against hand-counted `tests/fixtures/canonical/*.json`. |
 | `tests/integration/test_chart_basic_metrics.py` | Basic metrics on real charts. |
 

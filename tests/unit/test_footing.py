@@ -24,6 +24,7 @@ from patternity.training import (
     trainer,
 )
 from patternity.training.annotations import AnnotationError
+from patternity.training.trainer import NONNEGATIVE
 from tests.helpers import chart_rows, chart_text, gold_steps
 
 
@@ -52,17 +53,26 @@ def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
     return best
 
 
-def test_viterbi_matches_brute_force_over_all_paths() -> None:
-    rows = ["1000", "0100", "0100", "M010", "0001", "1100", "0010", ","]
-    chart = parse_annotated_sm(chart_text(rows)).chart
+@pytest.mark.parametrize(
+    "rows",
+    [
+        pytest.param(["1000", "0100", "0100", "M010", "0001", "1100", "0010"], id="taps-and-mine"),
+        pytest.param(["2000", "0100", "3010", "0002", "0100", "1003", "0010"], id="holds"),
+        pytest.param(["4000", "0100", "3000", "0010", "0100", "0001"], id="roll-with-grace-window"),
+        pytest.param(["1100", "0011", "1001", "0110", "0100", "1010"], id="brackets-and-jumps"),
+        pytest.param(["0100", "0M00", "0100", "2001", "0100", "3M00", "0010"], id="mines-and-hold"),
+    ],
+)
+def test_viterbi_matches_brute_force_over_all_paths(rows: list[str]) -> None:
+    chart = parse_annotated_sm(chart_text([*rows, ","])).chart
+    trellis = build_trellis(chart.notes)
+    # The brute force knows nothing of relaxed fallbacks, so the chart must not need one.
+    assert not trellis.relaxed_rows
     rng = random.Random(7)
     for _ in range(5):
         weights = [rng.uniform(-5, 20) for _ in FEATURE_NAMES]
-        trellis = build_trellis(chart.notes)
         decoded = viterbi(trellis, weights)
-        assert math.isclose(
-            decoded.cost, _brute_force_min(chart.notes, weights), abs_tol=1e-6
-        )
+        assert math.isclose(decoded.cost, _brute_force_min(chart.notes, weights), abs_tol=1e-6)
 
 
 def test_confidence_is_infinite_when_only_one_foot_move_is_possible() -> None:
@@ -87,21 +97,15 @@ def test_physically_impossible_annotation_is_reported() -> None:
 
 def test_switch_after_hold_release_needs_mine_cue() -> None:
     base = ["0020 // @foot=L", "0001 // @foot=R", "0030"]
-    plain = gold_steps(
-        [*base, "0000", "0010 // @foot=R", "0000", "0000", "0000", ","], 200
-    )
-    cued = gold_steps(
-        [*base, "000M", "0010 // @foot=R", "0000", "0000", "0000", ","], 200
-    )
+    plain = gold_steps([*base, "0000", "0010 // @foot=R", "0000", "0000", "0000", ","], 200)
+    cued = gold_steps([*base, "000M", "0010 // @foot=R", "0000", "0000", "0000", ","], 200)
     assert detect_tech_patterns(plain).footswitches == 0
     assert detect_tech_patterns(cued).footswitches == 1
     assert detect_tech_patterns(cued).doublesteps == 0
 
 
 def test_same_foot_panel_change_is_doublestep() -> None:
-    steps = gold_steps(
-        ["1000 // @foot=L", "0100 // @foot=R", "0001 // @foot=R", ","], 120
-    )
+    steps = gold_steps(["1000 // @foot=L", "0100 // @foot=R", "0001 // @foot=R", ","], 120)
     kinds = [span.kind for span in detect_tech_patterns(steps).spans]
     assert kinds == [PatternKind.DOUBLESTEP]
 
@@ -187,6 +191,12 @@ def test_row_with_no_legal_state_stays_put_like_a_no_press_row() -> None:
 
 def test_packaged_weights_name_exactly_the_features() -> None:
     assert set(FootingModel.default().weights) == set(FEATURE_NAMES)
+
+
+def test_packaged_weights_respect_the_nonnegative_features() -> None:
+    weights = FootingModel.default().weights
+    negative = {name: weights[name] for name in NONNEGATIVE if weights[name] < 0.0}
+    assert not negative
 
 
 def test_weights_for_an_unknown_feature_are_rejected() -> None:

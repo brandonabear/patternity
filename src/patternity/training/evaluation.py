@@ -139,9 +139,7 @@ def evaluate_annotated(
     )
 
 
-def format_report(
-    report: FixtureReport, annotated: AnnotatedChart, *, show: int = 20
-) -> str:
+def format_report(report: FixtureReport, annotated: AnnotatedChart, *, show: int = 20) -> str:
     lines = [
         (
             f"{report.name}: {report.accuracy:.2%} per-row "

@@ -104,13 +104,13 @@ charts/my_chart.ssc
 
 ### Hold-out charts
 
-If the model already footing-annotates a new chart correctly on the first pass, consider holding it out instead: list it in [`tests/fixtures/holdout_corpus.txt`](../tests/fixtures/holdout_corpus.txt) and add it to `_MIN_ACCURACY` in `tests/integration/test_foot_path.py`. Hold-out charts are never trained on, so they measure how well the model generalizes, and the test suite flags a retrain that regresses them.
+To measure how well the model generalizes, hold a newly annotated chart out instead: list it in [`tests/fixtures/holdout_corpus.txt`](../tests/fixtures/holdout_corpus.txt) and record the accuracy it gets in `_HOLDOUT_ACCURACY` in `tests/integration/test_foot_path.py`. Hold-out charts are never trained on. The recorded accuracy is whatever the model scores, not a target: the test suite only flags a retrain that makes it worse.
 
 ```bash
 uv run python scripts/evaluate.py --holdout
 ```
 
-If you fix a hold-out regression by tuning features or annotations, the chart is no longer unseen: move it to `training_corpus.txt`, and hold out the next new chart instead.
+If you tune features or annotations to raise a hold-out's accuracy, the chart is no longer unseen: move it to `training_corpus.txt`, and hold out the next new chart instead. A hold-out with only a few annotated rows says little (one row of four is 25%), so annotate enough of the chart for the number to mean something.
 
 ## 3. Retrain
 
@@ -152,7 +152,15 @@ uv run python scripts/evaluate.py --loo      # plus leave-one-chart-out
 uv run pytest -q
 ```
 
-`tests/integration/test_foot_path.py` holds a minimum accuracy per fixture in `_MIN_ACCURACY`. Add new annotated charts there so a future retrain can't silently break them. If new data makes an older chart slightly worse, lower its threshold with a comment explaining why.
+`tests/integration/test_foot_path.py` holds a minimum accuracy per fixture in `_MIN_ACCURACY`. Every training chart must be listed, so add new annotated charts there (hold-outs go in `_HOLDOUT_ACCURACY`). If new data makes an older chart slightly worse, lower its threshold with a comment explaining why.
+
+The same file holds `_PATTERN_SCORES`: the exact true positive / false positive / false negative counts per pattern kind against the `@pattern` tags. When a retrain or a new tag changes a count, the test prints the report; update the line, and say why if the count got worse.
+
+`tests/integration/test_snapshots.py` compares every fixture chart with `tests/fixtures/snapshots/`. A retrain changes the files under `snapshots/footing/` (decoded feet, tech and movement metrics); `snapshots/notation/` should not change. Rewrite them and review the diff before committing:
+
+```bash
+uv run pytest tests/integration/test_snapshots.py --update-snapshots
+```
 
 `tests/integration/test_canonical.py` compares end-to-end counts with hand-counted `tests/fixtures/canonical/*.json`. If you change a pattern fixture's notes, recount its JSON by hand (never copy analyzer output into it); see [`tests/fixtures/canonical/README.md`](../tests/fixtures/canonical/README.md).
 

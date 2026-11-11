@@ -36,9 +36,7 @@ def test_burger_challenge_file_basic_metrics() -> None:
     [(0, 17.0), (1, 15.0)],
     ids=["Challenge", "Hard"],
 )
-def test_fots_basic_metrics_match_groove_radar(
-    chart_index: int, expected_rating: float
-) -> None:
+def test_fots_basic_metrics_match_groove_radar(chart_index: int, expected_rating: float) -> None:
     """Jumps/hands match ITGMania groove radar (independent jump + anchored-hand rules)."""
     path = FIXTURES / "charts" / "fots.sm"
     song = StepmaniaFileParser.parse(read_simfile(path))

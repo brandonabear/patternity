@@ -1,0 +1,24 @@
+{
+  "fixture": "charts/kiss_me_more.ssc",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 9.0,
+      "rows": 485,
+      "last_beat": 240.0,
+      "last_timestamp": 124.137931,
+      "rows_digest": "f909aa35bcbfce5b",
+      "basic": {
+        "taps": 475,
+        "jumps": 22,
+        "hands": 6,
+        "holds": 69,
+        "rolls": 8,
+        "mines": 7,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 497
+      }
+    }
+  ]
+}
