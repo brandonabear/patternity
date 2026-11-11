@@ -40,9 +40,7 @@ class Layer:
     penalty: list[float] = field(default_factory=list)
     _index: dict[FootRow, int] = field(default_factory=dict)
 
-    def add_edge(
-        self, prev_i: int, curr: FootRow, feat_id: int, penalty: float
-    ) -> None:
+    def add_edge(self, prev_i: int, curr: FootRow, feat_id: int, penalty: float) -> None:
         state_i = self._index.get(curr)
         if state_i is None:
             state_i = len(self.states)
@@ -265,9 +263,7 @@ def _forward(
     for i, layer in enumerate(trellis.layers):
         want = allowed.get(i) if allowed else None
         gold = loss.get(i) if loss else None
-        cost, back = _enter_layer(
-            layer, prev_cost, table_cost, want=want, gold=gold, margin=margin
-        )
+        cost, back = _enter_layer(layer, prev_cost, table_cost, want=want, gold=gold, margin=margin)
         if want is not None and all(c == math.inf for c in cost):
             relaxed.append(i)
             cost, back = _enter_layer(

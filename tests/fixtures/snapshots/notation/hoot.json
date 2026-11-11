@@ -1,0 +1,24 @@
+{
+  "fixture": "charts/hoot.ssc",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 12.0,
+      "rows": 916,
+      "last_beat": 320.75,
+      "last_timestamp": 120.28125,
+      "rows_digest": "388ccac6e67fd33f",
+      "basic": {
+        "taps": 889,
+        "jumps": 9,
+        "hands": 0,
+        "holds": 9,
+        "rolls": 0,
+        "mines": 50,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 898
+      }
+    }
+  ]
+}

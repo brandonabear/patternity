@@ -1,0 +1,30 @@
+{
+  "fixture": "patterns/crossovers.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "tech": {
+        "crossovers": 7,
+        "footswitches": 0,
+        "sideswitches": 0,
+        "jacks": 0,
+        "brackets": 0,
+        "doublesteps": 0,
+        "candles": 10
+      },
+      "movement": {
+        "direction_shifts": 2,
+        "total_cost": 664.230537,
+        "foot_path_feasible": true
+      },
+      "moved": [
+        "0: LRLRL",
+        "1: RLRLR",
+        "2: LRLRL",
+        "3: RLRLR",
+        "4: LRLRLRL"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "fixture": "charts/move_mint.ssc",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 8.0,
+      "rows": 389,
+      "last_beat": 288.0,
+      "last_timestamp": 128.810404,
+      "rows_digest": "b7aa606f36f0beaf",
+      "basic": {
+        "taps": 352,
+        "jumps": 15,
+        "hands": 0,
+        "holds": 6,
+        "rolls": 11,
+        "mines": 36,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 367
+      }
+    }
+  ]
+}

@@ -66,6 +66,4 @@ class Analyzer:
         self.allow_brackets = allow_brackets
 
     def analyze(self) -> dict[str, Any]:
-        return analyze_chart(
-            self.chart, self.model, allow_brackets=self.allow_brackets
-        ).to_dict()
+        return analyze_chart(self.chart, self.model, allow_brackets=self.allow_brackets).to_dict()

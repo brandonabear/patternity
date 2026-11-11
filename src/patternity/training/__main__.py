@@ -50,9 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     root = args.fixtures_root or default_fixtures_root()
     examples = load_examples(args.fixtures or load_corpus(root), root)
     if not args.no_loo:
-        console.print(
-            "Leave-one-chart-out (per-row foot accuracy on the held-out chart):"
-        )
+        console.print("Leave-one-chart-out (per-row foot accuracy on the held-out chart):")
         for fold in leave_one_out(examples, epochs=args.epochs, margin=args.margin):
             console.print(
                 f"  {fold.held_out:32s} {fold.accuracy:7.2%}  "
@@ -63,9 +61,7 @@ def main(argv: list[str] | None = None) -> int:
     console.print("Training-set fit:")
     for example in examples:
         errors = row_errors(example, model.vector())
-        console.print(
-            f"  {example.name:32s} {errors} errors / {len(example.gold)} rows"
-        )
+        console.print(f"  {example.name:32s} {errors} errors / {len(example.gold)} rows")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     model.save(args.output)

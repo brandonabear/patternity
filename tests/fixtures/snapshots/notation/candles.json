@@ -1,0 +1,24 @@
+{
+  "fixture": "patterns/candles.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "rows": 21,
+      "last_beat": 7.5,
+      "last_timestamp": 3.0,
+      "rows_digest": "76c7a71cf1a356de",
+      "basic": {
+        "taps": 20,
+        "jumps": 0,
+        "hands": 0,
+        "holds": 1,
+        "rolls": 0,
+        "mines": 0,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 20
+      }
+    }
+  ]
+}

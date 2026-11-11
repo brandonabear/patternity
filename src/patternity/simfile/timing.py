@@ -12,9 +12,7 @@ class TimingEngine:
     ):
         # Add default ceiling of (math.inf, math.nan)
         self.bpms = (
-            sorted([*bpms.items(), (math.inf, math.nan)], key=lambda x: x[0])
-            if bpms
-            else []
+            sorted([*bpms.items(), (math.inf, math.nan)], key=lambda x: x[0]) if bpms else []
         )
         self.stops = sorted(stops.items(), key=lambda x: x[0]) if stops else []
 
@@ -28,9 +26,7 @@ class TimingEngine:
 
         # Calculate elapsed time across BPM changes.
         elapsed_time = 0.0
-        for (current_beat, current_bpm), (next_beat, _) in itertools.pairwise(
-            self.bpms
-        ):
+        for (current_beat, current_bpm), (next_beat, _) in itertools.pairwise(self.bpms):
             if target_beat <= current_beat:
                 break
             if target_beat <= next_beat:

@@ -37,9 +37,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--weights", type=Path, help="weights JSON (default: packaged)")
     parser.add_argument("--show", type=int, default=20, help="disagreements to list")
-    parser.add_argument(
-        "--loo", action="store_true", help="also train/score leave-one-chart-out"
-    )
+    parser.add_argument("--loo", action="store_true", help="also train/score leave-one-chart-out")
     parser.add_argument(
         "--holdout",
         action="store_true",
@@ -73,16 +71,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if total_rows:
         console.print(
-            f"TOTAL: {1 - total_errors / total_rows:.2%} "
-            f"({total_errors} / {total_rows} rows)"
+            f"TOTAL: {1 - total_errors / total_rows:.2%} ({total_errors} / {total_rows} rows)"
         )
 
     if args.loo:
         console.print("Leave-one-chart-out:")
         for fold in leave_one_out(load_examples(fixtures, root)):
-            console.print(
-                f"  {fold.held_out:32s} {fold.accuracy:7.2%} ({fold.errors}/{fold.rows})"
-            )
+            console.print(f"  {fold.held_out:32s} {fold.accuracy:7.2%} ({fold.errors}/{fold.rows})")
 
     return 0
 

@@ -1,5 +1,11 @@
 # Architecture
 
+## Scope
+
+- Parse `.sm` and `.ssc` files, including song header data, chart metadata, and groove radar values.
+- Analyze 4-panel singles charts. Doubles are out of scope.
+- Lifts and fakes are parsed and counted in the basic metrics, but footing never steps on them. ITG charts don't use lifts.
+
 ## Pipeline
 
 ```mermaid
@@ -17,104 +23,65 @@ flowchart TD
     basic --> report["analyze_chart()"]
     tech --> report
     movement --> report
+
+    tags["Annotated @foot / @feet tags"] --> train["training<br/>(structured perceptron)"]
+    train --> weights
 ```
 
-1. **Read and parse.** `read_simfile` loads the text; `StepmaniaFileParser.parse` turns it into a `Song` with a `Header` and one `Chart` per difficulty. Each chart's `notes` is a list of `NoteRow`s (empty `0000` rows are dropped) carrying measure, beat, quantization, timestamp (seconds from beat 0, from `#BPMS` / `#STOPS`; `#OFFSET` is not applied since only time differences matter), and which holds/rolls are active. See [File format](format.md).
-2. **Footing.** `footing.resolve_chart` finds the cheapest physically legal sequence of foot positions for the whole chart and returns one **`ResolvedStep`** per row (`note_row` plus decoded `foot_row`). The cost of each move is a learned linear function of a few generic features. The same decode supplies **`MovementMetrics`**: total path cost and whether any row needed a relaxed (penalized) fallback. See [Footing model](footing-model.md).
-3. **Basic metrics.** `count_basic` feeds each chart row into `BasicMetrics`. Counts are chart notation only (taps, jumps, holds, …); they do **not** use `foot_row` and do not change when footing weights change.
-4. **Tech labels.** `patterns.detect_tech_patterns` walks the same steps and labels jacks, switches, doublesteps, brackets, crossovers, and candles using community / ITGmania timing cutoffs into **`TechMetrics`**.
-5. **Movement metrics.** `movement.detect_movement` counts `direction_shifts` on the same steps and copies path cost and feasibility from the decode.
-6. **Report.** `analyze_chart` returns a `ChartAnalysis` holding `basic`, `tech`, and `movement`; `to_dict()` gives the dictionaries (see [Usage → Output](usage.md#output)).
+- **Parsing** drops empty `0000` rows. Timestamps are seconds from beat 0 using `#BPMS` and `#STOPS`; `#OFFSET` is not applied, since only time differences matter. See [File format](format.md).
+- **Footing** finds the cheapest legal sequence of foot positions for the whole chart. See [Footing model](footing-model.md).
+- **Basic metrics** read chart notation only, so they don't change when the weights do. Tech and movement metrics read the decoded foot path, so they can.
+- **Training** fits the weights offline with the same Viterbi decoder. See [Training workflow](training.md).
+- **Tech patterns** are defined in [Patterns](patterns.md); the output fields are described in [the README](../README.md#output).
 
 ## Modules
 
-The package is split by pipeline stage. Each subpackage's `__init__` re-exports its main entry points; the top-level `patternity` package exports `read_simfile`, `StepmaniaFileParser`, `Panel`, `analyze_chart`, `resolve_chart`, `FootingModel`, and `detect_tech_patterns`.
+One package per pipeline stage. Imports run one way: `simfile ← footing ← patterns, movement ← analysis`. Each package's `__init__` re-exports its entry points.
 
 ```text
 src/patternity/
-  __init__.py  cli.py
-  analysis/    analyzer, metrics
-  simfile/     reader, parser, song, notes, timing, serializer
-  footing/     stance, rules, transitions, grace, features, search, model, resolve
-  patterns/    spans, metrics, detector
-  movement/    metrics, detector
-  training/    __main__, annotations, trainer, corpus, evaluation
-  data/        footing_weights.json
+  simfile/     read and parse a file into Song → Chart → NoteRow
+  footing/     legal foot states, transition features, Viterbi, weights
+  patterns/    tech-pattern spans and counts on a decoded foot path
+  movement/    direction shifts, path cost, feasibility
+  analysis/    basic metrics; analyze_chart composes the stages
+  training/    annotations, perceptron trainer, evaluation
+  data/        footing_weights.json, the packaged weights
+  cli.py       the patternity command
+scripts/
+  evaluate.py              accuracy and pattern scores against annotations
+  suggest_annotations.py   write the model's footing into a chart for review
+  pattern_diagrams.py      regenerate the SVGs in docs/images
 ```
 
-### Runtime (shipped in the package)
+For where to make a given change, see the [Development guide](development.md#where-to-change-what).
 
-| Module | Responsibility |
-|--------|----------------|
-| `simfile/reader.py` | Read a simfile from disk (checks the extension). |
-| `simfile/parser.py` | Split sections, parse header tags, charts, measures, and timing. |
-| `simfile/song.py` | `Song`, `Header`, `Chart`, `ChartMetadata`, `GrooveRadar`, `Difficulty`. |
-| `simfile/notes.py` | `NoteRow` (one row of four columns plus derived timing), `NoteType`, `Panel` (the set-of-panels flag, e.g. `Panel.U in row.pressed`, and the only place the bit layout lives), and `AnchorTracker` (hold/roll state while parsing). |
-| `simfile/timing.py` | `TimingEngine`: beat → seconds across `#BPMS` and `#STOPS`. |
-| `simfile/serializer.py` | Song ⇄ JSON. |
-| `footing/stance.py` | Foot geometry: `FootPlacement` (a panel or a two-panel bracket), `Stance` (both feet plus orientation), `Foot`, `FootMove` (a set of feet), and `FootRow` (the search state). |
-| `footing/rules.py` | Hard physical rules: `RowContext`, `Candidate`, and the named rules in `RULES` that decide whether a proposed foot placement is legal. |
-| `footing/transitions.py` | Proposes candidate foot moves, filters them through `rules.RULES`, and builds every legal next `FootRow` (hold owners, jack/switch tracking). |
-| `footing/grace.py` | Grace windows before hold/roll tails, during which the owning foot may leave early. |
-| `footing/features.py` | `Feature` and `featurize`: what the feet do on each transition. |
-| `footing/search.py` | Trellis construction, Viterbi, per-row confidence. |
-| `footing/model.py` | `FootingModel` (weights) and the packaged-weights path. |
-| `footing/resolve.py` | `resolve_chart`, `resolve_trellis`, `ResolvedStep`, `FootingResult`. |
-| `patterns/spans.py` | `PatternKind` and `PatternSpan` (one detection with its steps). |
-| `patterns/detector.py` | Tech-pattern labeling on a decoded path. The only place ITG timing cutoffs appear. |
-| `patterns/metrics.py` | `TechMetrics` (spans plus counts). |
-| `analysis/metrics.py` | `BasicMetrics`. |
-| `movement/metrics.py` | `MovementMetrics`. |
-| `movement/detector.py` | `detect_movement`: direction shifts, path cost, and feasibility on a resolved path. |
-| `analysis/analyzer.py` | Ties the steps above together for one chart. |
-| `cli.py` | The `patternity` command. |
-| `data/footing_weights.json` | The trained weights loaded by default. |
+## Design principles
 
-### Training and evaluation (developer tooling)
+### Footing
 
-| Module / script | Responsibility |
-|-----------------|----------------|
-| `training/annotations.py` | Parse `@foot` / `@feet` / `@pattern` comments in fixture charts and align them to parsed rows. |
-| `training/trainer.py` | Structured perceptron trainer, leave-one-chart-out, `row_errors`. |
-| `training/corpus.py` | Reads `tests/fixtures/training_corpus.txt` and `holdout_corpus.txt`, and finds the fixtures root. |
-| `training/evaluation.py` | Per-row footing accuracy, per-pattern precision/recall, and disagreement reports against annotations. |
-| `training/__main__.py` | `python -m patternity.training`: retrains and writes the packaged weights. |
-| `scripts/evaluate.py` | Prints evaluation reports for the training corpus (optionally leave-one-chart-out) or, with `--holdout`, the hold-out charts. |
-| `scripts/suggest_annotations.py` | Writes model foot and pattern suggestions into a chart as `@suggest_foot=` / `@suggest_feet=` / `@suggest_pattern=` tags for human review. |
+- **Weights are learned, never hand-tuned.** A transition's cost is the weighted sum of its features, and the weights come from training on annotated charts.
+- **Features are pattern-agnostic.** They describe what the feet do (same foot again, travel, crossing, speed, mine cues), never named patterns or ITG timing cutoffs.
+- **Hard rules only forbid the impossible.** `footing/rules.py` decides what is legal, such as leaving a hold too early or ignoring a pressed panel. Anything merely undesirable is a cost: leaving a hold inside its grace window is legal and priced by `hold_release` and `early_release`.
+- **The search is exact.** The trellis is never pruned, so Viterbi sees every legal state and returns the cheapest path, not a local minimum.
 
-### Tests
+### Patterns
 
-| Path | What it covers |
-|------|----------------|
-| `tests/unit/` | Parser, reader, CLI, stance geometry (`test_footing_stance.py`), footing (Viterbi vs brute force, confidence, training smoke test), labeler rules. |
-| `tests/integration/test_foot_path.py` | Per-row footing accuracy thresholds and pattern-tag F1 on annotated fixtures (including hold-out charts); hold-out and training lists stay disjoint. |
-| `tests/integration/test_canonical.py` | End-to-end counts against hand-counted `tests/fixtures/canonical/*.json`. |
-| `tests/integration/test_chart_basic_metrics.py` | Basic metrics on real charts. |
+- **ITG and community cutoffs live only in `patterns/detector.py`.** The detector reads the decoded foot path, so pattern counts are only as good as the footing.
 
-## Tech labels
+### Annotations
 
-All cutoffs live in `patterns/detector.py`. Labels are computed on the decoded foot path, so they are only as good as the footing.
+- **Annotations never come from model output.** `scripts/suggest_annotations.py` only writes `@suggest_…` tags; a person accepts each one by dropping the prefix.
+- **Partial annotation is allowed.** Untagged rows are left to the model, and ambiguous passages should stay untagged.
+- **Canonical counts are hand-counted.** `tests/fixtures/canonical/*.json` must not be filled from analyzer output.
 
-Jacks and switches only pair a panel with the **very next press row**, as in ITGmania. Returning to a panel after other steps (for example Down, Up, Down in a stream) is neither.
+## Tests
 
-| Label | Rule |
-|-------|------|
-| Jack | The same foot presses the same panel twice in a row, less than 0.176 s apart. Hold tails don't count as presses. |
-| Footswitch | The other foot takes over an Up or Down panel within 1/3 s (90 BPM 8ths count). After a hold release (a holdswitch) a mine cue is required. |
-| Sideswitch | Same as a footswitch, on the Left or Right panel. |
-| Doublestep | Two consecutive single-panel presses by the same foot on different panels, unless the other foot released a hold in between. |
-| Bracket | One foot presses two panels on the same row. |
-| Crossover | Each time the legs become crossed (left foot strictly right of the right foot), or turn to a different orientation while staying crossed, anchored on that first crossed step. Stepping to an uncrossed stance ends it even if the player stays turned (Up, Left then Up, Down then Right, Down is two crossovers). Inverted (fully backwards) crossovers are counted too. |
-| Candle | A foot's press lands on the panel opposite its own previous press (Up↔Down or Left↔Right), whatever the other foot did in between. A bracket that keeps one of its panels (for example LU to LD) is not a candle. Examples: Up, Right, Down in a stream (the left foot goes Up to Down); the crossover Left, Down, Right; the left foot anchored on Left while the right foot hits Up then Down. |
+Unit tests in `tests/unit/` cover each stage on small inputs. The integration tests check four different things:
 
-## Movement metrics
-
-Computed by `movement/detector.py` from the same decoded foot path as tech labels, so `direction_shifts` can change if footing weights change.
-
-| Metric | Rule |
-|--------|------|
-| `direction_shifts` | On each press row with a facing orientation, +1 when it differs from the last facing orientation (`FACING_LEFT` ↔ `FACING_RIGHT`). Neutral and inverted rows are transition phases that keep the last facing direction, so left → neutral → right counts 1 and a crossover that returns to its starting side counts 0. This differs from the `facing_flip` training feature, which only fires on direct consecutive flips. |
-| `total_cost` | Sum of weighted transition costs on the chosen path. |
-| `foot_path_feasible` | `False` if any row used a relaxed (penalized) fallback. |
-
-For where to make common changes, see the [Development guide](development.md#where-to-change-what).
+| Test | Compared against | Catches |
+|------|------------------|---------|
+| `test_foot_path.py` | `@foot` / `@feet` / `@pattern` tags in fixture charts | Footing accuracy below a per-chart floor, impossible tags, any change in per-pattern true / false positive counts |
+| `test_canonical.py` | Hand-counted `tests/fixtures/canonical/*.json` | Wrong end-to-end basic and tech counts |
+| `test_snapshots.py` | `tests/fixtures/snapshots/` | Any unintended change in output. Not ground truth; `--update-snapshots` rewrites it. |
+| `test_chart_basic_metrics.py` | Known counts for real charts | Wrong basic metrics |

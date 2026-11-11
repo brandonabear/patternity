@@ -2,12 +2,14 @@
 
 Tech patterns in `patternity` are detected based on the inferred foot path from the Viterbi solution. For detection code, see [`patterns/detector.py`](../src/patternity/patterns/detector.py).
 
+Jacks and switches pair a panel only with the very next press row, as in ITGmania. Returning to a panel after other steps (Down, Up, Down in a stream) is neither.
+
 ## Jack
 
 The same foot presses the same panel on consecutive steps.
 
 > [!IMPORTANT]
-> Counts only when the presses are less than **0.176 s** apart (faster than ~5.7 NPS, i.e. 170 BPM 8ths). A mine on the panel in between resets the timer. A mine on the same row as the second press means it isn't a jack.
+> Counts only when the presses are less than **0.176 s** apart (faster than ~5.7 NPS, i.e. 170 BPM 8ths). A mine on the panel in between resets the timer. Hold tails don't count as presses.
 
 The classic jack is a single foot repeatedly hitting the same arrow:
 
@@ -22,10 +24,10 @@ A jump can start a jack. Here the left foot lands the jump's Left and has to hit
 
 ## Doublestep
 
-The same foot presses two different single panels in a row. The stationary foot does not move or get lifted.
+The same foot presses two different single panels in a row, while the other foot stays where it is.
 
 > [!NOTE]
-> Not counted if the other foot released a hold in between, because the chart forces that foot to stay put.
+> It counts whether or not the other foot was free to step. A foot coming off a hold just before the second press doesn't excuse it, so a holdswitch is also a doublestep.
 
 A hold anchors one foot, leaving the other to take consecutive arrows:
 
@@ -40,7 +42,7 @@ A mine can push a foot off its panel and onto the next arrow. In this Left, Down
 The player swaps feet on the same panel across consecutive steps.
 
 > [!IMPORTANT]
-> Counts only within **1/3 s** (≥ 3 NPS, inclusive of 90 BPM 8ths). A mine on the panel in between means it isn't a footswitch. Switching onto a panel right after a hold/roll releases there (holdswitch) needs a mine cue after the release.
+> Counts only within **1/3 s** (≥ 3 NPS, inclusive of 90 BPM 8ths). A mine on the panel in between resets the timer, as for a jack. Switching onto a panel right after a hold/roll releases there (holdswitch) needs a mine cue after the release.
 
 A mine under the left foot pushes it onto Down, where it takes over from the right foot:
 
@@ -68,7 +70,7 @@ A crossover bracket has a foot bracket two panels on the far side of the other f
 
 ## Crossover
 
-The legs cross so the player turns away from facing forward. A new crossover is counted each time the legs cross, or turn to a different crossed orientation while staying crossed.
+The legs cross so the player turns away from facing forward. A new crossover is counted each time the legs cross, or turn to a different crossed orientation while staying crossed. Stepping to an uncrossed stance ends it, even if the player stays turned.
 
 Crossing in front: the left foot moves past the right foot, which is back on Down, to reach Right, then returns to Left:
 
@@ -88,7 +90,7 @@ In this lateral, the left foot crosses over to Right and then the right foot swe
 
 ## Candle
 
-One foot moves between opposite panels (Up↔Down or Left↔Right) between its own presses. The other foot's presses in between don't count.
+One foot moves between opposite panels (Up↔Down or Left↔Right) between its own presses. The other foot's presses in between don't count. A bracket that keeps one of its panels (Left+Up to Left+Down) is not a candle.
 
 In a run of alternating feet, a candle appears whenever a foot's next arrow is opposite its last one. Here the right foot goes from Down to Up, and later the left foot goes from Down to Up:
 

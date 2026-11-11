@@ -64,9 +64,7 @@ def mock_console(mocker):
     return mocker.Mock()
 
 
-def test_suggest_adds_measure_markers_and_measure_on_tags(
-    mock_console, tmp_path: Path
-) -> None:
+def test_suggest_adds_measure_markers_and_measure_on_tags(mock_console, tmp_path: Path) -> None:
     path = tmp_path / "mini.ssc"
     path.write_text(_MINI_CHART, encoding="utf-8")
     assert suggest_file(mock_console, path, FootingModel.default(), list_rows=10) == (
@@ -84,9 +82,7 @@ def test_suggest_adds_measure_markers_and_measure_on_tags(
 def test_suggest_patterns_where_decoder_disagrees(mock_console, tmp_path: Path) -> None:
     path = tmp_path / "patterns.ssc"
     path.write_text(_PATTERN_CHART, encoding="utf-8")
-    _feet, patterns = suggest_file(
-        mock_console, path, FootingModel.default(), list_rows=10
-    )
+    _feet, patterns = suggest_file(mock_console, path, FootingModel.default(), list_rows=10)
     lines = path.read_text(encoding="utf-8").splitlines()
 
     assert patterns > 0
@@ -107,9 +103,7 @@ def test_suggest_rerun_is_stable(mock_console, tmp_path: Path) -> None:
     assert path.read_text(encoding="utf-8") == once
 
 
-def test_accepting_all_suggestions_by_find_replace(
-    mock_console, tmp_path: Path
-) -> None:
+def test_accepting_all_suggestions_by_find_replace(mock_console, tmp_path: Path) -> None:
     path = tmp_path / "patterns.ssc"
     path.write_text(_PATTERN_CHART.replace(" // @pattern=candle", ""), encoding="utf-8")
     model = FootingModel.default()
@@ -117,9 +111,7 @@ def test_accepting_all_suggestions_by_find_replace(
     suggested = parse_annotated_sm(path.read_text(encoding="utf-8"))
     assert not suggested.tagged_assignments
 
-    accepted = parse_annotated_sm(
-        path.read_text(encoding="utf-8").replace("@suggest_", "@")
-    )
+    accepted = parse_annotated_sm(path.read_text(encoding="utf-8").replace("@suggest_", "@"))
     steps = resolve_chart(accepted.chart.notes, model).steps
     assert accepted.tagged_assignments == {
         step.index: step.foot_row.moved for step in steps if step.note_row.pressed

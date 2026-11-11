@@ -125,7 +125,6 @@ class _TechDetector:
         self.press_rows = 0
         self.any_mine_time = -math.inf
         self.prev_press: ResolvedStep | None = None
-        self.prev_row: ResolvedStep | None = None
         # Each foot's previous press, for candles (the other foot's presses in
         # between don't matter).
         self.foot_press: dict[Foot, ResolvedStep] = {}
@@ -145,7 +144,6 @@ class _TechDetector:
             self.prev_press = step
 
         self._jacks_and_switches(step, epoch_before)
-        self.prev_row = step
 
     def _record_mines(self, step: ResolvedStep) -> None:
         now = step.note_row.timestamp
@@ -172,27 +170,21 @@ class _TechDetector:
             self.foot_press[mover] = step
 
     def _doublestep(self, step: ResolvedStep) -> None:
-        """The same foot presses two different single panels in a row, unless the
-        other foot released a hold in between."""
+        """The same foot presses two different single panels in a row.
+
+        A hold released by the other foot in between does not excuse it: that
+        foot was free, but the same foot still took both steps. A holdswitch is
+        therefore a doublestep as well.
+        """
         prev = self.prev_press
         moved = step.foot_row.moved
         press = _single_press(step)
-        # Only a tail on a row of its own exempts the doublestep: the other foot
-        # was free before this press. A tail on this press row does not, because
-        # the other foot was still pinned when the step had to be taken (a
-        # hold-cued doublestep).
-        released = (
-            self.prev_row.foot_row.released_since_press
-            if self.prev_row is not None
-            else FootMove.NONE
-        )
         if (
             prev is not None
             and len(moved.feet) == 1
             and prev.foot_row.moved == moved
             and press
             and _single_press(prev) not in (Panel.NONE, press)
-            and not released & ~moved
         ):
             self.spans.append(_span(PatternKind.DOUBLESTEP, (prev, step)))
 
@@ -241,22 +233,13 @@ class _TechDetector:
         """Same foot, same panel, fast enough. A mine in between resets the clock."""
         mine_time = self.columns[panel].mine_after(prior.time)
         since = prior.time if mine_time is None else mine_time
-        mine_on_row = panel in step.note_row.mines
-        if step.note_row.timestamp - since < ITG_JACK_CUTOFF_SEC and not mine_on_row:
+        if step.note_row.timestamp - since < ITG_JACK_CUTOFF_SEC:
             self.spans.append(_span(PatternKind.JACK, (prior.step, step)))
 
     def _switch(self, step: ResolvedStep, panel: Panel, prior: _PanelEvent) -> None:
-        """The other foot takes over the panel fast enough."""
+        """The other foot takes over the panel fast enough. A mine in between resets the clock."""
+        kind = PatternKind.SIDESWITCH if panel in _SIDE_PANELS else PatternKind.FOOTSWITCH
         mine_time = self.columns[panel].mine_after(prior.time)
-        if panel in _SIDE_PANELS:
-            kind = PatternKind.SIDESWITCH
-        else:
-            kind = PatternKind.FOOTSWITCH
-            # The two kinds treat a mine on the panel between the presses
-            # differently: it rules out a footswitch altogether, but for a
-            # sideswitch it only restarts the clock (below).
-            if mine_time is not None:
-                return
         since = prior.time if mine_time is None else mine_time
         # A switch after a hold release (holdswitch) needs a mine cue, on any panel.
         cued = not prior.is_tail or self.any_mine_time > prior.time

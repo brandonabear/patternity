@@ -1,0 +1,27 @@
+{
+  "fixture": "patterns/sideswitches.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "tech": {
+        "crossovers": 1,
+        "footswitches": 0,
+        "sideswitches": 1,
+        "jacks": 1,
+        "brackets": 0,
+        "doublesteps": 0,
+        "candles": 1
+      },
+      "movement": {
+        "direction_shifts": 1,
+        "total_cost": 271.190829,
+        "foot_path_feasible": true
+      },
+      "moved": [
+        "0: LRL-RL",
+        "1: RLRRL"
+      ]
+    }
+  ]
+}

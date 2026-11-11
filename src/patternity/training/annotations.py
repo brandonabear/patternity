@@ -76,9 +76,7 @@ class AnnotatedChart:
     def tagged_assignments(self) -> dict[int, FootMove]:
         """Chart note indices with explicit ``@foot`` / ``@feet`` tags."""
         return {
-            row.index: move
-            for row in self.rows
-            if (move := row.expected_foot_move()) is not None
+            row.index: move for row in self.rows if (move := row.expected_foot_move()) is not None
         }
 
 
@@ -100,14 +98,10 @@ def _tag_values(comment: str, *, line_number: int) -> dict[str, str]:
     return values
 
 
-def _parse_tags(
-    comment: str, *, line_number: int
-) -> tuple[tuple[str, ...], frozenset[str]]:
+def _parse_tags(comment: str, *, line_number: int) -> tuple[tuple[str, ...], frozenset[str]]:
     values = _tag_values(comment, line_number=line_number)
     if "@foot" in values and "@feet" in values:
-        raise AnnotationError(
-            f"line {line_number}: use either @foot or @feet, not both"
-        )
+        raise AnnotationError(f"line {line_number}: use either @foot or @feet, not both")
     foot_value = values.get("@foot") or values.get("@feet")
     feet = tuple(foot_value.split(",")) if foot_value else ()
 

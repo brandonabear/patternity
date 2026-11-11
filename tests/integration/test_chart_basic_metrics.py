@@ -36,9 +36,7 @@ def test_burger_challenge_file_basic_metrics() -> None:
     [(0, 17.0), (1, 15.0)],
     ids=["Challenge", "Hard"],
 )
-def test_fots_basic_metrics_match_groove_radar(
-    chart_index: int, expected_rating: float
-) -> None:
+def test_fots_basic_metrics_match_groove_radar(chart_index: int, expected_rating: float) -> None:
     """Jumps/hands match ITGMania groove radar (independent jump + anchored-hand rules)."""
     path = FIXTURES / "charts" / "fots.sm"
     song = StepmaniaFileParser.parse(read_simfile(path))
@@ -54,3 +52,14 @@ def test_fots_basic_metrics_match_groove_radar(
     assert basic["holds"] == radar.holds
     assert basic["hands"] == radar.hands
     assert basic["mines"] == radar.mines
+
+
+@pytest.mark.regression
+def test_senpai_hands_count_a_press_on_a_roll_tail_row() -> None:
+    """ITGMania counts 5 hands; one is a hold head and a tap on the row a roll ends."""
+    path = FIXTURES / "charts" / "senpai_notice_me.ssc"
+    chart = StepmaniaFileParser.parse(read_simfile(path)).charts[0]
+    radar = chart.metadata.radar
+    assert radar is not None
+
+    assert analyze_chart(chart).basic.hands == radar.hands == 5

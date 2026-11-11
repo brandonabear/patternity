@@ -204,9 +204,7 @@ def suggest_file(
             line_i = row.line_number - 1
             text = lines[line_i]
             suffix = " ".join(parts)
-            lines[line_i] = (
-                f"{text} {suffix}" if "//" in text else f"{text} // {suffix}"
-            )
+            lines[line_i] = f"{text} {suffix}" if "//" in text else f"{text} // {suffix}"
 
     with path.open("w", encoding="utf-8", newline="") as out:
         out.writelines(body + end for body, end in zip(lines, endings, strict=True))
@@ -224,9 +222,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("chart", type=Path)
     parser.add_argument("--weights", type=Path, help="weights JSON (default: packaged)")
-    parser.add_argument(
-        "--list", type=int, default=25, help="lowest-margin rows to print"
-    )
+    parser.add_argument("--list", type=int, default=25, help="lowest-margin rows to print")
     return parser
 
 
@@ -236,12 +232,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(args=argv)
 
     model = FootingModel.load(args.weights) if args.weights else FootingModel.default()
-    feet, patterns = suggest_file(
-        console, args.chart.resolve(), model, list_rows=args.list
-    )
-    console.print(
-        f"Wrote {feet} foot and {patterns} pattern suggestions to {args.chart}"
-    )
+    feet, patterns = suggest_file(console, args.chart.resolve(), model, list_rows=args.list)
+    console.print(f"Wrote {feet} foot and {patterns} pattern suggestions to {args.chart}")
     return 0
 
 

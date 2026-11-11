@@ -15,9 +15,7 @@ from patternity.footing.features import FEATURE_NAMES
 # ``--output`` default: writing needs a real path, whereas reading goes through
 # ``importlib.resources`` (see ``FootingModel.default``) so it also works when the
 # package is installed as a zip or wheel.
-PACKAGED_WEIGHTS = (
-    Path(__file__).resolve().parent.parent / "data" / "footing_weights.json"
-)
+PACKAGED_WEIGHTS = Path(__file__).resolve().parent.parent / "data" / "footing_weights.json"
 
 
 @dataclass
@@ -35,9 +33,7 @@ class FootingModel:
         cls, vector: Sequence[float], metadata: dict[str, Any] | None = None
     ) -> FootingModel:
         return cls(
-            weights={
-                name: float(v) for name, v in zip(FEATURE_NAMES, vector, strict=True)
-            },
+            weights={name: float(v) for name, v in zip(FEATURE_NAMES, vector, strict=True)},
             metadata=dict(metadata or {}),
         )
 

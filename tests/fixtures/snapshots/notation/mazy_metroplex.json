@@ -1,0 +1,24 @@
+{
+  "fixture": "charts/mazy_metroplex.ssc",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 14.0,
+      "rows": 1064,
+      "last_beat": 324.0,
+      "last_timestamp": 125.419355,
+      "rows_digest": "708145a9ffd7f312",
+      "basic": {
+        "taps": 1008,
+        "jumps": 44,
+        "hands": 1,
+        "holds": 42,
+        "rolls": 0,
+        "mines": 55,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 1052
+      }
+    }
+  ]
+}

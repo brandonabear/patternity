@@ -1,0 +1,24 @@
+{
+  "fixture": "charts/shake_the_city.ssc",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 13.0,
+      "rows": 883,
+      "last_beat": 300.0,
+      "last_timestamp": 136.363636,
+      "rows_digest": "bca47305caead497",
+      "basic": {
+        "taps": 812,
+        "jumps": 51,
+        "hands": 0,
+        "holds": 49,
+        "rolls": 6,
+        "mines": 26,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 863
+      }
+    }
+  ]
+}

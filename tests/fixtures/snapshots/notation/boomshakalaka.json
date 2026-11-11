@@ -1,0 +1,24 @@
+{
+  "fixture": "charts/boomshakalaka.ssc",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 10.0,
+      "rows": 687,
+      "last_beat": 290.0,
+      "last_timestamp": 135.9375,
+      "rows_digest": "fb6bc1dac8fce6b4",
+      "basic": {
+        "taps": 618,
+        "jumps": 22,
+        "hands": 0,
+        "holds": 15,
+        "rolls": 9,
+        "mines": 46,
+        "lifts": 0,
+        "fakes": 0,
+        "steps": 640
+      }
+    }
+  ]
+}

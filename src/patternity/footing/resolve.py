@@ -58,10 +58,6 @@ def resolve_trellis(
     )
     steps = [
         ResolvedStep(index=i, note_row=row, foot_row=state, confidence=confidence[i])
-        for i, (row, state) in enumerate(
-            zip(trellis.rows, decoded.states(trellis), strict=True)
-        )
+        for i, (row, state) in enumerate(zip(trellis.rows, decoded.states(trellis), strict=True))
     ]
-    return FootingResult(
-        steps=steps, cost=decoded.cost, relaxed_rows=tuple(trellis.relaxed_rows)
-    )
+    return FootingResult(steps=steps, cost=decoded.cost, relaxed_rows=tuple(trellis.relaxed_rows))

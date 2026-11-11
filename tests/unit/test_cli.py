@@ -3,6 +3,8 @@ from pathlib import Path
 import pytest
 
 from patternity import cli
+from patternity.simfile import StepmaniaFileParser, read_simfile
+from patternity.simfile.serializer import deserialize
 
 MINIMAL_SIMFILE = """\
 #TITLE:foo;
@@ -103,6 +105,27 @@ def test_serialize_creates_the_output_directory(tmp_path: Path) -> None:
 
     assert cli.main(["-f", str(source), "-s", "-o", str(out_dir)]) == 0
     assert (out_dir / "jacks.json").is_file()
+
+
+def test_analyze_and_serialize_a_fixture_end_to_end(tmp_path: Path, capsys) -> None:
+    source = FIXTURES / "patterns" / "footswitches.sm"
+
+    assert cli.main(["-f", str(source), "-a", "-s", "-o", str(tmp_path)]) == 0
+
+    out = capsys.readouterr().out
+    for section in ("'basic':", "'tech':", "'movement':", "'footswitches':"):
+        assert section in out
+    # What was written is the song that was parsed.
+    parsed = StepmaniaFileParser.parse(read_simfile(source))
+    assert deserialize(tmp_path / "footswitches.json") == parsed
+
+
+def test_malformed_simfile_reports_an_error(tmp_path: Path, capsys) -> None:
+    source = tmp_path / "no_timing.sm"
+    source.write_text(MINIMAL_SIMFILE.replace("#BPMS:0.000=120.000;\n", ""), encoding="utf-8")
+
+    assert cli.main(["-f", str(source), "-a"]) == 1
+    assert "Error:" in capsys.readouterr().out
 
 
 def test_output_without_serialize_is_a_usage_error(simfile, mock_read) -> None:

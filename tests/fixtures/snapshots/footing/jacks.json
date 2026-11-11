@@ -1,0 +1,27 @@
+{
+  "fixture": "patterns/jacks.sm",
+  "charts": [
+    {
+      "difficulty": "Challenge",
+      "rating": 1.0,
+      "tech": {
+        "crossovers": 0,
+        "footswitches": 0,
+        "sideswitches": 0,
+        "jacks": 4,
+        "brackets": 0,
+        "doublesteps": 0,
+        "candles": 2
+      },
+      "movement": {
+        "direction_shifts": 3,
+        "total_cost": 714.412446,
+        "foot_path_feasible": true
+      },
+      "moved": [
+        "0: LRLRLLRLRRLR",
+        "1: LRRLRLRB"
+      ]
+    }
+  ]
+}
