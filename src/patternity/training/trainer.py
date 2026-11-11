@@ -14,7 +14,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from patternity.footing.features import FEATURE_INDEX, FEATURE_NAMES
+from patternity.footing.features import FEATURE_INDEX, FEATURE_NAMES, Feature
 from patternity.footing.model import FootingModel
 from patternity.footing.search import (
     Decoded,
@@ -25,21 +25,29 @@ from patternity.footing.search import (
 )
 from patternity.footing.stance import FootMove
 from patternity.simfile.reader import read_simfile
-from patternity.training.annotations import AnnotatedChart, parse_annotated_sm
+from patternity.training.annotations import (
+    AnnotatedChart,
+    AnnotationError,
+    parse_annotated_sm,
+)
+
+# Maximum passes over the charts, and how much the annotated foot must win by.
+DEFAULT_EPOCHS = 100
+DEFAULT_MARGIN = 5.0
 
 # Physically these can only add effort; with little data the perceptron could
 # otherwise learn to reward them.
-NONNEGATIVE: frozenset[str] = frozenset(
+NONNEGATIVE: frozenset[Feature] = frozenset(
     {
-        "travel",
-        "travel_speed",
-        "inverted",
-        "cross_entry",
-        "repeat_change",
-        "jack_speed_sq",
-        "bracket_speed",
-        "hold_release",
-        "early_release",
+        Feature.TRAVEL,
+        Feature.TRAVEL_SPEED,
+        Feature.INVERTED,
+        Feature.CROSS_ENTRY,
+        Feature.REPEAT_CHANGE,
+        Feature.JACK_SPEED_SQ,
+        Feature.BRACKET_SPEED,
+        Feature.HOLD_RELEASE,
+        Feature.EARLY_RELEASE,
     }
 )
 
@@ -56,12 +64,25 @@ class Example:
 
 
 def load_example(path: Path, name: str | None = None) -> Example:
+    name = name or path.name
     annotated = parse_annotated_sm(read_simfile(path))
-    return Example(
-        name=name or path.name,
-        annotated=annotated,
-        trellis=build_trellis(annotated.chart.notes),
-    )
+    trellis = build_trellis(annotated.chart.notes)
+    _require_possible_annotations(name, annotated, trellis)
+    return Example(name=name, annotated=annotated, trellis=trellis)
+
+
+def _require_possible_annotations(name: str, annotated: AnnotatedChart, trellis: Trellis) -> None:
+    """Raise if any tag can't be satisfied by a legal path.
+
+    Such a row is a mistake on every epoch, so training would never converge
+    and would quietly return averaged weights fitted to a bad label.
+    """
+    # Reachability doesn't depend on the weights, so zeros will do.
+    no_weights = [0.0] * len(FEATURE_NAMES)
+    impossible = viterbi(trellis, no_weights, allowed=annotated.tagged_assignments).relaxed_rows
+    if impossible:
+        lines = ", ".join(str(annotated.rows[i].line_number) for i in impossible)
+        raise AnnotationError(f"{name}: physically impossible annotation on line(s) {lines}")
 
 
 def load_examples(relpaths: Sequence[str], root: Path) -> list[Example]:
@@ -76,8 +97,8 @@ def row_errors(example: Example, weights: Sequence[float]) -> int:
 def train(
     examples: Sequence[Example],
     *,
-    epochs: int = 100,
-    margin: float = 5.0,
+    epochs: int = DEFAULT_EPOCHS,
+    margin: float = DEFAULT_MARGIN,
     learning_rate: float = 1.0,
     seed: int = 0,
 ) -> FootingModel:
@@ -190,13 +211,20 @@ class FoldResult:
 
 
 def leave_one_out(
-    examples: Sequence[Example], *, epochs: int = 100, margin: float = 5.0
+    examples: Sequence[Example],
+    *,
+    epochs: int = DEFAULT_EPOCHS,
+    margin: float = DEFAULT_MARGIN,
+    learning_rate: float = 1.0,
+    seed: int = 0,
 ) -> list[FoldResult]:
     """Train on all charts but one and score per-row accuracy on the held-out chart."""
     results: list[FoldResult] = []
     for held in examples:
         rest = [e for e in examples if e is not held]
-        model = train(rest, epochs=epochs, margin=margin)
+        model = train(
+            rest, epochs=epochs, margin=margin, learning_rate=learning_rate, seed=seed
+        )
         results.append(
             FoldResult(
                 held_out=held.name,

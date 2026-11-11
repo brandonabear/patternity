@@ -10,10 +10,16 @@
 """
 
 from patternity.footing.model import FootingModel
-from patternity.footing.resolve import FootingResult, ResolvedStep, resolve_chart
-from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
+from patternity.footing.resolve import (
+    FootingResult,
+    ResolvedStep,
+    resolve_chart,
+    resolve_trellis,
+)
+from patternity.footing.stance import Foot, FootMove, FootPlacement, FootRow, Stance
 
 __all__ = [
+    "Foot",
     "FootMove",
     "FootPlacement",
     "FootRow",
@@ -22,4 +28,5 @@ __all__ = [
     "ResolvedStep",
     "Stance",
     "resolve_chart",
+    "resolve_trellis",
 ]

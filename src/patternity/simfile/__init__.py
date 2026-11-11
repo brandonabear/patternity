@@ -7,13 +7,21 @@ from patternity.simfile.notes import (
     PANELS,
     PRESSABLE_NOTES,
     TAIL_NOTES,
+    InvalidNoteRow,
     NoteRow,
     NoteType,
     Panel,
 )
-from patternity.simfile.parser import StepmaniaFileParser
+from patternity.simfile.parser import MissingTimingError, SimfileError, StepmaniaFileParser
 from patternity.simfile.reader import UnsupportedSimfileSuffix, read_simfile
-from patternity.simfile.song import Chart, ChartMetadata, Difficulty, Header, Song
+from patternity.simfile.song import (
+    Chart,
+    ChartMetadata,
+    Difficulty,
+    Header,
+    SkippedChart,
+    Song,
+)
 
 __all__ = [
     "ANCHORED_NOTES",
@@ -25,9 +33,13 @@ __all__ = [
     "ChartMetadata",
     "Difficulty",
     "Header",
+    "InvalidNoteRow",
+    "MissingTimingError",
     "NoteRow",
     "NoteType",
     "Panel",
+    "SimfileError",
+    "SkippedChart",
     "Song",
     "StepmaniaFileParser",
     "UnsupportedSimfileSuffix",

@@ -11,3 +11,4 @@ charts/hoot.ssc
 charts/move_mint.ssc
 charts/too_much.ssc
 charts/godspeed.ssc
+charts/mazy_metroplex.ssc

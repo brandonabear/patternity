@@ -7,55 +7,90 @@ references tech-pattern timing cutoffs; those live in ``patternity.patterns.dete
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 
 from patternity.footing.grace import HOLD_GRACE_SEC, ROLL_GRACE_SEC, Remaining
 from patternity.footing.rules import held_panels
 from patternity.footing.stance import (
+    Foot,
     FootMove,
     FootPlacement,
     FootRow,
     PlayerOrientation,
+    Repeat,
 )
 from patternity.simfile.notes import NoteRow, Panel
 
-FEATURE_NAMES: tuple[str, ...] = (
-    "same_foot",  # The same foot presses twice in a row (any panels).
-    "same_foot_speed",  # Same, scaled by speed.
-    "same_foot_after_release",  # Same, but the other foot just released a hold, including a
-    # grace-window release on this row (natural after a hold).
-    "jack",  # Same foot, same panel, consecutive presses.
-    "jack_speed",  # Same, scaled by speed.
-    "jack_speed_sq",  # Same, scaled by speed squared, so fast jacks cost disproportionately more.
-    "switch",  # Other foot, same panel, consecutive presses.
-    "switch_speed",  # Same, scaled by speed.
-    "repeat_change",  # A same-panel run changes technique midway (jack then switch, or
-    # the reverse).
-    "travel",  # Distance the moving foot travels.
-    "travel_speed",  # Same, scaled by speed.
-    "overlap",  # Both feet end up sharing a panel area during a single-foot press.
-    "crossed",  # The stance is crossed.
-    "cross_entry",  # Same, but only on the step that enters the crossed stance.
-    "inverted",  # Fully backwards stance.
-    "facing_flip",  # Turning from facing one side to facing the other.
-    "twisted",  # Facing sideways without being crossed.
-    "bracket",  # A foot lands on a two-panel bracket.
-    "bracket_speed",  # Same, scaled by speed.
-    "jump",  # Both feet press on the same row.
-    "jump_speed",  # Same, scaled by speed.
-    "hold_bracket_tap",  # A foot that owns a hold brackets to tap another panel.
-    "mine_cued_switch",  # A switch with a mine cue since the last press.
-    "mine_cued_same_foot",  # A same-foot repeat with a mine cue since the last press.
-    "cued_foot_moves",  # A foot standing on a mine-cued panel moves off it.
-    "cued_foot_stays",  # A foot standing on a mine-cued panel stays on it.
-    "hold_release",  # A foot leaves a hold or roll it owns during the grace window (tail
-    # row included).
-    "early_release",  # Same, scaled by how early: seconds left to the tail / grace window (0 on
+
+class Feature(StrEnum):
+    """What the feet do on one transition. Each has one learned weight."""
+
+    # The same foot presses twice in a row (any panels).
+    SAME_FOOT = "same_foot"
+    SAME_FOOT_SPEED = "same_foot_speed"  # Scaled by speed.
+    # Same, but the other foot just released a hold, including a grace-window
+    # release on this row (natural after a hold).
+    SAME_FOOT_AFTER_RELEASE = "same_foot_after_release"
+
+    # Same foot, same panel, consecutive presses.
+    JACK = "jack"
+    JACK_SPEED = "jack_speed"  # Scaled by speed.
+    # Scaled by speed squared, so fast jacks cost disproportionately more.
+    JACK_SPEED_SQ = "jack_speed_sq"
+
+    # Other foot, same panel, consecutive presses.
+    SWITCH = "switch"
+    SWITCH_SPEED = "switch_speed"  # Scaled by speed.
+    # A same-panel run changes technique midway (jack then switch, or the reverse).
+    REPEAT_CHANGE = "repeat_change"
+
+    # Distance the moving foot travels.
+    TRAVEL = "travel"
+    TRAVEL_SPEED = "travel_speed"  # Scaled by speed.
+
+    # Both feet end up sharing a panel area during a single-foot press.
+    OVERLAP = "overlap"
+    # The stance is crossed.
+    CROSSED = "crossed"
+    # Same, but only on the step that enters the crossed stance.
+    CROSS_ENTRY = "cross_entry"
+    # Fully backwards stance.
+    INVERTED = "inverted"
+    # Turning from facing one side to facing the other.
+    FACING_FLIP = "facing_flip"
+    # Facing sideways without being crossed.
+    TWISTED = "twisted"
+
+    # A foot lands on a two-panel bracket.
+    BRACKET = "bracket"
+    BRACKET_SPEED = "bracket_speed"  # Scaled by speed.
+    # Both feet press on the same row.
+    JUMP = "jump"
+    JUMP_SPEED = "jump_speed"  # Scaled by speed.
+    # A foot that owns a hold brackets to tap another panel.
+    HOLD_BRACKET_TAP = "hold_bracket_tap"
+
+    # A switch with a mine cue since the last press.
+    MINE_CUED_SWITCH = "mine_cued_switch"
+    # A same-foot repeat with a mine cue since the last press.
+    MINE_CUED_SAME_FOOT = "mine_cued_same_foot"
+    # A foot standing on a mine-cued panel moves off it.
+    CUED_FOOT_MOVES = "cued_foot_moves"
+    # A foot standing on a mine-cued panel stays on it.
+    CUED_FOOT_STAYS = "cued_foot_stays"
+
+    # A foot leaves a hold or roll it owns during the grace window (tail row included).
+    HOLD_RELEASE = "hold_release"
+    # Same, scaled by how early: seconds left to the tail / grace window (0 on
     # the tail row, up to 1).
-)
+    EARLY_RELEASE = "early_release"
+
+
+# Feature names in weight-vector order.
+FEATURE_NAMES: tuple[str, ...] = tuple(feature.value for feature in Feature)
 FEATURE_INDEX: dict[str, int] = {name: i for i, name in enumerate(FEATURE_NAMES)}
 
 _MAX_NPS = 20.0
-_FEET = (FootMove.LEFT, FootMove.RIGHT)
 
 
 def speed(dt: float | None) -> float:
@@ -65,26 +100,8 @@ def speed(dt: float | None) -> float:
     return min(1.0 / dt, _MAX_NPS) / 10.0
 
 
-def _placement(row: FootRow, foot: FootMove) -> FootPlacement:
+def _placement(row: FootRow, foot: Foot) -> FootPlacement:
     return row.stance.placement(foot)
-
-
-def _displaced(curr: FootRow, foot: FootMove) -> bool:
-    """A stationary foot whose panel the moving foot just took over (it has lifted)."""
-    other = FootMove.RIGHT if foot == FootMove.LEFT else FootMove.LEFT
-    return bool(curr.moved & other) and _placement(curr, foot).shares_panel_with(
-        _placement(curr, other)
-    )
-
-
-def hits_mine(curr: FootRow, mines: Panel) -> bool:
-    """True if a foot that is down on this row covers a mine on this row."""
-    for foot in _FEET:
-        if not curr.moved & foot and _displaced(curr, foot):
-            continue
-        if _placement(curr, foot).panels & mines:
-            return True
-    return False
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,25 +131,23 @@ class _Step:
     @property
     def same_foot(self) -> bool:
         """The foot that pressed last presses again (any panels)."""
-        return self.single and self.prev.last_press_foot == self.moved
+        return self.single and self.prev.last_press_moved == self.moved
 
     @property
     def is_jack(self) -> bool:
-        """Same foot, same panel as the last press (see ``FootRow.last_repeat_jack``)."""
-        return self.curr.last_repeat_jack is True
+        return self.curr.last_repeat is Repeat.JACK
 
     @property
     def is_switch(self) -> bool:
-        """Other foot, same panel as the last press (see ``FootRow.last_repeat_jack``)."""
-        return self.curr.last_repeat_jack is False
+        return self.curr.last_repeat is Repeat.SWITCH
 
 
 class _Features(dict[str, float]):
     """Feature values being accumulated for one transition."""
 
-    def add(self, name: str, value: float = 1.0) -> None:
+    def add(self, feature: Feature, value: float = 1.0) -> None:
         if value:
-            self[name] = self.get(name, 0.0) + value
+            self[feature] = self.get(feature, 0.0) + value
 
 
 def _hold_release_features(step: _Step, feats: _Features) -> FootMove:
@@ -147,12 +162,12 @@ def _hold_release_features(step: _Step, feats: _Features) -> FootMove:
         # Released: the hold is still underway, but no foot owns it any more.
         if panel not in held or panel in still_owned:
             continue
-        released |= foot
-        feats.add("hold_release")
+        released |= foot.move
+        feats.add(Feature.HOLD_RELEASE)
         remaining = step.grace_remaining[panel.column]
         if remaining:
             window = ROLL_GRACE_SEC if panel in step.row.rolls_active else HOLD_GRACE_SEC
-            feats.add("early_release", remaining / window)
+            feats.add(Feature.EARLY_RELEASE, remaining / window)
     return released
 
 
@@ -165,24 +180,23 @@ def _repetition_features(step: _Step, feats: _Features, released_now: FootMove) 
         released = step.prev.released_since_press | released_now
         other_foot_released = bool(released & ~step.moved)
         if other_foot_released:
-            feats.add("same_foot_after_release")
+            feats.add(Feature.SAME_FOOT_AFTER_RELEASE)
         else:
-            feats.add("same_foot")
-            feats.add("same_foot_speed", step.speed)
+            feats.add(Feature.SAME_FOOT)
+            feats.add(Feature.SAME_FOOT_SPEED, step.speed)
 
     if step.is_jack:
-        feats.add("jack")
-        feats.add("jack_speed", step.speed)
-        feats.add("jack_speed_sq", step.speed * step.speed)
+        feats.add(Feature.JACK)
+        feats.add(Feature.JACK_SPEED, step.speed)
+        feats.add(Feature.JACK_SPEED_SQ, step.speed * step.speed)
     elif step.is_switch:
-        feats.add("switch")
-        feats.add("switch_speed", step.speed)
+        feats.add(Feature.SWITCH)
+        feats.add(Feature.SWITCH_SPEED, step.speed)
 
     # A same-panel run changed technique (jack then switch, or the reverse).
-    prev_repeat = step.prev.last_repeat_jack
-    curr_repeat = step.curr.last_repeat_jack
-    if prev_repeat is not None and curr_repeat is not None and prev_repeat != curr_repeat:
-        feats.add("repeat_change")
+    repeats = (step.prev.last_repeat, step.curr.last_repeat)
+    if Repeat.NONE not in repeats and repeats[0] is not repeats[1]:
+        feats.add(Feature.REPEAT_CHANGE)
 
 
 def _mine_cue_features(step: _Step, feats: _Features) -> None:
@@ -192,16 +206,16 @@ def _mine_cue_features(step: _Step, feats: _Features) -> None:
     if not cue:
         return
     if step.same_foot:
-        feats.add("mine_cued_same_foot")
+        feats.add(Feature.MINE_CUED_SAME_FOOT)
     if step.is_switch:
-        feats.add("mine_cued_switch")
+        feats.add(Feature.MINE_CUED_SWITCH)
 
-    for foot in _FEET:
-        if step.moved & foot:
+    for foot in Foot:
+        if step.moved.includes(foot):
             if _placement(step.prev, foot).panels & cue:
-                feats.add("cued_foot_moves")
-        elif _placement(step.curr, foot).panels & cue and not _displaced(step.curr, foot):
-            feats.add("cued_foot_stays")
+                feats.add(Feature.CUED_FOOT_MOVES)
+        elif _placement(step.curr, foot).panels & cue and not step.curr.is_displaced(foot):
+            feats.add(Feature.CUED_FOOT_STAYS)
 
 
 def _movement_features(step: _Step, feats: _Features) -> None:
@@ -210,25 +224,23 @@ def _movement_features(step: _Step, feats: _Features) -> None:
     travel = 0.0
     brackets = 0
     hold_owners = {foot for _, foot in step.prev.hold_owners}
-    for foot in _FEET:
-        if not step.moved & foot:
-            continue
+    for foot in step.moved.feet:
         before = _placement(step.prev, foot)
         after = _placement(step.curr, foot)
         travel += before.distance_to(after)
         if after.is_bracket:
             brackets += 1
             if foot in hold_owners:
-                feats.add("hold_bracket_tap")
+                feats.add(Feature.HOLD_BRACKET_TAP)
 
-    feats.add("travel", travel)
-    feats.add("travel_speed", travel * step.speed)
-    feats.add("bracket", brackets)
-    feats.add("bracket_speed", brackets * step.speed)
+    feats.add(Feature.TRAVEL, travel)
+    feats.add(Feature.TRAVEL_SPEED, travel * step.speed)
+    feats.add(Feature.BRACKET, brackets)
+    feats.add(Feature.BRACKET_SPEED, brackets * step.speed)
 
     if not step.single:
-        feats.add("jump")
-        feats.add("jump_speed", step.speed)
+        feats.add(Feature.JUMP)
+        feats.add(Feature.JUMP_SPEED, step.speed)
 
 
 def _stance_features(step: _Step, feats: _Features) -> None:
@@ -237,13 +249,13 @@ def _stance_features(step: _Step, feats: _Features) -> None:
     stance = step.curr.stance
     before = step.prev.stance
     if step.single and stance.is_overlapping:
-        feats.add("overlap")
+        feats.add(Feature.OVERLAP)
     if stance.is_crossed:
-        feats.add("crossed")
+        feats.add(Feature.CROSSED)
         if not before.is_crossed:
-            feats.add("cross_entry")
+            feats.add(Feature.CROSS_ENTRY)
     if stance.orientation == PlayerOrientation.INVERTED:
-        feats.add("inverted")
+        feats.add(Feature.INVERTED)
 
     turned_to_other_side = (
         stance.orientation.is_facing
@@ -251,9 +263,9 @@ def _stance_features(step: _Step, feats: _Features) -> None:
         and stance.orientation != before.orientation
     )
     if turned_to_other_side:
-        feats.add("facing_flip")
+        feats.add(Feature.FACING_FLIP)
     if stance.orientation.is_facing and not stance.is_crossed:
-        feats.add("twisted")
+        feats.add(Feature.TWISTED)
 
 
 def featurize(

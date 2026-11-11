@@ -4,6 +4,7 @@
 
 - Parse `.sm` and `.ssc` files, including song header data, chart metadata, and groove radar values.
 - Analyze 4-panel singles charts. Doubles are out of scope.
+- Lifts and fakes are parsed and counted in the basic metrics, but footing never steps on them. ITG charts don't use lifts.
 
 ## Inferred Foot Placement
 

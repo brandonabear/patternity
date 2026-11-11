@@ -35,7 +35,7 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[GraceWindow]:
     """The grace window of each row."""
     next_tail: list[float | None] = [None] * 4
     out: list[GraceWindow] = []
-    
+
     for row in reversed(rows):
         for col, note in enumerate(row.notes):
             if note == NoteType.TAIL:
@@ -47,16 +47,16 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[GraceWindow]:
 
         for col, panel in enumerate(PANELS):
             tail, now = next_tail[col], row.timestamp
-            
+
             # Skip non hold-related panel state
-            if panel not in held or tail is None or now is None:
+            if panel not in held or tail is None:
                 continue
-            
+
             window = ROLL_GRACE_SEC if panel in row.rolls_active else HOLD_GRACE_SEC
             if 0.0 <= tail - now <= window:
                 releasable |= panel
                 remaining[col] = tail - now
-        
+
         out.append(
             GraceWindow(releasable, (remaining[0], remaining[1], remaining[2], remaining[3]))
         )

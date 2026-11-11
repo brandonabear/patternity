@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from enum import IntFlag, StrEnum
+from enum import Enum, IntFlag, StrEnum
 
 from patternity.simfile.notes import Panel
 
@@ -51,7 +51,7 @@ class FootPlacement(StrEnum):
     @property
     def is_bracket(self) -> bool:
         """True if this foot placement bridges two adjacent panels."""
-        return len(self.value) == 2
+        return self in _BRACKETS
 
     def distance_to(self, other: FootPlacement) -> float:
         """Euclidean distance between two foot placements on the pad."""
@@ -79,6 +79,10 @@ _PLACEMENT_COORDS: dict[FootPlacement, tuple[float, float]] = {
     FootPlacement.RD: (0.5, -0.5),
     FootPlacement.RU: (0.5, 0.5),
 }
+
+_BRACKETS = frozenset(
+    placement for placement, panels in _PLACEMENT_PANELS.items() if len(panels) == 2
+)
 
 PANELS_TO_PLACEMENT: dict[Panel, FootPlacement] = {
     panels: placement for placement, panels in _PLACEMENT_PANELS.items()
@@ -125,13 +129,61 @@ def compute_orientation(
     return prev_orientation
 
 
+class Foot(Enum):
+    """One of the player's feet."""
+
+    LEFT = "L"
+    RIGHT = "R"
+
+    @property
+    def other(self) -> Foot:
+        return Foot.RIGHT if self is Foot.LEFT else Foot.LEFT
+
+    @property
+    def move(self) -> FootMove:
+        """This foot alone, as a set of feet."""
+        return _FOOT_MOVE[self]
+
+
 class FootMove(IntFlag):
-    """Bitflag identifying which foot/feet were used in a given NoteRow."""
+    """A set of feet: none, one, or both. Usually the feet that moved on a row.
+
+    Use ``Foot`` where exactly one foot is meant (a hold's owner, whose
+    placement to read).
+    """
 
     NONE = 0
     LEFT = 1
     RIGHT = 2
     BOTH = LEFT | RIGHT
+
+    @property
+    def feet(self) -> tuple[Foot, ...]:
+        """The feet in this set, left first."""
+        return _FEET[self]
+
+    def includes(self, foot: Foot) -> bool:
+        return foot in _FEET[self]
+
+
+# Lookup tables rather than flag arithmetic: these are read for every candidate
+# the search considers.
+_FOOT_MOVE: dict[Foot, FootMove] = {Foot.LEFT: FootMove.LEFT, Foot.RIGHT: FootMove.RIGHT}
+_FEET: dict[FootMove, tuple[Foot, ...]] = {
+    FootMove.NONE: (),
+    FootMove.LEFT: (Foot.LEFT,),
+    FootMove.RIGHT: (Foot.RIGHT,),
+    FootMove.BOTH: (Foot.LEFT, Foot.RIGHT),
+}
+
+
+class Repeat(Enum):
+    """How a press relates to the press row right before it, when both are a
+    single panel pressed by a single foot."""
+
+    NONE = "none"  # A different panel, or either row is a jump or multi-panel.
+    JACK = "jack"  # The same foot presses the same panel again.
+    SWITCH = "switch"  # The other foot takes over the same panel.
 
 
 @dataclass(frozen=True, slots=True)
@@ -187,9 +239,8 @@ class Stance:
         """True if every panel in ``required`` is under a foot."""
         return required in self.covered
 
-    def placement(self, foot: FootMove) -> FootPlacement:
-        """Placement of a single foot (``LEFT`` or ``RIGHT``)."""
-        return self.left if foot == FootMove.LEFT else self.right
+    def placement(self, foot: Foot) -> FootPlacement:
+        return self.left if foot is Foot.LEFT else self.right
 
 
 @dataclass(frozen=True, slots=True)
@@ -203,20 +254,20 @@ class FootRow:
     moved: The footing used to obtain the current position.
     mines_since_press: Panels that had a mine since the last press row
     last_press: The panel of the most recent press row (NONE unless a single panel)
-    last_press_foot: The most recent footing of the last pressed column
+    last_press_moved: The feet that moved on the most recent press row
     hold_owners: Sorted (panel, foot) pairs: which foot is anchored to each held panel
     released_since_press: Feet that released a hold/roll tail since the last press row
-    last_repeat_jack: Flag indicating if last press repeated the preceding panel/foot
+    last_repeat: Whether the most recent press was a jack, a switch, or neither
     """
 
     stance: Stance
     moved: FootMove
     mines_since_press: Panel = Panel.NONE
     last_press: Panel = Panel.NONE
-    last_press_foot: FootMove | None = None
-    hold_owners: tuple[tuple[Panel, FootMove], ...] = ()
+    last_press_moved: FootMove = FootMove.NONE
+    hold_owners: tuple[tuple[Panel, Foot], ...] = ()
     released_since_press: FootMove = FootMove.NONE
-    last_repeat_jack: bool | None = None
+    last_repeat: Repeat = Repeat.NONE
 
     @classmethod
     def initial(cls) -> FootRow:
@@ -226,18 +277,28 @@ class FootRow:
             moved=FootMove.NONE,
         )
 
-    def hold_owner_for(self, panel: Panel) -> FootMove | None:
+    def hold_owner_for(self, panel: Panel) -> Foot | None:
         """The foot anchored to the hold or roll on ``panel``, if any."""
         for owned, foot in self.hold_owners:
             if owned == panel:
                 return foot
         return None
 
-    def pressed_panels(self) -> Panel:
-        """Panels under the foot or feet that moved on this row."""
-        pressed = Panel.NONE
-        if self.moved & FootMove.LEFT:
-            pressed |= self.stance.left.panels
-        if self.moved & FootMove.RIGHT:
-            pressed |= self.stance.right.panels
-        return pressed
+    def is_displaced(self, foot: Foot) -> bool:
+        """True if ``foot`` stayed put while the other foot took over its panel.
+
+        The feet can't share a panel, so the stationary one has lifted.
+        """
+        return (
+            not self.moved.includes(foot)
+            and self.moved.includes(foot.other)
+            and self.stance.is_overlapping
+        )
+
+    def owners_of(self, panels: Panel) -> FootMove:
+        """The feet anchored to a hold or roll on any of ``panels``."""
+        owners = FootMove.NONE
+        for owned, foot in self.hold_owners:
+            if owned in panels:
+                owners |= foot.move
+        return owners

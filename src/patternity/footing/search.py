@@ -8,17 +8,13 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 
-from patternity.footing.features import (
-    FEATURE_INDEX,
-    FEATURE_NAMES,
-    featurize,
-    hits_mine,
-)
+from patternity.footing.features import FEATURE_INDEX, FEATURE_NAMES, featurize
 from patternity.footing.grace import GraceWindow, hold_grace
+from patternity.footing.rules import hits_mine
 from patternity.footing.stance import FootMove, FootRow
-from patternity.footing.transitions import iter_legal_transitions
+from patternity.footing.transitions import iter_legal_transitions, stay_put
 from patternity.simfile.notes import NoteRow
 
 RELAXED_PENALTY = 1000.0
@@ -132,14 +128,15 @@ def _add_relaxed_edges(
     states: Sequence[FootRow],
     row: NoteRow,
     blocked: Sequence[_Blocked],
+    grace: GraceWindow,
     features: _FeatureTable,
 ) -> None:
     """Give a row with no legal edge penalized edges so the path can continue.
 
     If the only moves stepped on a mine, allow them at ``RELAXED_PENALTY``.
     Otherwise nothing was physically possible (e.g. a malformed chart): every
-    state stays put at the same penalty, carrying the row's mines forward as a
-    no-press row would.
+    state stays put at the same penalty, carrying mines, hold owners and hold
+    releases forward exactly as a no-press row would.
     """
     if blocked:
         for prev_i, curr, feat_id in blocked:
@@ -148,12 +145,7 @@ def _add_relaxed_edges(
 
     empty = features.intern({})
     for prev_i, prev in enumerate(states):
-        stay = replace(
-            prev,
-            moved=FootMove.NONE,
-            mines_since_press=prev.mines_since_press | row.mines,
-        )
-        layer.add_edge(prev_i, stay, empty, RELAXED_PENALTY)
+        layer.add_edge(prev_i, stay_put(prev, row, grace.panels), empty, RELAXED_PENALTY)
 
 
 def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Trellis:
@@ -167,7 +159,7 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
 
     for row_index, row in enumerate(rows):
         # Seconds since the previous press row (None on the first press or a no-press row).
-        now = row.timestamp or 0.0
+        now = row.timestamp
         dt = now - last_press_time if row.pressed and last_press_time is not None else None
 
         layer, blocked = _expand_layer(
@@ -175,7 +167,7 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
         )
         if not layer.prev_idx:
             relaxed.append(row_index)
-            _add_relaxed_edges(layer, states, row, blocked, features)
+            _add_relaxed_edges(layer, states, row, blocked, grace_rows[row_index], features)
 
         layers.append(layer)
         states = layer.states
@@ -204,6 +196,110 @@ def _table_costs(trellis: Trellis, weights: Sequence[float]) -> list[float]:
     return [sum(weights[i] * v for i, v in vec) for vec in trellis.feature_table]
 
 
+@dataclass(frozen=True, slots=True)
+class _Forward:
+    """Result of a forward pass over the trellis.
+
+    ``cost[i][s]`` is the cheapest cost from the start to state ``s`` of layer
+    ``i`` (``inf`` if unreachable) and ``back[i][s]`` is the edge it arrived by.
+    """
+
+    cost: list[list[float]]
+    back: list[list[int]]
+    relaxed_rows: tuple[int, ...]
+
+
+def _enter_layer(
+    layer: Layer,
+    prev_cost: Sequence[float],
+    table_cost: Sequence[float],
+    *,
+    want: FootMove | None,
+    gold: FootMove | None,
+    margin: float,
+) -> tuple[list[float], list[int]]:
+    """Cheapest cost into each state of ``layer`` and the edge that achieves it.
+
+    ``want`` keeps only states that moved that way. ``gold`` makes every other
+    move ``margin`` cheaper (cost-augmented decoding), so the gold move has to
+    win by at least ``margin``.
+    """
+    states = layer.states
+    cost = [math.inf] * len(states)
+    back = [-1] * len(states)
+    for k, p in enumerate(layer.prev_idx):
+        base = prev_cost[p]
+        if base == math.inf:
+            continue
+        s = layer.next_idx[k]
+        moved = states[s].moved
+        if want is not None and moved != want:
+            continue
+        c = base + table_cost[layer.feat_ids[k]] + layer.penalty[k]
+        if gold is not None and moved != gold:
+            c -= margin
+        if c < cost[s]:
+            cost[s] = c
+            back[s] = k
+    return cost, back
+
+
+def _forward(
+    trellis: Trellis,
+    table_cost: Sequence[float],
+    *,
+    allowed: Mapping[int, FootMove] | None = None,
+    loss: Mapping[int, FootMove] | None = None,
+    margin: float = 0.0,
+) -> _Forward:
+    """Cheapest cost to every state, layer by layer.
+
+    A row whose ``allowed`` move is unreachable is redone unconstrained and
+    reported in ``relaxed_rows``.
+    """
+    costs: list[list[float]] = []
+    backs: list[list[int]] = []
+    relaxed: list[int] = []
+    prev_cost: list[float] = [0.0]
+
+    for i, layer in enumerate(trellis.layers):
+        want = allowed.get(i) if allowed else None
+        gold = loss.get(i) if loss else None
+        cost, back = _enter_layer(
+            layer, prev_cost, table_cost, want=want, gold=gold, margin=margin
+        )
+        if want is not None and all(c == math.inf for c in cost):
+            relaxed.append(i)
+            cost, back = _enter_layer(
+                layer, prev_cost, table_cost, want=None, gold=gold, margin=margin
+            )
+        costs.append(cost)
+        backs.append(back)
+        prev_cost = cost
+
+    return _Forward(costs, backs, tuple(relaxed))
+
+
+def _backtrace(trellis: Trellis, forward: _Forward) -> Decoded:
+    """Follow back-pointers from the cheapest final state to the start."""
+    if not trellis.layers:
+        return Decoded((), (), 0.0)
+
+    final_cost = forward.cost[-1]
+    s = min(range(len(final_cost)), key=final_cost.__getitem__)
+    total = final_cost[s]
+    state_indices: list[int] = []
+    edge_indices: list[int] = []
+    for layer, back in zip(reversed(trellis.layers), reversed(forward.back), strict=True):
+        k = back[s]
+        state_indices.append(s)
+        edge_indices.append(k)
+        s = layer.prev_idx[k]
+    state_indices.reverse()
+    edge_indices.reverse()
+    return Decoded(tuple(state_indices), tuple(edge_indices), total, forward.relaxed_rows)
+
+
 def viterbi(
     trellis: Trellis,
     weights: Sequence[float],
@@ -220,58 +316,8 @@ def viterbi(
     decoding for training).
     """
     table_cost = _table_costs(trellis, weights)
-    prev_cost = [0.0]
-    back: list[list[int]] = []
-    relaxed: list[int] = []
-
-    for i, layer in enumerate(trellis.layers):
-        want = allowed.get(i) if allowed else None
-        gold = loss.get(i) if loss else None
-        states = layer.states
-        # Usually runs once. If the annotation (``want``) leaves no reachable state
-        # on this row, retry the row unconstrained and record it as relaxed.
-        while True:
-            cost = [math.inf] * len(states)
-            bp = [-1] * len(states)
-            for k, p in enumerate(layer.prev_idx):
-                base = prev_cost[p]
-                if base == math.inf:
-                    continue
-                s = layer.next_idx[k]
-                moved = states[s].moved
-                if want is not None and moved != want:
-                    continue
-                c = base + table_cost[layer.feat_ids[k]] + layer.penalty[k]
-                # Cost-augmented decoding: disagreeing with the gold path is made
-                # cheaper, so the gold path has to win by at least ``margin``.
-                if gold is not None and moved != gold:
-                    c -= margin
-                if c < cost[s]:
-                    cost[s] = c
-                    bp[s] = k
-            if want is None or any(c != math.inf for c in cost):
-                break
-            relaxed.append(i)
-            want = None
-        back.append(bp)
-        prev_cost = cost
-
-    if not trellis.layers:
-        return Decoded((), (), 0.0)
-
-    end = min(range(len(prev_cost)), key=prev_cost.__getitem__)
-    total = prev_cost[end]
-    state_indices: list[int] = []
-    edge_indices: list[int] = []
-    s = end
-    for i in range(len(trellis.layers) - 1, -1, -1):
-        k = back[i][s]
-        state_indices.append(s)
-        edge_indices.append(k)
-        s = trellis.layers[i].prev_idx[k]
-    state_indices.reverse()
-    edge_indices.reverse()
-    return Decoded(tuple(state_indices), tuple(edge_indices), total, tuple(relaxed))
+    forward = _forward(trellis, table_cost, allowed=allowed, loss=loss, margin=margin)
+    return _backtrace(trellis, forward)
 
 
 def path_features(trellis: Trellis, decoded: Decoded) -> list[float]:
@@ -283,6 +329,39 @@ def path_features(trellis: Trellis, decoded: Decoded) -> list[float]:
     return total
 
 
+def _backward(trellis: Trellis, table_cost: Sequence[float]) -> list[list[float]]:
+    """``backward[i][s]``: cheapest cost from state ``s`` of layer ``i`` to the end."""
+    layers = trellis.layers
+    backward: list[list[float]] = [[] for _ in layers]
+    if layers:
+        backward[-1] = [0.0] * len(layers[-1].states)
+    for i in range(len(layers) - 1, 0, -1):
+        layer = layers[i]
+        onward = backward[i]
+        cost = [math.inf] * len(layers[i - 1].states)
+        for k, p in enumerate(layer.prev_idx):
+            c = table_cost[layer.feat_ids[k]] + layer.penalty[k] + onward[layer.next_idx[k]]
+            cost[p] = min(cost[p], c)
+        backward[i - 1] = cost
+    return backward
+
+
+def _foot_move_margin(layer: Layer, through: Sequence[float]) -> float:
+    """Gap between the best path through ``layer`` and the best that moves other feet.
+
+    ``through[s]`` is the cheapest full path via state ``s``. ``math.inf`` when
+    only one ``FootMove`` is possible on the row.
+    """
+    best: dict[FootMove, float] = {}
+    for state, total in zip(layer.states, through, strict=True):
+        if total < best.get(state.moved, math.inf):
+            best[state.moved] = total
+    ranked = sorted(best.values())
+    if len(ranked) < 2 or ranked[1] == math.inf:
+        return math.inf
+    return ranked[1] - ranked[0]
+
+
 def row_confidence(trellis: Trellis, weights: Sequence[float]) -> list[float | None]:
     """Per-row margin between the best path and the best path using a different FootMove.
 
@@ -290,51 +369,16 @@ def row_confidence(trellis: Trellis, weights: Sequence[float]) -> list[float | N
     press, ``math.inf`` when only one ``FootMove`` is physically possible.
     """
     table_cost = _table_costs(trellis, weights)
-    layers = trellis.layers
-    # forward[i][s]: cheapest cost from the start to state s of layer i.
-    forward: list[list[float]] = []
-    prev_cost = [0.0]
-    for layer in layers:
-        cost = [math.inf] * len(layer.states)
-        for k, p in enumerate(layer.prev_idx):
-            c = prev_cost[p] + table_cost[layer.feat_ids[k]] + layer.penalty[k]
-            s = layer.next_idx[k]
-            cost[s] = min(cost[s], c)
-        forward.append(cost)
-        prev_cost = cost
+    forward = _forward(trellis, table_cost).cost
+    backward = _backward(trellis, table_cost)
 
-    # backward[i][s]: cheapest cost from state s of layer i to the end.
-    backward: list[list[float]] = [[] for _ in layers]
-    if layers:
-        backward[-1] = [0.0] * len(layers[-1].states)
-    for i in range(len(layers) - 1, 0, -1):
-        layer = layers[i]
-        above = backward[i]
-        cost = [math.inf] * len(layers[i - 1].states)
-        for k, p in enumerate(layer.prev_idx):
-            c = (
-                table_cost[layer.feat_ids[k]]
-                + layer.penalty[k]
-                + above[layer.next_idx[k]]
-            )
-            cost[p] = min(cost[p], c)
-        backward[i - 1] = cost
-
-    # forward + backward is the cheapest full path through a state. Per row, take the
-    # best such path for each FootMove; the margin is the runner-up minus the best.
     result: list[float | None] = []
-    for i, layer in enumerate(layers):
-        if not trellis.rows[i].pressed:
+    for row, layer, to_here, from_here in zip(
+        trellis.rows, trellis.layers, forward, backward, strict=True
+    ):
+        if not row.pressed:
             result.append(None)
             continue
-        best: dict[FootMove, float] = {}
-        for s, state in enumerate(layer.states):
-            total = forward[i][s] + backward[i][s]
-            if total < best.get(state.moved, math.inf):
-                best[state.moved] = total
-        ranked = sorted(best.values())
-        if len(ranked) < 2 or ranked[1] == math.inf:
-            result.append(math.inf)
-        else:
-            result.append(ranked[1] - ranked[0])
+        through = [f + b for f, b in zip(to_here, from_here, strict=True)]
+        result.append(_foot_move_margin(layer, through))
     return result

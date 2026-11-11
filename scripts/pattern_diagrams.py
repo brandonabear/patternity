@@ -18,10 +18,10 @@ from pathlib import Path
 from patternity import FootingModel, detect_tech_patterns
 from patternity.footing import ResolvedStep
 from patternity.footing.search import build_trellis, viterbi
-from patternity.footing.stance import FootMove
+from patternity.footing.stance import Foot
 from patternity.patterns.detector import column_foot
 from patternity.patterns.spans import PatternKind, PatternSpan
-from patternity.simfile.notes import PANELS, NoteType, Panel
+from patternity.simfile.notes import PANELS, PRESSABLE_NOTES, NoteType, Panel
 from patternity.training import parse_annotated_sm
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "docs" / "images"
@@ -51,7 +51,7 @@ OTHER_QUANT = ("#9ca3af", "finer")
 
 ARROW = "0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0"
 ROTATION = {Panel.L: 270, Panel.D: 180, Panel.U: 0, Panel.R: 90}
-FOOT_LABEL = {FootMove.LEFT: "L", FootMove.RIGHT: "R"}
+FOOT_LABEL = {Foot.LEFT: "L", Foot.RIGHT: "R"}
 
 LANE_WIDTH = 52
 PLAYFIELD_WIDTH = LANE_WIDTH * len(PANELS)
@@ -387,7 +387,7 @@ def _notes(step: ResolvedStep, x: float, top: float) -> list[str]:
         cx = _lane_x(x, column)
         if note == NoteType.MINE:
             parts.append(_mine(cx, row_y))
-        elif note in (NoteType.TAP, NoteType.HOLD, NoteType.ROLL, NoteType.LIFT):
+        elif note in PRESSABLE_NOTES:
             parts.append(_arrow(cx, row_y, panel, fill=color, stroke="#000"))
             foot = column_foot(step, panel)
             if foot in FOOT_LABEL:
@@ -437,7 +437,7 @@ def _span_marker(span: PatternSpan, x: float, top: float, label: str) -> list[st
             f'<text x="{x + 14}" y="{middle + 5}" class="cap" fill="{HIGHLIGHT}">{label}</text>'
         )
         return parts
-    gap = (span.steps[-1].note_row.timestamp or 0.0) - (span.steps[0].note_row.timestamp or 0.0)
+    gap = span.steps[-1].note_row.timestamp - span.steps[0].note_row.timestamp
     return [
         f'<path d="M{x},{y1} h8 V{y2} h-8" fill="none" stroke="{HIGHLIGHT}" stroke-width="2"/>',
         f'<text x="{x + 14}" y="{middle - 2}" class="cap" fill="{HIGHLIGHT}">{label}</text>',
@@ -499,7 +499,7 @@ def _lane_x(x: float, column: int) -> float:
 
 
 def _beat(step: ResolvedStep) -> float:
-    return step.note_row.beat or 0.0
+    return step.note_row.beat
 
 
 def _pressed(step: ResolvedStep) -> bool:

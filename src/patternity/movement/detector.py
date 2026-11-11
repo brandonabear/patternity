@@ -2,9 +2,9 @@
 
 from collections.abc import Sequence
 
-from patternity.analysis.metrics import MovementMetrics
 from patternity.footing.resolve import FootingResult, ResolvedStep
 from patternity.footing.stance import FootMove, PlayerOrientation
+from patternity.movement.metrics import MovementMetrics
 
 
 def count_direction_shifts(steps: Sequence[ResolvedStep]) -> int:

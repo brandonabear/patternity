@@ -19,13 +19,13 @@ uv run patternity -f path/to/chart.ssc -a
 | `-f`, `--file` | Simfile to read (`.sm` or `.ssc`). Required. |
 | `-a`, `--analyze` | Analyze every chart in the file and print the metrics. |
 | `-s`, `--serialize` | Write the parsed song to JSON. |
-| `-o`, `--output` | Output directory for `--serialize` (default `data/`). |
+| `-o`, `--output` | Output directory for `--serialize` (default `data/`). Created if missing. |
 
 Without `-a`, the CLI only parses the file and prints the song title.
 
 ### Output
 
-`-a` prints one dictionary per chart, in file order:
+`-a` prints each chart's difficulty and rating, then one dictionary, in file order:
 
 ```python
 {
@@ -50,12 +50,15 @@ Without `-a`, the CLI only parses the file and prints the song title.
 ```python
 from pathlib import Path
 
-from patternity import Analyzer, StepmaniaFileParser, read_simfile
+from patternity import StepmaniaFileParser, analyze_chart, read_simfile
 
 song = StepmaniaFileParser.parse(read_simfile(Path("chart.ssc")))
 for chart in song.charts:
-    print(chart.metadata.difficulty, Analyzer(chart).analyze())
+    analysis = analyze_chart(chart)
+    print(chart.metadata.difficulty, analysis.tech.jacks, analysis.to_dict())
 ```
+
+`analyze_chart` returns a `ChartAnalysis` holding `basic`, `tech` and `movement`; `to_dict()` gives the dictionaries shown above.
 
 To inspect the foot path itself rather than the counts:
 
@@ -74,16 +77,16 @@ for span in tech.spans:                      # each detection, with its steps
     print(span.kind, span.start_measure, span.start_beat)
 ```
 
-`resolve_chart` and `Analyzer` accept a `model=` argument to use other weights:
+`resolve_chart` and `analyze_chart` accept a `model` argument to use other weights:
 
 ```python
 from patternity import FootingModel
 
 model = FootingModel.load(Path("/tmp/experiment.json"))
-Analyzer(chart, model=model).analyze()
+analyze_chart(chart, model)
 ```
 
 ## Limits
 
-- Singles (4-panel) only; doubles are out of scope.
+- Singles (4-panel) only; doubles are out of scope. Charts in other modes, or with note characters Patternity doesn't model, are skipped and listed in `song.skipped_charts` (the CLI prints them).
 - Footing is learned from a small annotated corpus. Unusual patterns that no annotated chart covers (for example long jumpstreams) can be footed oddly; see [Training workflow](training.md) for how to fix that with data.

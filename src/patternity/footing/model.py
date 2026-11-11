@@ -50,10 +50,17 @@ class FootingModel:
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> FootingModel:
-        return cls(
-            weights={str(k): float(v) for k, v in dict(data["weights"]).items()},
-            metadata=dict(data.get("metadata", {})),
-        )
+        """Load weights keyed by feature name.
+
+        A feature missing from ``data`` weighs 0.0, so older files still load
+        after a feature is added. A name that is not a feature raises: it is a
+        renamed or removed feature whose weight would otherwise be dropped.
+        """
+        weights = {str(k): float(v) for k, v in dict(data["weights"]).items()}
+        unknown = sorted(set(weights) - set(FEATURE_NAMES))
+        if unknown:
+            raise ValueError(f"weights for unknown features: {', '.join(unknown)}")
+        return cls(weights=weights, metadata=dict(data.get("metadata", {})))
 
     def save(self, path: Path) -> None:
         path.write_text(json.dumps(self.to_dict(), indent=2) + "\n", encoding="utf-8")

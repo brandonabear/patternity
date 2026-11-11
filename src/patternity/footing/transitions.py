@@ -19,9 +19,11 @@ from patternity.footing.rules import Candidate, RowContext, is_legal
 from patternity.footing.stance import (
     ALL_PLACEMENTS,
     CARDINAL_PLACEMENTS,
+    Foot,
     FootMove,
     FootPlacement,
     FootRow,
+    Repeat,
     Stance,
 )
 from patternity.simfile.notes import ANCHORED_NOTES, PANELS, TAIL_NOTES, NoteRow, Panel
@@ -47,10 +49,10 @@ def _candidates(
 
 def _update_hold_owners(
     prev: FootRow, row: NoteRow, ctx: RowContext, stance: Stance, moved: FootMove
-) -> tuple[tuple[Panel, FootMove], ...]:
+) -> tuple[tuple[Panel, Foot], ...]:
     """Which foot owns each held panel after this row, as sorted (panel, foot) pairs."""
     # Active holds retain ownership
-    owners: dict[Panel, FootMove] = {
+    owners: dict[Panel, Foot] = {
         panel: foot for panel, foot in prev.hold_owners if panel in ctx.held
     }
 
@@ -63,12 +65,13 @@ def _update_hold_owners(
     for panel, note in zip(PANELS, row.notes, strict=True):
         if note not in ANCHORED_NOTES:
             continue
-        if moved & FootMove.LEFT and panel in stance.left.panels:
-            owners[panel] = FootMove.LEFT
-        elif moved & FootMove.RIGHT and panel in stance.right.panels:
-            owners[panel] = FootMove.RIGHT
+        for foot in moved.feet:
+            if panel in stance.placement(foot).panels:
+                owners[panel] = foot
+                break
 
-    return tuple(sorted(owners.items()))
+    # Sorted by panel so equal ownership always compares and hashes equal.
+    return tuple(sorted(owners.items(), key=lambda owned: owned[0]))
 
 
 def _emit_foot_row(
@@ -77,54 +80,55 @@ def _emit_foot_row(
     """Build the next FootRow after a move.
 
     A no-move row only carries state forward (mines, hold releases). A press row
-    resets the since-press fields and records the new press.
+    resets the since-press fields and records the new press. A tail on a press
+    row is deliberately not recorded as a release: its owner was still pinned
+    when the press happened.
     """
     hold_owners = _update_hold_owners(prev, row, ctx, stance, moved)
 
     if moved == FootMove.NONE:
         # A hold or roll tail on this row releases its owner. The release is
         # remembered until the next press so the cost features can see it.
-        tails = row.panels_with(TAIL_NOTES)
-        released = prev.released_since_press
-        for panel, owner in prev.hold_owners:
-            if panel in tails:
-                released |= owner
+        released = prev.released_since_press | prev.owners_of(row.panels_with(TAIL_NOTES))
 
         return FootRow(
             stance=stance,
             moved=moved,
             mines_since_press=prev.mines_since_press | row.mines,
             last_press=prev.last_press,
-            last_press_foot=prev.last_press_foot,
+            last_press_moved=prev.last_press_moved,
             hold_owners=hold_owners,
             released_since_press=released,
-            last_repeat_jack=prev.last_repeat_jack,
+            last_repeat=prev.last_repeat,
         )
 
     # Only a single-panel press is tracked for jacks and switches.
     last_press = ctx.pressed if len(ctx.pressed) == 1 else Panel.NONE
-
-    # repeat_jack: True if the same foot presses the same panel again (a jack),
-    # False if the other foot takes over the panel (a switch), and None when
-    # that comparison doesn't apply (a multi-panel row, a jump, or a new panel).
-    repeat_jack = None
-    if (
-        last_press
-        and last_press == prev.last_press
-        and moved != FootMove.BOTH
-        and prev.last_press_foot in (FootMove.LEFT, FootMove.RIGHT)
-    ):
-        repeat_jack = moved == prev.last_press_foot
 
     return FootRow(
         stance=stance,
         moved=moved,
         mines_since_press=Panel.NONE,
         last_press=last_press,
-        last_press_foot=moved,
+        last_press_moved=moved,
         hold_owners=hold_owners,
-        last_repeat_jack=repeat_jack,
+        last_repeat=_repeat(prev, last_press, moved),
     )
+
+
+def _repeat(prev: FootRow, press: Panel, moved: FootMove) -> Repeat:
+    """Whether a press of ``press`` by ``moved`` repeats the previous press row."""
+    one_foot_each_time = len(moved.feet) == 1 and len(prev.last_press_moved.feet) == 1
+    same_panel = bool(press) and press == prev.last_press
+    if not (same_panel and one_foot_each_time):
+        return Repeat.NONE
+    return Repeat.JACK if moved == prev.last_press_moved else Repeat.SWITCH
+
+
+def stay_put(prev: FootRow, row: NoteRow, grace: Panel = Panel.NONE) -> FootRow:
+    """The next ``FootRow`` when neither foot moves on ``row``."""
+    ctx = RowContext.from_row(row, grace)
+    return _emit_foot_row(prev, row, ctx, stance=prev.stance, moved=FootMove.NONE)
 
 
 def iter_legal_transitions(
@@ -143,7 +147,7 @@ def iter_legal_transitions(
 
     # No change in footing
     if not ctx.pressed:
-        yield _emit_foot_row(prev, row, ctx, stance=prev.stance, moved=FootMove.NONE)
+        yield stay_put(prev, row, grace)
         return
 
     # Brackets (two panels under one foot) are excluded unless requested.

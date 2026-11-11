@@ -1,8 +1,7 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from dataclasses import fields as _fields
 from typing import Any
 
-from patternity.patterns.spans import PatternKind, PatternSpan
 from patternity.simfile.notes import NoteRow, NoteType
 
 
@@ -10,15 +9,15 @@ from patternity.simfile.notes import NoteRow, NoteType
 class BasicMetrics:
     """Basic metrics for a chart."""
 
-    taps: int = 0  # Count of pressable rows (jumps/hands = 1)
-    jumps: int = 0  # Count of pressable notes
-    hands: int = 0
-    holds: int = 0
-    rolls: int = 0
+    taps: int = 0  # Press rows (a jump or hand is one tap).
+    jumps: int = 0  # Press rows with two or more pressed panels.
+    hands: int = 0  # Press rows with three or more panels pressed or held.
+    holds: int = 0  # Hold heads.
+    rolls: int = 0  # Roll heads.
     mines: int = 0
     lifts: int = 0
     fakes: int = 0
-    steps: int = 0
+    steps: int = 0  # Pressed notes (a jump is two steps).
 
     def add_note(self, note_row: NoteRow) -> None:
         heads = 0
@@ -47,82 +46,11 @@ class BasicMetrics:
             self.taps += 1
             if heads >= 2:
                 self.jumps += 1
+            # An ongoing hold occupies a foot or hand. Ongoing rolls are not counted.
             ongoing_holds = note_row.holds_active & ~note_row.pressed
             covered_panels = len(note_row.pressed | ongoing_holds)
             if covered_panels >= 3:
                 self.hands += 1
-
-    def to_dict(self) -> dict[str, Any]:
-        return {f.name: getattr(self, f.name) for f in _fields(self)}
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> BasicMetrics:
-        kwargs = {f.name: int(data.get(f.name, 0)) for f in _fields(cls)}
-        return cls(**kwargs)
-
-
-@dataclass
-class TechMetrics:
-    """Tech pattern detections for a chart.
-
-    Spans are the source of truth; aggregate counts are derived for reports.
-    """
-
-    spans: list[PatternSpan] = field(default_factory=list)
-
-    def count(self, kind: PatternKind) -> int:
-        """Return count of a given pattern across all spans."""
-        return sum(1 for span in self.spans if span.kind == kind)
-
-    @property
-    def crossovers(self) -> int:
-        return self.count(PatternKind.CROSSOVER) + self.count(
-            PatternKind.INVERTED_CROSSOVER
-        )
-
-    @property
-    def footswitches(self) -> int:
-        return self.count(PatternKind.FOOTSWITCH)
-
-    @property
-    def sideswitches(self) -> int:
-        return self.count(PatternKind.SIDESWITCH)
-
-    @property
-    def jacks(self) -> int:
-        return self.count(PatternKind.JACK)
-
-    @property
-    def brackets(self) -> int:
-        return self.count(PatternKind.BRACKET)
-
-    @property
-    def doublesteps(self) -> int:
-        return self.count(PatternKind.DOUBLESTEP)
-
-    @property
-    def candles(self) -> int:
-        return self.count(PatternKind.CANDLE)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "crossovers": self.crossovers,
-            "footswitches": self.footswitches,
-            "sideswitches": self.sideswitches,
-            "jacks": self.jacks,
-            "brackets": self.brackets,
-            "doublesteps": self.doublesteps,
-            "candles": self.candles,
-        }
-
-
-@dataclass
-class MovementMetrics:
-    """Player movement metrics from foot-path resolution."""
-
-    direction_shifts: int = 0
-    total_cost: float = 0.0
-    foot_path_feasible: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         return {f.name: getattr(self, f.name) for f in _fields(self)}

@@ -1,0 +1,17 @@
+# Runs the project's own ruff and ty through uv, so the hooks use the versions
+# pinned in uv.lock and ty sees the project environment.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff check
+        entry: uv run ruff check src tests scripts
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: ty
+        name: ty check
+        entry: uv run ty check
+        language: system
+        types: [python]
+        pass_filenames: false

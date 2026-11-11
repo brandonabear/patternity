@@ -13,7 +13,14 @@ from rich.console import Console
 from patternity.footing.features import FEATURE_NAMES
 from patternity.footing.model import PACKAGED_WEIGHTS
 from patternity.training.corpus import default_fixtures_root, load_corpus
-from patternity.training.trainer import leave_one_out, load_examples, row_errors, train
+from patternity.training.trainer import (
+    DEFAULT_EPOCHS,
+    DEFAULT_MARGIN,
+    leave_one_out,
+    load_examples,
+    row_errors,
+    train,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -28,8 +35,8 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="directory holding fixtures and training_corpus.txt (default: nearest tests/fixtures)",
     )
-    parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--margin", type=float, default=5.0)
+    parser.add_argument("--epochs", type=int, default=DEFAULT_EPOCHS)
+    parser.add_argument("--margin", type=float, default=DEFAULT_MARGIN)
     parser.add_argument("--output", type=Path, default=PACKAGED_WEIGHTS)
     parser.add_argument("--no-loo", action="store_true", help="skip leave-one-out")
     return parser

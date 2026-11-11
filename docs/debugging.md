@@ -52,7 +52,7 @@ For each fixture this prints:
 
 - **Per-row accuracy**: rows where the model's foot differs from `@foot` / `@feet`, sorted by margin. A disagreement with a large margin means the model is confidently wrong (or the tag is wrong); a small margin means a near tie.
 - **Pattern precision/recall** against `@pattern` tags, with false-positive and false-negative line numbers. Only rows that carry `@foot` / `@feet` are scored, so unannotated stretches don't count against it.
-- **Impossible annotations**: tags no legal path can satisfy. Fix the tag first; these are excluded from training.
+- **Impossible annotations**: tags no legal path can satisfy. Fix the tag first; training refuses to load a chart that has one.
 
 ## Why does the model prefer its footing?
 
