@@ -43,3 +43,12 @@ def test_suggestions_and_other_tags_are_ignored() -> None:
 def test_first_of_a_repeated_tag_wins() -> None:
     annotated = parse_annotated_sm(chart_text(["1000 // @foot=L @foot=R", ","]))
     assert annotated.tagged_assignments == {0: FootMove.LEFT}
+
+
+def test_lift_is_not_a_pressable_note() -> None:
+    # Footing never steps on a lift, so a pattern can't be anchored on one and
+    # a tap plus a lift is one press, not two.
+    with pytest.raises(AnnotationError, match="no pressable note"):
+        parse_annotated_sm(chart_text(["L000 // @pattern=jack", ","]))
+    with pytest.raises(AnnotationError, match="1 pressable"):
+        parse_annotated_sm(chart_text(["100L // @feet=L,R", ","]))

@@ -19,7 +19,6 @@ ITG_JACK_CUTOFF_SEC = 0.176
 ITG_FOOTSWITCH_CUTOFF_SEC = (1.0 / 3.0) + 1e-6
 
 _SIDE_PANELS = Panel.L | Panel.R
-_PRESS = frozenset({NoteType.TAP, NoteType.HOLD, NoteType.ROLL, NoteType.LIFT})
 _FEET = (FootMove.LEFT, FootMove.RIGHT)
 _OPPOSITE_PANELS = ((Panel.U, Panel.D), (Panel.L, Panel.R))
 
@@ -50,7 +49,7 @@ def column_foot(step: ResolvedStep, panel: Panel) -> FootMove | None:
     """Foot acting on ``panel``: the moving foot for a press, the hold owner for a tail."""
     note = step.note_row.notes[panel.column]
     fr = step.foot_row
-    if note in _PRESS:
+    if panel in step.note_row.pressed:
         for foot in _FEET:
             if fr.moved & foot and panel in fr.stance.placement(foot).panels:
                 return foot
@@ -157,7 +156,7 @@ class _TechDetector:
             if foot is None:
                 continue
             history = self.columns[panel]
-            is_press = note in _PRESS
+            is_press = panel in row.pressed
             if is_press:
                 self._jack_or_switch(step, panel, foot, now, epoch_before)
                 history.record_press(step, foot, now, self.press_rows)

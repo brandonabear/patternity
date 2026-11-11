@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from patternity.footing.stance import FootMove
 from patternity.patterns.spans import PatternKind
-from patternity.simfile.notes import NoteRow, NoteType
+from patternity.simfile.notes import NoteRow
 from patternity.simfile.parser import (
     StepmaniaFileParser,
     source_rows,
@@ -42,13 +42,6 @@ PATTERN_TAGS: dict[str, PatternKind] = {
 # Tags a chart may carry for the reader's benefit; evaluation ignores them.
 UNSCORED_PATTERN_TAGS = frozenset({"crossover", "jump"})
 
-_PRESSABLE = {
-    NoteType.TAP,
-    NoteType.HOLD,
-    NoteType.ROLL,
-    NoteType.LIFT,
-}
-
 
 class AnnotationError(ValueError):
     """Raised when corpus comments do not align with chart rows."""
@@ -64,10 +57,6 @@ class AnnotatedRow:
     feet: tuple[str, ...] = ()
     patterns: frozenset[str] = frozenset()
     section: str = "default"
-
-    @property
-    def pressable_cols(self) -> tuple[int, ...]:
-        return tuple(col for col, note in enumerate(self.row.notes) if note in _PRESSABLE)
 
     def expected_foot_move(self) -> FootMove | None:
         """Map ``@foot`` / ``@feet`` to ``FootMove`` for regression checks."""
@@ -197,7 +186,7 @@ def _sections_by_line(lines: list[str]) -> list[str]:
 
 def _validate_row(item: AnnotatedRow, *, require_complete: bool) -> None:
     line, feet = item.line_number, item.feet
-    press_count = len(item.pressable_cols)
+    press_count = len(item.row.pressed)
     if len(feet) == 2 and press_count != 2:
         raise AnnotationError(
             f"line {line}: @feet expects two panels but row has {press_count} pressable notes"

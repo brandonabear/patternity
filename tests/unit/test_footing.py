@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from patternity import Analyzer, resolve_chart
 from patternity.footing import FootingModel
 from patternity.footing.features import FEATURE_NAMES, featurize, hits_mine
 from patternity.footing.grace import hold_grace
@@ -188,3 +189,13 @@ def test_weights_missing_a_feature_default_to_zero() -> None:
     model = FootingModel.from_dict({"weights": {"travel": 1.5}})
     assert model.vector()[FEATURE_NAMES.index("travel")] == 1.5
     assert sum(model.vector()) == 1.5
+
+
+def test_lifts_and_fakes_are_counted_but_never_stepped_on() -> None:
+    chart = parse_annotated_sm(chart_text(["1000", "0L0F", "0100", ","])).chart
+    result = Analyzer(chart).analyze()
+
+    assert (result["basic"]["lifts"], result["basic"]["fakes"]) == (1, 1)
+    assert result["basic"]["taps"] == 2
+    moves = [step.foot_row.moved for step in resolve_chart(chart.notes).steps]
+    assert moves[1] == FootMove.NONE

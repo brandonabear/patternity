@@ -21,7 +21,7 @@ from patternity.footing.search import build_trellis, viterbi
 from patternity.footing.stance import FootMove
 from patternity.patterns.detector import column_foot
 from patternity.patterns.spans import PatternKind, PatternSpan
-from patternity.simfile.notes import PANELS, NoteType, Panel
+from patternity.simfile.notes import PANELS, PRESSABLE_NOTES, NoteType, Panel
 from patternity.training import parse_annotated_sm
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "docs" / "images"
@@ -387,7 +387,7 @@ def _notes(step: ResolvedStep, x: float, top: float) -> list[str]:
         cx = _lane_x(x, column)
         if note == NoteType.MINE:
             parts.append(_mine(cx, row_y))
-        elif note in (NoteType.TAP, NoteType.HOLD, NoteType.ROLL, NoteType.LIFT):
+        elif note in PRESSABLE_NOTES:
             parts.append(_arrow(cx, row_y, panel, fill=color, stroke="#000"))
             foot = column_foot(step, panel)
             if foot in FOOT_LABEL:

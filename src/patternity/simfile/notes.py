@@ -50,6 +50,8 @@ class NoteType(StrEnum):
     LIFT = "L"
 
 
+# The notes a foot steps on. This is the only definition of "pressable": lifts and
+# fakes are parsed and counted, but never stepped on (ITG charts don't use lifts).
 PRESSABLE_NOTES = frozenset({NoteType.TAP, NoteType.HOLD, NoteType.ROLL})
 ANCHORED_NOTES = frozenset({NoteType.HOLD, NoteType.ROLL})
 TAIL_NOTES = frozenset({NoteType.TAIL})
