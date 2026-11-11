@@ -5,7 +5,8 @@ from patternity.simfile.song import Song
 
 
 def serialize(song: Song, output: Path) -> Path:
-    """Serialize a song to JSON"""
+    """Serialize a song to JSON, creating the output directory if needed."""
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(song.to_dict(), indent=2) + "\n", encoding="utf-8")
     return output.resolve()
 

@@ -57,6 +57,10 @@ TAIL_NOTES = frozenset({NoteType.TAIL})
 MINE_NOTES = frozenset({NoteType.MINE})
 
 
+class InvalidNoteRow(ValueError):
+    """A note row that is not four columns of known note characters."""
+
+
 @dataclass
 class NoteRow:
     left: NoteType | None = None
@@ -96,9 +100,12 @@ class NoteRow:
 
     @classmethod
     def from_str(cls, row: str, **kwargs: Any) -> NoteRow:
-        if not row:
-            raise ValueError("Note rows cannot be empty.")
-        left, down, up, right = (NoteType(char) for char in row)
+        if len(row) != _NUM_COLUMNS:
+            raise InvalidNoteRow(f"expected {_NUM_COLUMNS} columns, got {row!r}")
+        try:
+            left, down, up, right = (NoteType(char) for char in row)
+        except ValueError:
+            raise InvalidNoteRow(f"unsupported note character in {row!r}") from None
         return cls(left=left, down=down, up=up, right=right, **kwargs)
 
     @classmethod

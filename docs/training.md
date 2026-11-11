@@ -28,7 +28,7 @@ Annotations are `//` comments on note rows in a fixture chart under `tests/fixtu
 | `@foot=L` / `@foot=R` | Which foot presses this row. |
 | `@feet=L,R` | Two panels pressed by different feet (a jump). |
 | `@feet=L,L` / `@feet=R,R` | Both panels pressed by one foot (a bracket). |
-| `@pattern=…` | The tech pattern that **ends** on this row: `jack`, `footswitch`, `holdswitch` (scored as a footswitch), `sideswitch`, `doublestep`, `bracket`, `candle`. Comma-separate several. Only scored, never trained on. |
+| `@pattern=…` | The tech pattern that **ends** on this row: `jack`, `footswitch`, `holdswitch` (scored as a footswitch), `sideswitch`, `doublestep`, `bracket`, `candle`. Comma-separate several. `crossover` and `jump` are accepted but not scored. Only scored, never trained on. |
 | `@section=name` | Groups following rows under a name (informational). |
 | `@suggest_foot=…` / `@suggest_feet=…`  `@margin=…` | Foot suggestion written by the suggestion script. Ignored by training until you drop the `suggest_` prefix. |
 | `@suggest_pattern=…` | Pattern suggestion written by the suggestion script (`none` means the decoder found no pattern on a row you tagged). Ignored until you drop the `suggest_` prefix. |
@@ -39,7 +39,8 @@ Rules and conventions:
 - **Only the first chart in a file is read.** Put the chart you annotate first, or keep one chart per fixture file.
 - **Measure comments**: `// measure 0` on its own line before the first row, and each comma labeled with the measure that starts after it (`,  // measure 1`). Measures are 0-based, as in the StepMania editor. These are for humans; the parser ignores them.
 - **Never put `;` in a comment** inside note data. StepMania treats `;` as the end of a section.
-- An annotation that is physically impossible (for example `@foot=R` while the right foot is holding a different panel) is reported as an "impossible annotation" by the evaluation and the tests; fix the tag.
+- An annotation that is physically impossible (for example `@foot=R` while the right foot is holding a different panel) is reported as an "impossible annotation" by the evaluation and the tests, and training refuses to load the chart; fix the tag.
+- **Tags are checked.** A malformed `@foot` / `@feet` value or an unknown `@pattern` name raises an error with the line number.
 
 ### Using suggestions
 

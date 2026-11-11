@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 
 from patternity.footing.features import (
     FEATURE_INDEX,
@@ -18,7 +18,7 @@ from patternity.footing.features import (
 )
 from patternity.footing.grace import GraceWindow, hold_grace
 from patternity.footing.stance import FootMove, FootRow
-from patternity.footing.transitions import iter_legal_transitions
+from patternity.footing.transitions import iter_legal_transitions, stay_put
 from patternity.simfile.notes import NoteRow
 
 RELAXED_PENALTY = 1000.0
@@ -132,14 +132,15 @@ def _add_relaxed_edges(
     states: Sequence[FootRow],
     row: NoteRow,
     blocked: Sequence[_Blocked],
+    grace: GraceWindow,
     features: _FeatureTable,
 ) -> None:
     """Give a row with no legal edge penalized edges so the path can continue.
 
     If the only moves stepped on a mine, allow them at ``RELAXED_PENALTY``.
     Otherwise nothing was physically possible (e.g. a malformed chart): every
-    state stays put at the same penalty, carrying the row's mines forward as a
-    no-press row would.
+    state stays put at the same penalty, carrying mines, hold owners and hold
+    releases forward exactly as a no-press row would.
     """
     if blocked:
         for prev_i, curr, feat_id in blocked:
@@ -148,12 +149,7 @@ def _add_relaxed_edges(
 
     empty = features.intern({})
     for prev_i, prev in enumerate(states):
-        stay = replace(
-            prev,
-            moved=FootMove.NONE,
-            mines_since_press=prev.mines_since_press | row.mines,
-        )
-        layer.add_edge(prev_i, stay, empty, RELAXED_PENALTY)
+        layer.add_edge(prev_i, stay_put(prev, row, grace.panels), empty, RELAXED_PENALTY)
 
 
 def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Trellis:
@@ -175,7 +171,7 @@ def build_trellis(rows: Sequence[NoteRow], *, allow_brackets: bool = True) -> Tr
         )
         if not layer.prev_idx:
             relaxed.append(row_index)
-            _add_relaxed_edges(layer, states, row, blocked, features)
+            _add_relaxed_edges(layer, states, row, blocked, grace_rows[row_index], features)
 
         layers.append(layer)
         states = layer.states

@@ -9,8 +9,8 @@ from pathlib import Path
 from rich.console import Console
 
 from patternity.analysis import Analyzer
-from patternity.simfile.parser import StepmaniaFileParser
-from patternity.simfile.reader import read_simfile
+from patternity.simfile.parser import MissingTimingError, StepmaniaFileParser
+from patternity.simfile.reader import UnsupportedSimfileSuffix, read_simfile
 from patternity.simfile.serializer import output_path, serialize
 
 
@@ -37,7 +37,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--serialize",
         "-s",
-        help="Serialize the parsed or analyzed song to disk.",
+        help="Serialize the parsed song to JSON.",
         action="store_true",
         default=False,
         required=False,
@@ -45,7 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         "-o",
-        help="The directory to output the parsed song results to.",
+        help="Directory for --serialize output (default: data/).",
         type=Path,
         required=False,
     )
@@ -56,17 +56,24 @@ def main(argv: list[str] | None = None) -> int:
     console = Console()
     argument_parser = build_parser()
     args = argument_parser.parse_args(args=argv)
+    if args.output and not args.serialize:
+        argument_parser.error("--output only applies with --serialize")
 
-    data = read_simfile(args.file)
-    console.print(f"Read file: {args.file.name}")
-
-    song = StepmaniaFileParser.parse(data)
+    try:
+        data = read_simfile(args.file)
+        console.print(f"Read file: {args.file.name}")
+        song = StepmaniaFileParser.parse(data)
+    except (OSError, UnsupportedSimfileSuffix, MissingTimingError) as exc:
+        console.print(f"Error: {exc}")
+        return 1
     console.print(f"Parsed song: {song.header.title}")
+    for skipped in song.skipped_charts:
+        console.print(f"Skipped {skipped.mode} {skipped.difficulty} chart: {skipped.reason}")
 
     if args.analyze:
         for chart in song.charts:
-            analyzer = Analyzer(chart)
-            console.print(analyzer.analyze())
+            console.print(f"{chart.metadata.difficulty} {chart.metadata.rating:g}")
+            console.print(Analyzer(chart).analyze())
 
     if args.serialize:
         out_dir = args.output or Path("data/")

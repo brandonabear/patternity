@@ -25,7 +25,11 @@ from patternity.footing.search import (
 )
 from patternity.footing.stance import FootMove
 from patternity.simfile.reader import read_simfile
-from patternity.training.annotations import AnnotatedChart, parse_annotated_sm
+from patternity.training.annotations import (
+    AnnotatedChart,
+    AnnotationError,
+    parse_annotated_sm,
+)
 
 # Physically these can only add effort; with little data the perceptron could
 # otherwise learn to reward them.
@@ -56,12 +60,25 @@ class Example:
 
 
 def load_example(path: Path, name: str | None = None) -> Example:
+    name = name or path.name
     annotated = parse_annotated_sm(read_simfile(path))
-    return Example(
-        name=name or path.name,
-        annotated=annotated,
-        trellis=build_trellis(annotated.chart.notes),
-    )
+    trellis = build_trellis(annotated.chart.notes)
+    _require_possible_annotations(name, annotated, trellis)
+    return Example(name=name, annotated=annotated, trellis=trellis)
+
+
+def _require_possible_annotations(name: str, annotated: AnnotatedChart, trellis: Trellis) -> None:
+    """Raise if any tag can't be satisfied by a legal path.
+
+    Such a row is a mistake on every epoch, so training would never converge
+    and would quietly return averaged weights fitted to a bad label.
+    """
+    # Reachability doesn't depend on the weights, so zeros will do.
+    no_weights = [0.0] * len(FEATURE_NAMES)
+    impossible = viterbi(trellis, no_weights, allowed=annotated.tagged_assignments).relaxed_rows
+    if impossible:
+        lines = ", ".join(str(annotated.rows[i].line_number) for i in impossible)
+        raise AnnotationError(f"{name}: physically impossible annotation on line(s) {lines}")
 
 
 def load_examples(relpaths: Sequence[str], root: Path) -> list[Example]:

@@ -192,6 +192,10 @@ class _TechDetector:
         prev = self.prev_press
         moved = step.foot_row.moved
         press = _single_press(step)
+        # Only a tail on a row of its own exempts the doublestep: the other foot
+        # was free before this press. A tail on this press row does not, because
+        # the other foot was still pinned when the step had to be taken (a
+        # hold-cued doublestep).
         released = (
             self.prev_row.foot_row.released_since_press
             if self.prev_row is not None

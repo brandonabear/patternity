@@ -157,7 +157,9 @@ class Header:
                 continue
 
             if field_name.name in {"selectable"}:
-                setattr(obj, field_name.name, value == "yes")
+                # ``to_dict`` writes a bool; older JSON may hold the raw "YES" / "NO".
+                selectable = value if isinstance(value, bool) else str(value).lower() == "yes"
+                setattr(obj, field_name.name, selectable)
             elif isinstance(value, dict):
                 setattr(
                     obj, field_name.name, {float(k): float(v) for k, v in value.items()}
@@ -175,6 +177,7 @@ class Difficulty(StrEnum):
     MEDIUM = "Medium"
     HARD = "Hard"
     CHALLENGE = "Challenge"
+    EDIT = "Edit"
 
     @classmethod
     def from_sm(cls, sm_string: str) -> Difficulty:
@@ -222,18 +225,27 @@ class GrooveRadar:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> GrooveRadar:
+        # ``is None`` rather than truthiness: zero is a real radar value.
+        def ratio(name: str) -> float | None:
+            value = data.get(name)
+            return None if value is None else float(value)
+
+        def count(name: str) -> int | None:
+            value = data.get(name)
+            return None if value is None else int(value)
+
         return cls(
-            stream=float(data["stream"]) if data.get("stream") else None,
-            voltage=float(data["voltage"]) if data.get("voltage") else None,
-            air=float(data["air"]) if data.get("air") else None,
-            freeze=float(data["freeze"]) if data.get("freeze") else None,
-            chaos=float(data["chaos"]) if data.get("chaos") else None,
-            steps=int(data["steps"]) if data.get("steps") else None,
-            taps=int(data["taps"]) if data.get("taps") else None,
-            jumps=int(data["jumps"]) if data.get("jumps") else None,
-            holds=int(data["holds"]) if data.get("holds") else None,
-            mines=int(data["mines"]) if data.get("mines") else None,
-            hands=int(data["hands"]) if data.get("hands") else None,
+            stream=ratio("stream"),
+            voltage=ratio("voltage"),
+            air=ratio("air"),
+            freeze=ratio("freeze"),
+            chaos=ratio("chaos"),
+            steps=count("steps"),
+            taps=count("taps"),
+            jumps=count("jumps"),
+            holds=count("holds"),
+            mines=count("mines"),
+            hands=count("hands"),
         )
 
 
@@ -284,10 +296,21 @@ class Chart:
         )
 
 
+@dataclass(frozen=True)
+class SkippedChart:
+    """A chart the parser found but could not model (e.g. doubles), and why."""
+
+    mode: str
+    difficulty: str
+    reason: str
+
+
 @dataclass
 class Song:
     header: Header
     charts: list[Chart] = field(default_factory=list)
+    # Charts left out of ``charts``. Not serialized.
+    skipped_charts: list[SkippedChart] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {

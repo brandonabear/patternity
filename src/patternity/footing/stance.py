@@ -233,6 +233,14 @@ class FootRow:
                 return foot
         return None
 
+    def owners_of(self, panels: Panel) -> FootMove:
+        """The feet anchored to a hold or roll on any of ``panels``."""
+        owners = FootMove.NONE
+        for owned, foot in self.hold_owners:
+            if owned in panels:
+                owners |= foot
+        return owners
+
     def pressed_panels(self) -> Panel:
         """Panels under the foot or feet that moved on this row."""
         pressed = Panel.NONE

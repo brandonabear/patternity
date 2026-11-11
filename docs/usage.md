@@ -19,13 +19,13 @@ uv run patternity -f path/to/chart.ssc -a
 | `-f`, `--file` | Simfile to read (`.sm` or `.ssc`). Required. |
 | `-a`, `--analyze` | Analyze every chart in the file and print the metrics. |
 | `-s`, `--serialize` | Write the parsed song to JSON. |
-| `-o`, `--output` | Output directory for `--serialize` (default `data/`). |
+| `-o`, `--output` | Output directory for `--serialize` (default `data/`). Created if missing. |
 
 Without `-a`, the CLI only parses the file and prints the song title.
 
 ### Output
 
-`-a` prints one dictionary per chart, in file order:
+`-a` prints each chart's difficulty and rating, then one dictionary, in file order:
 
 ```python
 {
@@ -85,5 +85,5 @@ Analyzer(chart, model=model).analyze()
 
 ## Limits
 
-- Singles (4-panel) only; doubles are out of scope.
+- Singles (4-panel) only; doubles are out of scope. Charts in other modes, or with note characters Patternity doesn't model, are skipped and listed in `song.skipped_charts` (the CLI prints them).
 - Footing is learned from a small annotated corpus. Unusual patterns that no annotated chart covers (for example long jumpstreams) can be footed oddly; see [Training workflow](training.md) for how to fix that with data.

@@ -18,17 +18,8 @@ from patternity.footing.stance import FootMove
 from patternity.patterns.detector import detect_tech_patterns
 from patternity.patterns.spans import PatternKind
 from patternity.simfile.reader import read_simfile
-from patternity.training.annotations import AnnotatedChart, parse_annotated_sm
+from patternity.training.annotations import PATTERN_TAGS, AnnotatedChart, parse_annotated_sm
 
-PATTERN_TAGS: dict[str, PatternKind] = {
-    "jack": PatternKind.JACK,
-    "footswitch": PatternKind.FOOTSWITCH,
-    "holdswitch": PatternKind.FOOTSWITCH,
-    "sideswitch": PatternKind.SIDESWITCH,
-    "doublestep": PatternKind.DOUBLESTEP,
-    "bracket": PatternKind.BRACKET,
-    "candle": PatternKind.CANDLE,
-}
 SCORED_KINDS: tuple[PatternKind, ...] = tuple(dict.fromkeys(PATTERN_TAGS.values()))
 
 

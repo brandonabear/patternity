@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 
-from patternity.simfile.notes import AnchorTracker, NoteRow
+from patternity.simfile.notes import AnchorTracker, InvalidNoteRow, NoteRow
 from patternity.simfile.song import (
     HEADER_SETTERS,
     Chart,
@@ -9,6 +9,7 @@ from patternity.simfile.song import (
     Difficulty,
     GrooveRadar,
     Header,
+    SkippedChart,
     Song,
     parse_beat_value_map,
 )
@@ -26,6 +27,13 @@ _SSC_CHART_TAGS = frozenset(
         "#STOPS",  # SSC split-timing
     }
 )
+
+# The only chart mode the footing model covers (4-panel singles).
+SUPPORTED_MODE = "dance-single"
+
+
+class MissingTimingError(ValueError):
+    """A chart has no ``#BPMS``, so its rows cannot be given timestamps."""
 
 
 def strip_leading_comments(section: str) -> str:
@@ -172,21 +180,44 @@ def _parse_groove_radar(raw: str) -> GrooveRadar:
     )
 
 
-def _build_chart_metadata(
+def _build_chart(
     *,
     mode: str,
     credit: str,
     difficulty: str,
     rating: float,
     radar_raw: str,
-) -> ChartMetadata:
-    return ChartMetadata(
+    notes: str,
+    timing: TimingEngine,
+) -> Chart | SkippedChart:
+    """Build one chart, or say why it can't be modeled.
+
+    One unsupported chart (doubles, an unknown note character) must not hide the
+    other charts in the file, so it is reported rather than raised.
+    """
+
+    def skipped(reason: str) -> SkippedChart:
+        return SkippedChart(mode=mode, difficulty=difficulty, reason=reason)
+
+    if mode != SUPPORTED_MODE:
+        return skipped(f"only {SUPPORTED_MODE} charts are supported")
+    try:
+        parsed_difficulty = Difficulty.from_sm(difficulty)
+    except ValueError:
+        return skipped(f"unknown difficulty {difficulty!r}")
+    try:
+        note_rows = _parse_notedata(notes, timing)
+    except InvalidNoteRow as exc:
+        return skipped(str(exc))
+
+    metadata = ChartMetadata(
         mode=mode,
         credit=credit,
-        difficulty=Difficulty.from_sm(difficulty),
+        difficulty=parsed_difficulty,
         rating=rating,
         radar=_parse_groove_radar(radar_raw),
     )
+    return Chart(metadata, note_rows)
 
 
 class StepmaniaFileParser:
@@ -206,6 +237,8 @@ class StepmaniaFileParser:
             if chart_fields.get("#STOPS"):
                 stops = parse_beat_value_map(chart_fields["#STOPS"])
 
+        if not bpms:
+            raise MissingTimingError("simfile has charts but no #BPMS")
         return TimingEngine(bpms=bpms, stops=stops)
 
     @classmethod
@@ -229,9 +262,7 @@ class StepmaniaFileParser:
             if chart_fields is not None:
                 if head.startswith(("#NOTES:", "#NOTES2:")):
                     timing = cls._build_timing(song, chart_fields)
-                    song.charts.append(
-                        cls._chart_from_fields(chart_fields, section, timing)
-                    )
+                    cls._add_chart(song, cls._chart_from_fields(chart_fields, section, timing))
                     chart_fields = None
                     continue
 
@@ -242,7 +273,7 @@ class StepmaniaFileParser:
 
             if head.startswith("#NOTES:"):
                 timing = cls._build_timing(song)
-                song.charts.append(cls._chart_from_packed_notes(section, timing))
+                cls._add_chart(song, cls._chart_from_packed_notes(section, timing))
                 continue
 
             key, value = _parse_header(section)
@@ -251,33 +282,39 @@ class StepmaniaFileParser:
 
         return song
 
+    @staticmethod
+    def _add_chart(song: Song, chart: Chart | SkippedChart) -> None:
+        if isinstance(chart, Chart):
+            song.charts.append(chart)
+        else:
+            song.skipped_charts.append(chart)
+
     @classmethod
     def _chart_from_fields(
         cls, fields: dict[str, str], section: str, timing: TimingEngine
-    ) -> Chart:
+    ) -> Chart | SkippedChart:
         """Build a chart from .ssc ``#NOTEDATA:`` tags."""
-        return Chart(
-            _build_chart_metadata(
-                mode=fields.get("#STEPSTYPE", ""),
-                credit=fields.get("#CREDIT") or fields.get("#DESCRIPTION") or "",
-                difficulty=fields.get("#DIFFICULTY", ""),
-                rating=float(fields.get("#METER", 0)),
-                radar_raw=fields.get("#RADARVALUES", ""),
-            ),
-            _parse_notedata(section.split(":", 1)[1], timing),
+        return _build_chart(
+            mode=fields.get("#STEPSTYPE", ""),
+            credit=fields.get("#CREDIT") or fields.get("#DESCRIPTION") or "",
+            difficulty=fields.get("#DIFFICULTY", ""),
+            rating=float(fields.get("#METER", 0)),
+            radar_raw=fields.get("#RADARVALUES", ""),
+            notes=section.split(":", 1)[1],
+            timing=timing,
         )
 
     @classmethod
-    def _chart_from_packed_notes(cls, section: str, timing: TimingEngine) -> Chart:
+    def _chart_from_packed_notes(cls, section: str, timing: TimingEngine
+    ) -> Chart | SkippedChart:
         """Build a chart from a .sm ``#NOTES:`` value."""
         parts = [part.strip() for part in section.split(":", 6)][1:]
-        return Chart(
-            _build_chart_metadata(
-                mode=parts[0],
-                credit=parts[1],
-                difficulty=parts[2],
-                rating=float(parts[3]),
-                radar_raw=parts[4],
-            ),
-            _parse_notedata(parts[5], timing),
+        return _build_chart(
+            mode=parts[0],
+            credit=parts[1],
+            difficulty=parts[2],
+            rating=float(parts[3]),
+            radar_raw=parts[4],
+            notes=parts[5],
+            timing=timing,
         )

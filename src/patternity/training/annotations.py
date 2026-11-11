@@ -10,6 +10,7 @@ import re
 from dataclasses import dataclass
 
 from patternity.footing.stance import FootMove
+from patternity.patterns.spans import PatternKind
 from patternity.simfile.notes import NoteRow, NoteType
 from patternity.simfile.parser import (
     StepmaniaFileParser,
@@ -20,10 +21,26 @@ from patternity.simfile.song import Chart, Song
 
 _NOTE_ROW_RE = re.compile(r"^[0-4MFL]{4}", re.IGNORECASE)
 
-_FOOT_RE = re.compile(r"(?:^|\s)@foot=([LR])(?:\s|$)")
-_FEET_RE = re.compile(r"(?:^|\s)@feet=([LR](?:,[LR])*)(?:\s|$)")
-_PATTERN_RE = re.compile(r"(?:^|\s)@pattern=([a-z0-9_-]+(?:,[a-z0-9_-]+)*)(?:\s|$)")
+# Legal values of the tags read from a note row's comment.
+_TAG_VALUE_RES = {
+    "@foot": re.compile(r"[LR]"),
+    "@feet": re.compile(r"[LR](?:,[LR])*"),
+    "@pattern": re.compile(r"[a-z0-9_-]+(?:,[a-z0-9_-]+)*"),
+}
 _SECTION_RE = re.compile(r"(?:^|\s)@section=([a-z0-9_-]+)(?:\s|$)")
+
+# ``@pattern`` tags that are scored, and the detector kind each is compared against.
+PATTERN_TAGS: dict[str, PatternKind] = {
+    "jack": PatternKind.JACK,
+    "footswitch": PatternKind.FOOTSWITCH,
+    "holdswitch": PatternKind.FOOTSWITCH,
+    "sideswitch": PatternKind.SIDESWITCH,
+    "doublestep": PatternKind.DOUBLESTEP,
+    "bracket": PatternKind.BRACKET,
+    "candle": PatternKind.CANDLE,
+}
+# Tags a chart may carry for the reader's benefit; evaluation ignores them.
+UNSCORED_PATTERN_TAGS = frozenset({"crossover", "jump"})
 
 _PRESSABLE = {
     NoteType.TAP,
@@ -120,27 +137,42 @@ def _notes_body(data: str) -> tuple[str, int]:
     raise AnnotationError("no #NOTES chart found")
 
 
+def _tag_values(comment: str, *, line_number: int) -> dict[str, str]:
+    """The value of each ``@foot`` / ``@feet`` / ``@pattern`` tag in a row comment.
+
+    A tag with a malformed value raises rather than being skipped: a typo would
+    otherwise drop the row from training and scoring without a trace. When a
+    tag repeats, the first one wins.
+    """
+    values: dict[str, str] = {}
+    for token in comment.split():
+        key, has_value, value = token.partition("=")
+        if not has_value or key not in _TAG_VALUE_RES:
+            continue
+        if not _TAG_VALUE_RES[key].fullmatch(value):
+            raise AnnotationError(f"line {line_number}: malformed tag {token!r}")
+        values.setdefault(key, value)
+    return values
+
+
 def _parse_tags(
     comment: str, *, line_number: int
 ) -> tuple[tuple[str, ...], frozenset[str]]:
-    foot_match = _FOOT_RE.search(comment)
-    feet_match = _FEET_RE.search(comment)
-    if foot_match and feet_match:
+    values = _tag_values(comment, line_number=line_number)
+    if "@foot" in values and "@feet" in values:
         raise AnnotationError(
             f"line {line_number}: use either @foot or @feet, not both"
         )
-    feet: tuple[str, ...]
-    if foot_match:
-        feet = (foot_match.group(1),)
-    elif feet_match:
-        feet = tuple(feet_match.group(1).split(","))
-    else:
-        feet = ()
+    foot_value = values.get("@foot") or values.get("@feet")
+    feet = tuple(foot_value.split(",")) if foot_value else ()
 
-    pattern_match = _PATTERN_RE.search(comment)
-    patterns = (
-        frozenset(pattern_match.group(1).split(",")) if pattern_match else frozenset()
-    )
+    pattern_value = values.get("@pattern")
+    patterns = frozenset(pattern_value.split(",")) if pattern_value else frozenset()
+    unknown = patterns - PATTERN_TAGS.keys() - UNSCORED_PATTERN_TAGS
+    if unknown:
+        raise AnnotationError(
+            f"line {line_number}: unknown @pattern tag(s) {', '.join(sorted(unknown))}"
+        )
     return feet, patterns
 
 

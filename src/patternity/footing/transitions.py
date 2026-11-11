@@ -77,18 +77,16 @@ def _emit_foot_row(
     """Build the next FootRow after a move.
 
     A no-move row only carries state forward (mines, hold releases). A press row
-    resets the since-press fields and records the new press.
+    resets the since-press fields and records the new press. A tail on a press
+    row is deliberately not recorded as a release: its owner was still pinned
+    when the press happened.
     """
     hold_owners = _update_hold_owners(prev, row, ctx, stance, moved)
 
     if moved == FootMove.NONE:
         # A hold or roll tail on this row releases its owner. The release is
         # remembered until the next press so the cost features can see it.
-        tails = row.panels_with(TAIL_NOTES)
-        released = prev.released_since_press
-        for panel, owner in prev.hold_owners:
-            if panel in tails:
-                released |= owner
+        released = prev.released_since_press | prev.owners_of(row.panels_with(TAIL_NOTES))
 
         return FootRow(
             stance=stance,
@@ -127,6 +125,12 @@ def _emit_foot_row(
     )
 
 
+def stay_put(prev: FootRow, row: NoteRow, grace: Panel = Panel.NONE) -> FootRow:
+    """The next ``FootRow`` when neither foot moves on ``row``."""
+    ctx = RowContext.from_row(row, grace)
+    return _emit_foot_row(prev, row, ctx, stance=prev.stance, moved=FootMove.NONE)
+
+
 def iter_legal_transitions(
     prev: FootRow,
     row: NoteRow,
@@ -143,7 +147,7 @@ def iter_legal_transitions(
 
     # No change in footing
     if not ctx.pressed:
-        yield _emit_foot_row(prev, row, ctx, stance=prev.stance, moved=FootMove.NONE)
+        yield stay_put(prev, row, grace)
         return
 
     # Brackets (two panels under one foot) are excluded unless requested.
