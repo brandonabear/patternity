@@ -24,9 +24,11 @@ _MIN_ACCURACY = {
     "patterns/sideswitches.sm": 1.0,
     "patterns/doublesteps.sm": 1.0,
     "charts/burger.ssc": 1.0,
+    "charts/mazy_metroplex.ssc": 1.0,
     # Hold-out charts (holdout_corpus.txt): never trained on.
     "charts/kiss_me_more.ssc": 1.0,
     "charts/boomshakalaka.ssc": 1.0,
+    "charts/senpai_notice_me.ssc": 1.0,
 }
 _MIN_PATTERN_F1 = 0.75
 

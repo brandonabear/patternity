@@ -403,7 +403,7 @@ M000
 0M00
 1000 // @foot=L @pattern=sideswitch
 0000
-0100 // @foot=R7
+0100 // @foot=R
 00M0
 0100 // @foot=L @pattern=footswitch
 0001 // @foot=R
@@ -1032,7 +1032,7 @@ M000
 1000 // @foot=L
 0010 // @foot=R
 0100 // @foot=L
-0100 // @foot=R @pattern=footswitchf
+0100 // @foot=R @pattern=footswitch
 0100 // @foot=L @pattern=footswitch
 0100 // @foot=R @pattern=footswitch
 0010 // @foot=L
