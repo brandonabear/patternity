@@ -280,6 +280,17 @@ class FootRow:
                 return foot
         return None
 
+    def is_displaced(self, foot: Foot) -> bool:
+        """True if ``foot`` stayed put while the other foot took over its panel.
+
+        The feet can't share a panel, so the stationary one has lifted.
+        """
+        return (
+            not self.moved.includes(foot)
+            and self.moved.includes(foot.other)
+            and self.stance.is_overlapping
+        )
+
     def owners_of(self, panels: Panel) -> FootMove:
         """The feet anchored to a hold or roll on any of ``panels``."""
         owners = FootMove.NONE

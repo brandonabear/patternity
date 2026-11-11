@@ -130,6 +130,19 @@ def hold_owner_stays_on_panel(prev: FootRow, ctx: RowContext, c: Candidate) -> b
     return all(panel in c.placement(owner).panels for panel, owner in _anchored_owners(prev, ctx))
 
 
+def hits_mine(curr: FootRow, mines: Panel) -> bool:
+    """True if a foot that is down after the move stands on one of ``mines``.
+
+    Not one of ``RULES``: stepping on a mine is avoidable rather than impossible,
+    so the search keeps such moves as a penalized fallback.
+    """
+    return any(
+        curr.stance.placement(foot).panels & mines
+        for foot in Foot
+        if not curr.is_displaced(foot)
+    )
+
+
 RULES: tuple[Rule, ...] = (
     presses_are_covered,
     moving_feet_touch_only_pressed_or_held,

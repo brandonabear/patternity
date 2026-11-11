@@ -70,23 +70,6 @@ def _placement(row: FootRow, foot: Foot) -> FootPlacement:
     return row.stance.placement(foot)
 
 
-def _displaced(curr: FootRow, foot: Foot) -> bool:
-    """A stationary foot whose panel the moving foot just took over (it has lifted)."""
-    return curr.moved.includes(foot.other) and _placement(curr, foot).shares_panel_with(
-        _placement(curr, foot.other)
-    )
-
-
-def hits_mine(curr: FootRow, mines: Panel) -> bool:
-    """True if a foot that is down on this row covers a mine on this row."""
-    for foot in Foot:
-        if not curr.moved.includes(foot) and _displaced(curr, foot):
-            continue
-        if _placement(curr, foot).panels & mines:
-            return True
-    return False
-
-
 @dataclass(frozen=True, slots=True)
 class _Step:
     """One transition being scored: ``prev`` to ``curr`` on ``row``."""
@@ -197,7 +180,7 @@ def _mine_cue_features(step: _Step, feats: _Features) -> None:
         if step.moved.includes(foot):
             if _placement(step.prev, foot).panels & cue:
                 feats.add("cued_foot_moves")
-        elif _placement(step.curr, foot).panels & cue and not _displaced(step.curr, foot):
+        elif _placement(step.curr, foot).panels & cue and not step.curr.is_displaced(foot):
             feats.add("cued_foot_stays")
 
 

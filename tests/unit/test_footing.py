@@ -6,8 +6,9 @@ import pytest
 
 from patternity import Analyzer, resolve_chart
 from patternity.footing import FootingModel
-from patternity.footing.features import FEATURE_NAMES, featurize, hits_mine
+from patternity.footing.features import FEATURE_NAMES, featurize
 from patternity.footing.grace import hold_grace
+from patternity.footing.rules import hits_mine
 from patternity.footing.search import build_trellis, row_confidence, viterbi
 from patternity.footing.stance import FootMove, FootRow
 from patternity.footing.transitions import iter_legal_transitions
