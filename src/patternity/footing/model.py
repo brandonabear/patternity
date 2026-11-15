@@ -39,7 +39,6 @@ class FootingModel:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "feature_names": list(FEATURE_NAMES),
             "weights": {name: self.weights.get(name, 0.0) for name in FEATURE_NAMES},
             "metadata": self.metadata,
         }

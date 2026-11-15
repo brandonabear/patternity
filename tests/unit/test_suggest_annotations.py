@@ -72,7 +72,8 @@ def test_suggest_adds_measure_markers_and_measure_on_tags(mock_console, tmp_path
         0,
     )
     text = path.read_text(encoding="utf-8")
-    assert "// measure 0\n" in text
+    # Measure 0's marker goes above the first row, even an empty one.
+    assert "#NOTES:\n// measure 0\n0000\n" in text
     assert ",  // measure 1" in text
     assert "0100 // @suggest_foot=" in text
     assert "1000 // @suggest_foot=" in text

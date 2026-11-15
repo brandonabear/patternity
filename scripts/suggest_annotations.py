@@ -35,7 +35,6 @@ from patternity.simfile.parser import parse_simfile_with_notes
 from patternity.training.annotations import parse_annotated_sm
 from patternity.training.evaluation import PATTERN_TAGS
 
-_NOTE_ROW_RE = re.compile(r"^[0-4MFL]{4}", re.IGNORECASE)
 _SUGGEST_RE = re.compile(r"@suggest(?:_\w+)?=\S+", re.IGNORECASE)
 _MARGIN_RE = re.compile(r"@margin=\S+", re.IGNORECASE)
 _MEASURE_IN_COMMENT_RE = re.compile(r"measure\s+\d+", re.IGNORECASE)
@@ -109,27 +108,23 @@ def _add_measure_markers(lines: list[str], endings: list[str]) -> None:
     notes = bodies[0]
     body_start = notes.first_line - 1
 
-    first_note_offset: int | None = None
+    # Classify lines the way the parser does: anything left after stripping the
+    # comment is a separator or a note row (empty rows included).
+    first_row_offset: int | None = None
     comma_updates: list[tuple[int, int]] = []
-
     for offset, raw_line in enumerate(notes.text.splitlines()):
-        stripped = raw_line.strip()
-        if not stripped:
+        note_text = raw_line.partition("//")[0].strip()
+        if not note_text:
             continue
-        if stripped.startswith("//"):
-            continue
-        note_text, _, _ = stripped.partition("//")
-        note_text = note_text.strip()
         if note_text.startswith((",", ";")):
             comma_updates.append((body_start + offset, len(comma_updates) + 1))
-            continue
-        if note_text and _NOTE_ROW_RE.match(note_text) and first_note_offset is None:
-            first_note_offset = offset
+        elif first_row_offset is None:
+            first_row_offset = offset
 
-    if first_note_offset is None:
+    if first_row_offset is None:
         return
 
-    insert_at = body_start + first_note_offset
+    insert_at = body_start + first_row_offset
     prev_i = insert_at - 1
     if prev_i >= 0 and _MEASURE_LINE_RE.match(lines[prev_i]):
         lines[prev_i] = "// measure 0"
