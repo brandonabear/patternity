@@ -14,7 +14,6 @@ from patternity.footing.rules import held_panels
 from patternity.footing.stance import (
     Foot,
     FootMove,
-    FootPlacement,
     FootRow,
     PlayerOrientation,
     Repeat,
@@ -98,10 +97,6 @@ def speed(dt: float | None) -> float:
     if dt is None or dt <= 0.0:
         return 0.0
     return min(1.0 / dt, _MAX_NPS) / 10.0
-
-
-def _placement(row: FootRow, foot: Foot) -> FootPlacement:
-    return row.stance.placement(foot)
 
 
 @dataclass(frozen=True, slots=True)
@@ -212,9 +207,9 @@ def _mine_cue_features(step: _Step, feats: _Features) -> None:
 
     for foot in Foot:
         if step.moved.includes(foot):
-            if _placement(step.prev, foot).panels & cue:
+            if step.prev.stance.placement(foot).panels & cue:
                 feats.add(Feature.CUED_FOOT_MOVES)
-        elif _placement(step.curr, foot).panels & cue and not step.curr.is_displaced(foot):
+        elif step.curr.stance.placement(foot).panels & cue and not step.curr.is_displaced(foot):
             feats.add(Feature.CUED_FOOT_STAYS)
 
 
@@ -225,8 +220,8 @@ def _movement_features(step: _Step, feats: _Features) -> None:
     brackets = 0
     hold_owners = {foot for _, foot in step.prev.hold_owners}
     for foot in step.moved.feet:
-        before = _placement(step.prev, foot)
-        after = _placement(step.curr, foot)
+        before = step.prev.stance.placement(foot)
+        after = step.curr.stance.placement(foot)
         travel += before.distance_to(after)
         if after.is_bracket:
             brackets += 1

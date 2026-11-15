@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
-from patternity.footing.stance import Foot, FootMove, FootPlacement, FootRow
+from patternity.footing.stance import BothFeet, Foot, FootMove, FootPlacement, FootRow
 from patternity.simfile.notes import NoteRow, Panel
 
 
@@ -47,15 +47,12 @@ class RowContext:
 
 
 @dataclass(frozen=True, slots=True)
-class Candidate:
+class Candidate(BothFeet):
     """A proposed placement of both feet, and which foot or feet moved there."""
 
     left: FootPlacement
     right: FootPlacement
     moved: FootMove
-
-    def placement(self, foot: Foot) -> FootPlacement:
-        return self.left if foot is Foot.LEFT else self.right
 
     @property
     def landed(self) -> Panel:
@@ -65,11 +62,6 @@ class Candidate:
         if self.moved == FootMove.RIGHT:
             return self.right.panels
         return self.covered
-
-    @property
-    def covered(self) -> Panel:
-        """Panels under either foot."""
-        return self.left.panels | self.right.panels
 
 
 Rule = Callable[[FootRow, RowContext, Candidate], bool]

@@ -177,6 +177,27 @@ _FEET: dict[FootMove, tuple[Foot, ...]] = {
 }
 
 
+class BothFeet:
+    """Accessors shared by anything holding a ``left`` and ``right`` placement.
+
+    Base for ``Stance`` and the search's unvalidated ``Candidate``, which hold
+    the same two fields but are distinct types.
+    """
+
+    __slots__ = ()
+
+    left: FootPlacement
+    right: FootPlacement
+
+    def placement(self, foot: Foot) -> FootPlacement:
+        return self.left if foot is Foot.LEFT else self.right
+
+    @property
+    def covered(self) -> Panel:
+        """Panels under either foot."""
+        return self.left.panels | self.right.panels
+
+
 class Repeat(Enum):
     """How a press relates to the press row right before it, when both are a
     single panel pressed by a single foot."""
@@ -187,7 +208,7 @@ class Repeat(Enum):
 
 
 @dataclass(frozen=True, slots=True)
-class Stance:
+class Stance(BothFeet):
     """Combined physical posture of both feet and derived hip orientation.
 
     Player orientation is only guaranteed with legal footing when built using
@@ -221,11 +242,6 @@ class Stance:
         )
 
     @property
-    def covered(self) -> Panel:
-        """Panels currently under either foot."""
-        return self.left.panels | self.right.panels
-
-    @property
     def is_overlapping(self) -> bool:
         """True if both feet share at least one panel (geometric overlap, not a tech count)."""
         return self.left.shares_panel_with(self.right)
@@ -238,9 +254,6 @@ class Stance:
     def covers(self, required: Panel) -> bool:
         """True if every panel in ``required`` is under a foot."""
         return required in self.covered
-
-    def placement(self, foot: Foot) -> FootPlacement:
-        return self.left if foot is Foot.LEFT else self.right
 
 
 @dataclass(frozen=True, slots=True)
