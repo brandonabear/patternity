@@ -5,17 +5,17 @@
       "difficulty": "Challenge",
       "rating": 13.0,
       "tech": {
-        "crossovers": 6,
-        "footswitches": 42,
+        "crossovers": 5,
+        "footswitches": 41,
         "sideswitches": 0,
         "jacks": 12,
         "brackets": 32,
         "doublesteps": 17,
-        "candles": 113
+        "candles": 111
       },
       "movement": {
-        "direction_shifts": 221,
-        "total_cost": 39087.389999,
+        "direction_shifts": 217,
+        "total_cost": 47047.470691,
         "foot_path_feasible": true
       },
       "moved": [
@@ -29,7 +29,7 @@
         "14: RLRLL",
         "15: RLRL",
         "16: BRLRBLRL",
-        "17: BRLRLRLRL",
+        "17: RRLRLRLRL",
         "18: BLRLBLRL",
         "19: BRLRBLRL",
         "20: RLRLRLRLRLRL",
@@ -114,7 +114,7 @@
         "99: LRLRLRLRLRLRLRLR",
         "100: LRLRLRLRLRLRLRLR",
         "101: LRLRLRLRLRLRLRLR",
-        "102: LRLRLRLRL",
+        "102: LBLRLRLRL",
         "103: RBLRLRLRLRLR",
         "104: LRRL",
         "105: RRRRR-",
