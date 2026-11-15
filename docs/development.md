@@ -46,10 +46,10 @@ Print the decoded path around a measure. `confidence` is the cost margin to the 
 ```python
 from pathlib import Path
 
-from patternity import StepmaniaFileParser, detect_tech_patterns, read_simfile, resolve_chart
+from patternity import detect_tech_patterns, parse_simfile, read_simfile, resolve_chart
 from patternity.simfile import PANELS
 
-song = StepmaniaFileParser.parse(read_simfile(Path("tests/fixtures/charts/fots.sm")))
+song = parse_simfile(read_simfile(Path("tests/fixtures/charts/fots.sm")))
 result = resolve_chart(song.charts[0].notes)
 labels = {}
 for span in detect_tech_patterns(result.steps).spans:

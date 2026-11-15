@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from patternity.simfile.parser import StepmaniaFileParser
+from patternity.simfile.parser import parse_simfile
 from patternity.simfile.serializer import deserialize, serialize
 
 _SIMFILE = (
@@ -11,13 +11,13 @@ _SIMFILE = (
 
 
 def test_song_round_trips_through_json(tmp_path: Path) -> None:
-    song = StepmaniaFileParser.parse(_SIMFILE)
+    song = parse_simfile(_SIMFILE)
     restored = deserialize(serialize(song, tmp_path / "nested" / "song.json"))
     assert restored == song
 
 
 def test_round_trip_keeps_selectable_and_zero_radar_values(tmp_path: Path) -> None:
-    song = StepmaniaFileParser.parse(_SIMFILE)
+    song = parse_simfile(_SIMFILE)
     restored = deserialize(serialize(song, tmp_path / "song.json"))
 
     assert restored.header.selectable is True

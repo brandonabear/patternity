@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from patternity import StepmaniaFileParser, analyze_chart, read_simfile
+from patternity import analyze_chart, parse_simfile, read_simfile
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 CANONICAL_DIR = FIXTURES / "canonical"
@@ -16,7 +16,7 @@ def _load_canonical(path: Path) -> dict[str, Any]:
 
 def _analyze_fixture(canonical: dict[str, Any], chart_entry: dict[str, Any]) -> dict[str, Any]:
     fixture_path = FIXTURES / canonical["fixture"]
-    song = StepmaniaFileParser.parse(read_simfile(fixture_path))
+    song = parse_simfile(read_simfile(fixture_path))
     return analyze_chart(song.charts[chart_entry["chart_index"]]).to_dict()
 
 

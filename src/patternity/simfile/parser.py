@@ -355,11 +355,7 @@ def parse_simfile_with_notes(data: str) -> tuple[Song, list[NotesBody]]:
     return song, bodies
 
 
-class StepmaniaFileParser:
-    """Parses StepMania .sm and .ssc files."""
-
-    @staticmethod
-    def parse(data: str) -> Song:
-        """Parse a .sm or .ssc file."""
-        song, _ = parse_simfile_with_notes(data)
-        return song
+def parse_simfile(data: str) -> Song:
+    """Parse a .sm or .ssc file."""
+    song, _ = parse_simfile_with_notes(data)
+    return song

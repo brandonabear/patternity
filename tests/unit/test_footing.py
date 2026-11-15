@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from patternity import Analyzer, analyze_chart, resolve_chart
+from patternity import analyze_chart, resolve_chart
 from patternity.footing import FootingModel, resolve_trellis
 from patternity.footing.features import FEATURE_NAMES, featurize
 from patternity.footing.grace import hold_grace
@@ -222,11 +222,10 @@ def test_lifts_and_fakes_are_counted_but_never_stepped_on() -> None:
     assert moves[1] == FootMove.NONE
 
 
-def test_analyzer_wrapper_matches_analyze_chart_and_is_repeatable() -> None:
+def test_analyze_chart_is_repeatable() -> None:
     chart = parse_annotated_sm(chart_text(["1000", "0100", "0110", ","])).chart
-    analyzer = Analyzer(chart)
 
-    assert analyzer.analyze() == analyzer.analyze() == analyze_chart(chart).to_dict()
+    assert analyze_chart(chart).to_dict() == analyze_chart(chart).to_dict()
 
 
 def test_resolve_trellis_matches_resolve_chart() -> None:

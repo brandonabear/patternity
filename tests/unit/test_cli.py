@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from patternity import cli
-from patternity.simfile import StepmaniaFileParser, read_simfile
+from patternity.simfile import parse_simfile, read_simfile
 from patternity.simfile.serializer import deserialize
 
 MINIMAL_SIMFILE = """\
@@ -116,7 +116,7 @@ def test_analyze_and_serialize_a_fixture_end_to_end(tmp_path: Path, capsys) -> N
     for section in ("'basic':", "'tech':", "'movement':", "'footswitches':"):
         assert section in out
     # What was written is the song that was parsed.
-    parsed = StepmaniaFileParser.parse(read_simfile(source))
+    parsed = parse_simfile(read_simfile(source))
     assert deserialize(tmp_path / "footswitches.json") == parsed
 
 
