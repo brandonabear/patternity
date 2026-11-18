@@ -11,11 +11,13 @@ from typing import Any
 
 from patternity.footing.features import FEATURE_NAMES
 
+# The packaged weights, relative to the ``patternity`` package.
+_WEIGHTS_RESOURCE = ("data", "footing_weights.json")
 # Filesystem path to the packaged weights, used only as the training CLI's
 # ``--output`` default: writing needs a real path, whereas reading goes through
-# ``importlib.resources`` (see ``FootingModel.default``) so it also works when the
+# ``importlib.resources`` (see ``FootingModel.load``) so it also works when the
 # package is installed as a zip or wheel.
-PACKAGED_WEIGHTS = Path(__file__).resolve().parent.parent / "data" / "footing_weights.json"
+PACKAGED_WEIGHTS = Path(__file__).resolve().parent.parent.joinpath(*_WEIGHTS_RESOURCE)
 
 
 @dataclass
@@ -63,7 +65,7 @@ class FootingModel:
     @classmethod
     def load(cls, path: Path | None = None) -> FootingModel:
         """Weights from ``path``, or the packaged weights when ``path`` is None."""
-        source = path or files("patternity").joinpath("data", "footing_weights.json")
+        source = path or files("patternity").joinpath(*_WEIGHTS_RESOURCE)
         return cls.from_dict(json.loads(source.read_text(encoding="utf-8")))
 
     @classmethod
