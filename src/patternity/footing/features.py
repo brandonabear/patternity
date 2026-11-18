@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from patternity.footing.grace import HOLD_GRACE_SEC, ROLL_GRACE_SEC, Remaining
-from patternity.footing.rules import held_panels
 from patternity.footing.stance import (
     Foot,
     FootMove,
@@ -150,7 +149,7 @@ def _hold_release_features(step: _Step, feats: _Features) -> FootMove:
 
     Returns the feet that released a hold on this row.
     """
-    held = held_panels(step.row)
+    held = step.row.held
     still_owned = {panel for panel, _ in step.curr.hold_owners}
     released = FootMove.NONE
     for panel, foot in step.prev.hold_owners:

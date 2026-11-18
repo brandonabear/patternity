@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from patternity.footing.rules import held_panels
 from patternity.simfile.notes import ANCHORED_NOTES, PANELS, NoteRow, NoteType, Panel
 
 # StepMania / ITG hold and roll life windows.
@@ -43,7 +42,7 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[GraceWindow]:
 
         releasable = Panel.NONE
         remaining: list[float | None] = [None] * 4
-        held = held_panels(row)
+        held = row.held
 
         for col, panel in enumerate(PANELS):
             tail, now = next_tail[col], row.timestamp

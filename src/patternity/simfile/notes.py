@@ -111,6 +111,14 @@ class NoteRow:
         """Panels with a MINE on this row."""
         return self.panels_with(MINE_NOTES)
 
+    @property
+    def held(self) -> Panel:
+        """Panels with a hold or roll already underway on this row, through its tail.
+
+        A panel is not considered held on the row where it is pressed.
+        """
+        return (self.holds_active | self.rolls_active) & ~self.pressed
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> NoteRow:
         left, down, up, right = (NoteType(data[key]) for key in _COLUMN_KEYS)

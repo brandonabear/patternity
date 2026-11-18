@@ -15,20 +15,12 @@ from patternity.footing.stance import BothFeet, Foot, FootMove, FootPlacement, F
 from patternity.simfile.notes import NoteRow, Panel
 
 
-def held_panels(row: NoteRow) -> Panel:
-    """Panels with a hold or roll already underway on this row, through its tail.
-
-    A panel is not considered held on the row where it is pressed (~row.passed).
-    """
-    return (row.holds_active | row.rolls_active) & ~row.pressed
-
-
 @dataclass(frozen=True, slots=True)
 class RowContext:
     """The panel sets on one row that the transition rules refer to."""
 
     pressed: Panel  # Taps and hold/roll heads: a foot must land on each.
-    held: Panel  # Holds/rolls already underway (see ``held_panels``).
+    held: Panel  # Holds/rolls already underway (see ``NoteRow.held``).
     releasable: Panel  # Held panels in their grace window: the owner may leave early.
     must_stay_held: Panel  # Held panels that still need a foot on them.
     touchable: Panel  # Panels a moving foot may land on: pressed, or ones it is holding.
@@ -36,7 +28,7 @@ class RowContext:
     @classmethod
     def from_row(cls, row: NoteRow, grace: Panel = Panel.NONE) -> RowContext:
         pressed = row.pressed
-        held = held_panels(row)
+        held = row.held
         return cls(
             pressed=pressed,
             held=held,
