@@ -62,27 +62,24 @@ def _leading_comment_lines(lines: list[str]) -> int:
     return len(lines)
 
 
-def strip_leading_comments(section: str) -> str:
-    """Strip leading comments from a section.
+def _sections(data: str) -> Iterator[SourceText]:
+    """The non-empty ``;``-terminated sections of a simfile, in order.
 
-    There is often a decorative comment before the note data section.
+    Leading comments are stripped; there is often a decorative one before a
+    chart's note data:
     ```sm
     #HEADER:;
     //------ dance-single -------
     #NOTES:;
     ```
     """
-    lines = section.splitlines()
-    return "\n".join(lines[_leading_comment_lines(lines) :]).strip()
-
-
-def _sections(data: str) -> Iterator[SourceText]:
-    """The non-empty ``;``-terminated sections of a simfile, leading comments stripped, in order."""
     line = 1
     for raw in data.split(";"):
-        text = strip_leading_comments(raw)
+        lines = raw.splitlines()
+        skipped = _leading_comment_lines(lines)
+        text = "\n".join(lines[skipped:]).strip()
         if text:
-            yield SourceText(text, line + _leading_comment_lines(raw.splitlines()))
+            yield SourceText(text, line + skipped)
         line += raw.count("\n")
 
 
