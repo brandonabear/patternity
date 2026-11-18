@@ -1,4 +1,5 @@
 import importlib.util
+import sys
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,8 @@ _spec = importlib.util.spec_from_file_location(
 )
 assert _spec and _spec.loader
 _mod = importlib.util.module_from_spec(_spec)
+# Registered before running, as importlib documents, so the script's dataclasses resolve.
+sys.modules[_spec.name] = _mod
 _spec.loader.exec_module(_mod)
 suggest_file = _mod.suggest_file
 
