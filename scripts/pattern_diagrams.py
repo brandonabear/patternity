@@ -17,10 +17,9 @@ from pathlib import Path
 
 from patternity import detect_tech_patterns
 from patternity.footing import ResolvedStep, resolve_chart
-from patternity.footing.stance import Foot
 from patternity.patterns.detector import column_foot
 from patternity.patterns.spans import PatternKind, PatternSpan
-from patternity.simfile.notes import PANELS, PRESSABLE_NOTES, NoteType, Panel
+from patternity.simfile.notes import ANCHORED_NOTES, PANELS, PRESSABLE_NOTES, NoteType, Panel
 from patternity.training import parse_annotated_sm
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "docs" / "images"
@@ -50,7 +49,6 @@ OTHER_QUANT = ("#9ca3af", "finer")
 
 ARROW = "0,-13 12,0 5,0 5,12 -5,12 -5,0 -12,0"
 ROTATION = {Panel.L: 270, Panel.D: 180, Panel.U: 0, Panel.R: 90}
-FOOT_LABEL = {Foot.LEFT: "L", Foot.RIGHT: "R"}
 
 LANE_WIDTH = 52
 PLAYFIELD_WIDTH = LANE_WIDTH * len(PANELS)
@@ -295,13 +293,13 @@ def quantization(beat: float) -> int:
 def render(example: Example) -> str:
     """The full SVG document for one example."""
     decoded = decode(example)
-    pressed = [s for s in decoded.steps if _pressed(s)]
+    pressed = [s for s in decoded.steps if s.note_row.pressed]
     # Whole beats through the last row (tails and mines included), plus one of headroom.
-    beats = math.floor(_beat(decoded.steps[-1])) + 1
+    beats = math.floor(decoded.steps[-1].note_row.beat) + 1
     columns = max(_span_columns(decoded.spans)) + 1
     width = 2 * MARGIN + PLAYFIELD_WIDTH + columns * SPAN_COLUMN
     height = HEADER + LEAD_IN + beats * PX_PER_BEAT + LANE_WIDTH + LEGEND + MARGIN
-    quants = sorted({quantization(_beat(s)) for s in pressed})
+    quants = sorted({quantization(s.note_row.beat) for s in pressed})
 
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" '
@@ -359,13 +357,13 @@ def _hold_bodies(steps: Sequence[ResolvedStep], x: float, top: float) -> list[st
     open_heads: dict[Panel, tuple[float, NoteType]] = {}
     for step in steps:
         for column, (panel, note) in enumerate(zip(PANELS, step.note_row.notes, strict=True)):
-            if note in (NoteType.HOLD, NoteType.ROLL):
-                open_heads[panel] = (_beat(step), note)
+            if note in ANCHORED_NOTES:
+                open_heads[panel] = (step.note_row.beat, note)
             elif note == NoteType.TAIL and panel in open_heads:
                 head_beat, kind = open_heads.pop(panel)
                 width = LANE_WIDTH * 0.5
                 y1 = top + head_beat * PX_PER_BEAT
-                y2 = top + _beat(step) * PX_PER_BEAT
+                y2 = top + step.note_row.beat * PX_PER_BEAT
                 parts.append(
                     f'<rect x="{_lane_x(x, column) - width / 2}" y="{y1}" width="{width}" '
                     f'height="{y2 - y1 + width / 2}" rx="{width / 2}" '
@@ -376,7 +374,7 @@ def _hold_bodies(steps: Sequence[ResolvedStep], x: float, top: float) -> list[st
 
 
 def _notes(step: ResolvedStep, x: float, top: float) -> list[str]:
-    beat = _beat(step)
+    beat = step.note_row.beat
     row_y = top + beat * PX_PER_BEAT
     color, _ = QUANT_COLORS.get(quantization(beat), OTHER_QUANT)
     parts = []
@@ -387,10 +385,10 @@ def _notes(step: ResolvedStep, x: float, top: float) -> list[str]:
         elif note in PRESSABLE_NOTES:
             parts.append(_arrow(cx, row_y, panel, fill=color, stroke="#000"))
             foot = column_foot(step, panel)
-            if foot in FOOT_LABEL:
+            if foot is not None:
                 parts.append(
                     f'<text x="{cx}" y="{row_y + 6}" text-anchor="middle" class="foot">'
-                    f"{FOOT_LABEL[foot]}</text>"
+                    f"{foot.value}</text>"
                 )
     return parts
 
@@ -420,8 +418,8 @@ def _span_marker(span: PatternSpan, x: float, top: float, label: str) -> list[st
 
     A single-row span (e.g. a bracket) gets a short bracket around its row and no time.
     """
-    y1 = top + _beat(span.steps[0]) * PX_PER_BEAT
-    y2 = top + _beat(span.steps[-1]) * PX_PER_BEAT
+    y1 = top + span.start_beat * PX_PER_BEAT
+    y2 = top + span.end_beat * PX_PER_BEAT
     middle = (y1 + y2) / 2
     parts = []
     if y1 == y2:
@@ -479,11 +477,11 @@ def _mine(cx: float, cy: float) -> str:
 def _description(d: Decoded) -> str:
     notes = ", ".join(
         "+".join(p.name for p in PANELS if p in s.note_row.pressed)
-        + f" ({quantization(_beat(s))}th, "
-        + "/".join(FOOT_LABEL[f] for p in PANELS if (f := column_foot(s, p)) in FOOT_LABEL)
+        + f" ({quantization(s.note_row.beat)}th, "
+        + "/".join(f.value for p in PANELS if (f := column_foot(s, p)) is not None)
         + ")"
         for s in d.steps
-        if _pressed(s)
+        if s.note_row.pressed
     )
     return (
         f"{d.example.title} at {d.example.bpm:g} BPM: {notes}; "
@@ -493,14 +491,6 @@ def _description(d: Decoded) -> str:
 
 def _lane_x(x: float, column: int) -> float:
     return x + LANE_WIDTH * (column + 0.5)
-
-
-def _beat(step: ResolvedStep) -> float:
-    return step.note_row.beat
-
-
-def _pressed(step: ResolvedStep) -> bool:
-    return bool(step.note_row.pressed)
 
 
 def main() -> None:
