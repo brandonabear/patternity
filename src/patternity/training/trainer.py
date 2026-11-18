@@ -211,6 +211,14 @@ class FoldResult:
         return accuracy(self.errors, self.rows)
 
 
+def format_folds(folds: Sequence[FoldResult]) -> str:
+    """One line per held-out chart: its accuracy, errors and annotated rows."""
+    return "\n".join(
+        f"  {fold.held_out:32s} {fold.accuracy:7.2%}  ({fold.errors} errors / {fold.rows} rows)"
+        for fold in folds
+    )
+
+
 def leave_one_out(
     examples: Sequence[Example],
     *,

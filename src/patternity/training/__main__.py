@@ -12,10 +12,11 @@ from rich.console import Console
 
 from patternity.footing.features import FEATURE_NAMES
 from patternity.footing.model import PACKAGED_WEIGHTS
-from patternity.training.corpus import default_fixtures_root, load_corpus
+from patternity.training.corpus import add_fixture_arguments, default_fixtures_root, load_corpus
 from patternity.training.trainer import (
     DEFAULT_EPOCHS,
     DEFAULT_MARGIN,
+    format_folds,
     leave_one_out,
     load_examples,
     row_errors,
@@ -25,16 +26,7 @@ from patternity.training.trainer import (
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument(
-        "fixtures",
-        nargs="*",
-        help="fixture paths relative to the fixtures root (default: training_corpus.txt)",
-    )
-    parser.add_argument(
-        "--fixtures-root",
-        type=Path,
-        help="directory holding fixtures and training_corpus.txt (default: nearest tests/fixtures)",
-    )
+    add_fixture_arguments(parser)
     parser.add_argument("--epochs", type=int, default=DEFAULT_EPOCHS)
     parser.add_argument("--margin", type=float, default=DEFAULT_MARGIN)
     parser.add_argument("--output", type=Path, default=PACKAGED_WEIGHTS)
@@ -51,11 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     examples = load_examples(args.fixtures or load_corpus(root), root)
     if not args.no_loo:
         console.print("Leave-one-chart-out (per-row foot accuracy on the held-out chart):")
-        for fold in leave_one_out(examples, epochs=args.epochs, margin=args.margin):
-            console.print(
-                f"  {fold.held_out:32s} {fold.accuracy:7.2%}  "
-                f"({fold.errors} errors / {fold.rows} rows)"
-            )
+        console.print(format_folds(leave_one_out(examples, epochs=args.epochs, margin=args.margin)))
 
     model = train(examples, epochs=args.epochs, margin=args.margin)
     console.print("Training-set fit:")

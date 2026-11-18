@@ -61,11 +61,12 @@ class FootingModel:
         path.write_text(json.dumps(self.to_dict(), indent=2) + "\n", encoding="utf-8")
 
     @classmethod
-    def load(cls, path: Path) -> FootingModel:
-        return cls.from_dict(json.loads(path.read_text(encoding="utf-8")))
+    def load(cls, path: Path | None = None) -> FootingModel:
+        """Weights from ``path``, or the packaged weights when ``path`` is None."""
+        source = path or files("patternity").joinpath("data", "footing_weights.json")
+        return cls.from_dict(json.loads(source.read_text(encoding="utf-8")))
 
     @classmethod
     def default(cls) -> FootingModel:
         """Weights shipped with the package (``patternity/data/footing_weights.json``)."""
-        resource = files("patternity").joinpath("data", "footing_weights.json")
-        return cls.from_dict(json.loads(resource.read_text(encoding="utf-8")))
+        return cls.load()

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from argparse import ArgumentParser
 from pathlib import Path
 
 CORPUS_FILE = "training_corpus.txt"
@@ -16,6 +17,20 @@ def default_fixtures_root(start: Path | None = None) -> Path:
         if candidate.is_dir():
             return candidate
     raise FileNotFoundError(f"no tests/fixtures directory at or above {here}; pass --fixtures-root")
+
+
+def add_fixture_arguments(parser: ArgumentParser) -> None:
+    """Add the fixture arguments shared by the training and evaluation CLIs."""
+    parser.add_argument(
+        "fixtures",
+        nargs="*",
+        help="fixture paths relative to the fixtures root (default: training_corpus.txt)",
+    )
+    parser.add_argument(
+        "--fixtures-root",
+        type=Path,
+        help="directory holding fixtures and training_corpus.txt (default: nearest tests/fixtures)",
+    )
 
 
 def _read_fixture_list(path: Path) -> list[str]:

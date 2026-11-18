@@ -32,8 +32,8 @@ from patternity.footing import FootingModel, FootMove, ResolvedStep, resolve_cha
 from patternity.patterns import PatternKind
 from patternity.simfile import read_simfile
 from patternity.simfile.parser import LineKind, notes_lines, parse_simfile_with_notes
-from patternity.training.annotations import parse_annotated_sm
-from patternity.training.evaluation import PATTERN_TAGS, pattern_anchors
+from patternity.training.annotations import PATTERN_TAGS, parse_annotated_sm
+from patternity.training.evaluation import pattern_anchors
 
 _SUGGEST_RE = re.compile(r"@suggest(?:_\w+)?=\S+", re.IGNORECASE)
 _MARGIN_RE = re.compile(r"@margin=\S+", re.IGNORECASE)
@@ -41,21 +41,21 @@ _MEASURE_IN_COMMENT_RE = re.compile(r"measure\s+\d+", re.IGNORECASE)
 _MEASURE_LINE_RE = re.compile(r"^\s*//\s*measure\s+(\d+)\s*$", re.IGNORECASE)
 
 
-_KIND_TAG: dict[PatternKind, str] = {
-    PatternKind.JACK: "jack",
-    PatternKind.DOUBLESTEP: "doublestep",
-    PatternKind.FOOTSWITCH: "footswitch",
-    PatternKind.SIDESWITCH: "sideswitch",
-    PatternKind.BRACKET: "bracket",
-    PatternKind.CROSSOVER: "crossover",
-    PatternKind.INVERTED_CROSSOVER: "crossover",
-    PatternKind.CANDLE: "candle",
-}
-_TAG_ORDER = tuple(dict.fromkeys(_KIND_TAG.values()))
-_TAG_ALIASES: dict[str, str] = {
-    **{tag: _KIND_TAG[kind] for tag, kind in PATTERN_TAGS.items()},
-    "crossover": "crossover",
-}
+def _kind_tag(kind: PatternKind) -> str:
+    """The ``@pattern`` tag for a detected kind; charts tag inverted crossovers as crossovers."""
+    return PatternKind.CROSSOVER.value if kind is PatternKind.INVERTED_CROSSOVER else kind.value
+
+
+_TAG_ORDER = tuple(dict.fromkeys(_kind_tag(kind) for kind in PatternKind))
+
+
+def _tagged_patterns(patterns: frozenset[str]) -> set[str]:
+    """A row's ``@pattern`` tags as detector tags (``holdswitch`` is a footswitch).
+
+    Tags no detector kind produces, such as ``jump``, are dropped.
+    """
+    tags = {_kind_tag(PATTERN_TAGS[tag]) if tag in PATTERN_TAGS else tag for tag in patterns}
+    return tags & set(_TAG_ORDER)
 
 
 def _tag(move: FootMove) -> str:
@@ -75,7 +75,7 @@ def _decoded_patterns(steps: Sequence[ResolvedStep]) -> dict[int, set[str]]:
     decoded: dict[int, set[str]] = {}
     for kind, rows in pattern_anchors(steps).items():
         for index in rows:
-            decoded.setdefault(index, set()).add(_KIND_TAG[kind])
+            decoded.setdefault(index, set()).add(_kind_tag(kind))
     return decoded
 
 
@@ -168,7 +168,7 @@ def suggest_file(
                 )
             )
 
-        tagged = {_TAG_ALIASES[tag] for tag in row.patterns if tag in _TAG_ALIASES}
+        tagged = _tagged_patterns(row.patterns)
         found = decoded.get(row.index, set())
         if found != tagged:
             pattern_tag = "@suggest_pattern=" + (",".join(_ordered(found)) or "none")
@@ -209,7 +209,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(args=argv)
 
-    model = FootingModel.load(args.weights) if args.weights else FootingModel.default()
+    model = FootingModel.load(args.weights)
     feet, patterns = suggest_file(console, args.chart.resolve(), model, list_rows=args.list)
     console.print(f"Wrote {feet} foot and {patterns} pattern suggestions to {args.chart}")
     return 0
