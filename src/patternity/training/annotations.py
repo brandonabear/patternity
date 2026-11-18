@@ -10,7 +10,7 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from patternity.footing.stance import FootMove
+from patternity.footing.stance import Foot, FootMove
 from patternity.patterns.spans import PatternKind
 from patternity.simfile.notes import NoteRow
 from patternity.simfile.parser import (
@@ -53,19 +53,16 @@ class AnnotatedRow:
     index: int
     line_number: int
     note_row: NoteRow
-    feet: tuple[str, ...] = ()
+    feet: tuple[Foot, ...] = ()
     patterns: frozenset[str] = frozenset()
     section: str = "default"
 
     def expected_foot_move(self) -> FootMove | None:
-        """Map ``@foot`` / ``@feet`` to ``FootMove`` for regression checks."""
-        if len(self.feet) == 1:
-            return FootMove.LEFT if self.feet[0] == "L" else FootMove.RIGHT
-        if len(self.feet) == 2:
-            if self.feet[0] == self.feet[1]:
-                return FootMove.LEFT if self.feet[0] == "L" else FootMove.RIGHT
-            return FootMove.BOTH
-        return None
+        """The feet ``@foot`` / ``@feet`` say moved (``L,L`` is one foot), or None if untagged."""
+        moved = FootMove.NONE
+        for foot in self.feet:
+            moved |= foot.move
+        return moved or None
 
 
 @dataclass(frozen=True)
@@ -107,12 +104,12 @@ def _tag_values(comment: str, *, line_number: int) -> dict[str, str]:
     return values
 
 
-def _parse_tags(comment: str, *, line_number: int) -> tuple[tuple[str, ...], frozenset[str]]:
+def _parse_tags(comment: str, *, line_number: int) -> tuple[tuple[Foot, ...], frozenset[str]]:
     values = _tag_values(comment, line_number=line_number)
     if "@foot" in values and "@feet" in values:
         raise AnnotationError(f"line {line_number}: use either @foot or @feet, not both")
     foot_value = values.get("@foot") or values.get("@feet")
-    feet = tuple(foot_value.split(",")) if foot_value else ()
+    feet = tuple(Foot(value) for value in foot_value.split(",")) if foot_value else ()
 
     pattern_value = values.get("@pattern")
     patterns = frozenset(pattern_value.split(",")) if pattern_value else frozenset()
