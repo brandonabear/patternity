@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from patternity.footing.model import FootingModel
 from patternity.footing.search import Trellis, build_trellis, row_confidence, viterbi
-from patternity.footing.stance import FootRow
+from patternity.footing.stance import FootMove, FootRow
 from patternity.simfile.notes import NoteRow
 
 
@@ -38,10 +38,11 @@ def resolve_chart(
     *,
     allow_brackets: bool = True,
     with_confidence: bool = True,
+    allowed: Mapping[int, FootMove] | None = None,
 ) -> FootingResult:
     """Decode the minimum-cost foot path for ``rows``."""
     trellis = build_trellis(rows, allow_brackets=allow_brackets)
-    return resolve_trellis(trellis, model, with_confidence=with_confidence)
+    return resolve_trellis(trellis, model, with_confidence=with_confidence, allowed=allowed)
 
 
 def resolve_trellis(
@@ -49,10 +50,16 @@ def resolve_trellis(
     model: FootingModel | None = None,
     *,
     with_confidence: bool = True,
+    allowed: Mapping[int, FootMove] | None = None,
 ) -> FootingResult:
-    """Decode the minimum-cost foot path through a trellis that is already built."""
+    """Decode the minimum-cost foot path through a trellis that is already built.
+
+    ``allowed`` pins rows to a ``FootMove`` (for example annotated feet); a pin
+    that can't be reached is ignored for that row. Confidence is always the
+    model's own margin and ignores ``allowed``.
+    """
     weights = (model or FootingModel.default()).vector()
-    decoded = viterbi(trellis, weights)
+    decoded = viterbi(trellis, weights, allowed=allowed)
     confidence: Sequence[float | None] = (
         row_confidence(trellis, weights) if with_confidence else [None] * len(trellis.rows)
     )

@@ -15,9 +15,8 @@ from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
 
-from patternity import FootingModel, detect_tech_patterns
-from patternity.footing import ResolvedStep
-from patternity.footing.search import build_trellis, viterbi
+from patternity import detect_tech_patterns
+from patternity.footing import ResolvedStep, resolve_chart
 from patternity.footing.stance import Foot
 from patternity.patterns.detector import column_foot
 from patternity.patterns.spans import PatternKind, PatternSpan
@@ -268,12 +267,10 @@ EXAMPLES = (
 def decode(example: Example) -> Decoded:
     """Footing (tags first, model otherwise) and detected spans of the example's kind."""
     annotated = parse_annotated_sm(_chart_text(example))
-    trellis = build_trellis(annotated.chart.notes)
-    path = viterbi(trellis, FootingModel.default().vector(), allowed=annotated.tagged_assignments)
-    steps = tuple(
-        ResolvedStep(index=i, note_row=row, foot_row=state)
-        for i, (row, state) in enumerate(zip(trellis.rows, path.states(trellis), strict=True))
+    result = resolve_chart(
+        annotated.chart.notes, allowed=annotated.tagged_assignments, with_confidence=False
     )
+    steps = tuple(result.steps)
     spans = tuple(s for s in detect_tech_patterns(steps).spans if s.kind == example.kind)
     if not spans:
         raise ValueError(f"{example.name}: no {example.kind.value} detected in the phrase")

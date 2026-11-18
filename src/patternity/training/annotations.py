@@ -7,6 +7,7 @@ of ``Chart.notes``.
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from patternity.footing.stance import FootMove
@@ -84,6 +85,10 @@ class AnnotatedChart:
         return {
             row.index: move for row in self.rows if (move := row.expected_foot_move()) is not None
         }
+
+    def mismatched_rows(self, moved: Sequence[FootMove]) -> list[int]:
+        """Tagged rows where ``moved`` (one entry per chart row) differs from the tag."""
+        return [index for index, move in self.tagged_assignments.items() if moved[index] != move]
 
 
 def _tag_values(comment: str, *, line_number: int) -> dict[str, str]:

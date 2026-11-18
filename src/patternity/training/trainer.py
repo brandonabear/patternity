@@ -30,6 +30,7 @@ from patternity.training.annotations import (
     AnnotationError,
     parse_annotated_sm,
 )
+from patternity.training.evaluation import accuracy
 
 # Maximum passes over the charts, and how much the annotated foot must win by.
 DEFAULT_EPOCHS = 100
@@ -170,8 +171,8 @@ def _perceptron_update(weights: list[float], example: Example, margin: float, st
 
 def _disagreements(example: Example, decoded: Decoded) -> int:
     """Annotated rows where ``decoded`` moves a different foot than tagged."""
-    states = decoded.states(example.trellis)
-    return sum(1 for i, move in example.gold.items() if states[i].moved != move)
+    moved = [state.moved for state in decoded.states(example.trellis)]
+    return len(example.annotated.mismatched_rows(moved))
 
 
 def _project(weights: list[float]) -> None:
@@ -207,7 +208,7 @@ class FoldResult:
 
     @property
     def accuracy(self) -> float:
-        return 1.0 - self.errors / self.rows if self.rows else 1.0
+        return accuracy(self.errors, self.rows)
 
 
 def leave_one_out(

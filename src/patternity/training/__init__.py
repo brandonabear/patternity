@@ -9,7 +9,7 @@ from patternity.training.corpus import (
     load_corpus,
     load_holdout,
 )
-from patternity.training.evaluation import evaluate_annotated, format_report
+from patternity.training.evaluation import accuracy, evaluate_annotated, format_report
 from patternity.training.trainer import (
     Example,
     leave_one_out,
@@ -22,6 +22,7 @@ from patternity.training.trainer import (
 __all__ = [
     "AnnotatedChart",
     "Example",
+    "accuracy",
     "default_fixtures_root",
     "evaluate_annotated",
     "format_report",

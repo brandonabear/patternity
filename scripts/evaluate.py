@@ -12,6 +12,7 @@ from rich.console import Console
 from patternity.footing import FootingModel
 from patternity.simfile import read_simfile
 from patternity.training import (
+    accuracy,
     default_fixtures_root,
     evaluate_annotated,
     format_report,
@@ -71,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if total_rows:
         console.print(
-            f"TOTAL: {1 - total_errors / total_rows:.2%} ({total_errors} / {total_rows} rows)"
+            f"TOTAL: {accuracy(total_errors, total_rows):.2%} ({total_errors} / {total_rows} rows)"
         )
 
     if args.loo:

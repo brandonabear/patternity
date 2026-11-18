@@ -29,11 +29,11 @@ from pathlib import Path
 from rich.console import Console
 
 from patternity.footing import FootingModel, FootMove, ResolvedStep, resolve_chart
-from patternity.patterns import PatternKind, detect_tech_patterns
+from patternity.patterns import PatternKind
 from patternity.simfile import read_simfile
 from patternity.simfile.parser import LineKind, notes_lines, parse_simfile_with_notes
 from patternity.training.annotations import parse_annotated_sm
-from patternity.training.evaluation import PATTERN_TAGS
+from patternity.training.evaluation import PATTERN_TAGS, pattern_anchors
 
 _SUGGEST_RE = re.compile(r"@suggest(?:_\w+)?=\S+", re.IGNORECASE)
 _MARGIN_RE = re.compile(r"@margin=\S+", re.IGNORECASE)
@@ -73,8 +73,9 @@ def _ordered(tags: set[str]) -> list[str]:
 def _decoded_patterns(steps: Sequence[ResolvedStep]) -> dict[int, set[str]]:
     """Pattern tags per row index, anchored on the last step of each span."""
     decoded: dict[int, set[str]] = {}
-    for span in detect_tech_patterns(steps).spans:
-        decoded.setdefault(span.steps[-1].index, set()).add(_KIND_TAG[span.kind])
+    for kind, rows in pattern_anchors(steps).items():
+        for index in rows:
+            decoded.setdefault(index, set()).add(_KIND_TAG[kind])
     return decoded
 
 
