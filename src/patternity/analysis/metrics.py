@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from dataclasses import fields as _fields
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from patternity.simfile.notes import NoteRow, NoteType
@@ -52,4 +51,4 @@ class BasicMetrics:
                 self.hands += 1
 
     def to_dict(self) -> dict[str, Any]:
-        return {f.name: getattr(self, f.name) for f in _fields(self)}
+        return asdict(self)

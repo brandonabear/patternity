@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from dataclasses import fields as _fields
+from dataclasses import asdict, dataclass
 from typing import Any
 
 
@@ -12,4 +11,4 @@ class MovementMetrics:
     foot_path_feasible: bool = True
 
     def to_dict(self) -> dict[str, Any]:
-        return {f.name: getattr(self, f.name) for f in _fields(self)}
+        return asdict(self)
