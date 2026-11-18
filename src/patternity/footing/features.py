@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-from patternity.footing.grace import HOLD_GRACE_SEC, ROLL_GRACE_SEC, Remaining
+from patternity.footing.grace import NO_GRACE, GraceLeft
 from patternity.footing.stance import (
     Foot,
     FootMove,
@@ -106,7 +106,7 @@ class _Step:
     curr: FootRow
     row: NoteRow
     speed: float  # See ``speed``.
-    grace_remaining: Remaining
+    grace_left: GraceLeft
 
     @property
     def moved(self) -> FootMove:
@@ -158,10 +158,9 @@ def _hold_release_features(step: _Step, feats: _Features) -> FootMove:
             continue
         released |= foot.move
         feats.add(Feature.HOLD_RELEASE)
-        remaining = step.grace_remaining[panel.column]
-        if remaining:
-            window = ROLL_GRACE_SEC if panel in step.row.rolls_active else HOLD_GRACE_SEC
-            feats.add(Feature.EARLY_RELEASE, remaining / window)
+        left = step.grace_left[panel.column]
+        if left:
+            feats.add(Feature.EARLY_RELEASE, left)
     return released
 
 
@@ -267,13 +266,13 @@ def featurize(
     curr: FootRow,
     row: NoteRow,
     dt: float | None,
-    grace_remaining: Remaining = (None, None, None, None),
+    grace_left: GraceLeft = NO_GRACE,
 ) -> dict[str, float]:
     """Feature values for moving from ``prev`` to ``curr`` on ``row``."""
     if curr.moved == FootMove.NONE:
         return {}
 
-    step = _Step(prev, curr, row, speed(dt), grace_remaining)
+    step = _Step(prev, curr, row, speed(dt), grace_left)
     feats = _Features()
     released_now = _hold_release_features(step, feats)
     _repetition_features(step, feats, released_now)

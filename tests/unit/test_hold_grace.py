@@ -31,7 +31,7 @@ def _left_presses_down(rows: list[NoteRow], i: int) -> dict[str, float] | None:
     for curr in iter_legal_transitions(prev, rows[i], grace=grace.panels):
         if curr.moved == FootMove.LEFT and curr.stance.left == FootPlacement.D:
             assert curr.hold_owners == ()
-            return featurize(prev, curr, rows[i], 0.2, grace_remaining=grace.remaining)
+            return featurize(prev, curr, rows[i], 0.2, grace_left=grace.left)
     return None
 
 
@@ -41,8 +41,8 @@ def test_grace_covers_tail_row_and_rows_inside_window() -> None:
     grace = hold_grace(rows)
     assert grace[0] == GraceWindow()
     assert grace[1].panels == Panel.L
-    left = grace[1].remaining[0]
-    assert left is not None and 0.0 < left <= HOLD_GRACE_SEC
+    left = grace[1].left[0]
+    assert left is not None and 0.0 < left <= 1.0
     assert grace[2] == GraceWindow(Panel.L, (0.0, None, None, None))
 
 

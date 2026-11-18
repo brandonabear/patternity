@@ -58,7 +58,7 @@ def _features(rows: list[str], path: list[Step]) -> dict[str, float]:
             continue
         curr = _take(state, options, next(steps))
         dt = None if last_press is None else row.timestamp - last_press
-        feats = featurize(state, curr, row, dt, grace_remaining=grace.remaining)
+        feats = featurize(state, curr, row, dt, grace_left=grace.left)
         state, last_press = curr, row.timestamp
 
     assert next(steps, None) is None, "path has more steps than there are press rows"

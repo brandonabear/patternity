@@ -45,7 +45,7 @@ def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
         for curr in iter_legal_transitions(prev, row, grace=grace.panels):
             if row.pressed and row.mines and hits_mine(curr, row.mines):
                 continue
-            feats = featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
+            feats = featurize(prev, curr, row, dt, grace_left=grace.left)
             edge = sum(weights[FEATURE_NAMES.index(k)] * v for k, v in feats.items())
             walk(i + 1, curr, cost + edge, now if row.pressed else last_press)
 

@@ -111,9 +111,7 @@ def _expand_layer(
         for curr in iter_legal_transitions(
             prev, row, allow_brackets=allow_brackets, grace=grace.panels
         ):
-            feat_id = features.intern(
-                featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
-            )
+            feat_id = features.intern(featurize(prev, curr, row, dt, grace_left=grace.left))
             if check_mines and hits_mine(curr, row.mines):
                 blocked.append((prev_i, curr, feat_id))
                 continue
