@@ -111,9 +111,7 @@ def _expand_layer(
         for curr in iter_legal_transitions(
             prev, row, allow_brackets=allow_brackets, grace=grace.panels
         ):
-            feat_id = features.intern(
-                featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
-            )
+            feat_id = features.intern(featurize(prev, curr, row, dt, grace_left=grace.left))
             if check_mines and hits_mine(curr, row.mines):
                 blocked.append((prev_i, curr, feat_id))
                 continue
@@ -184,7 +182,8 @@ class Decoded:
     state_indices: tuple[int, ...]
     edge_indices: tuple[int, ...]
     cost: float
-    relaxed_rows: tuple[int, ...] = ()
+    # Rows whose ``allowed`` move was unreachable, so were decoded unconstrained.
+    unsatisfied_rows: tuple[int, ...] = ()
 
     def states(self, trellis: Trellis) -> list[FootRow]:
         return [trellis.layers[i].states[s] for i, s in enumerate(self.state_indices)]
@@ -204,7 +203,7 @@ class _Forward:
 
     cost: list[list[float]]
     back: list[list[int]]
-    relaxed_rows: tuple[int, ...]
+    unsatisfied_rows: tuple[int, ...]
 
 
 def _enter_layer(
@@ -253,11 +252,11 @@ def _forward(
     """Cheapest cost to every state, layer by layer.
 
     A row whose ``allowed`` move is unreachable is redone unconstrained and
-    reported in ``relaxed_rows``.
+    reported in ``unsatisfied_rows``.
     """
     costs: list[list[float]] = []
     backs: list[list[int]] = []
-    relaxed: list[int] = []
+    unsatisfied: list[int] = []
     prev_cost: list[float] = [0.0]
 
     for i, layer in enumerate(trellis.layers):
@@ -265,7 +264,7 @@ def _forward(
         gold = loss.get(i) if loss else None
         cost, back = _enter_layer(layer, prev_cost, table_cost, want=want, gold=gold, margin=margin)
         if want is not None and all(c == math.inf for c in cost):
-            relaxed.append(i)
+            unsatisfied.append(i)
             cost, back = _enter_layer(
                 layer, prev_cost, table_cost, want=None, gold=gold, margin=margin
             )
@@ -273,7 +272,7 @@ def _forward(
         backs.append(back)
         prev_cost = cost
 
-    return _Forward(costs, backs, tuple(relaxed))
+    return _Forward(costs, backs, tuple(unsatisfied))
 
 
 def _backtrace(trellis: Trellis, forward: _Forward) -> Decoded:
@@ -293,7 +292,7 @@ def _backtrace(trellis: Trellis, forward: _Forward) -> Decoded:
         s = layer.prev_idx[k]
     state_indices.reverse()
     edge_indices.reverse()
-    return Decoded(tuple(state_indices), tuple(edge_indices), total, forward.relaxed_rows)
+    return Decoded(tuple(state_indices), tuple(edge_indices), total, forward.unsatisfied_rows)
 
 
 def viterbi(
@@ -307,7 +306,7 @@ def viterbi(
     """Minimum-cost path.
 
     ``allowed`` restricts rows to an annotated ``FootMove``; rows where that is
-    impossible are left unconstrained and reported in ``relaxed_rows``.
+    impossible are left unconstrained and reported in ``unsatisfied_rows``.
     ``loss`` with ``margin`` lowers the cost of disagreeing with it (cost-augmented
     decoding for training).
     """

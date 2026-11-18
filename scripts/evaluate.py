@@ -12,8 +12,11 @@ from rich.console import Console
 from patternity.footing import FootingModel
 from patternity.simfile import read_simfile
 from patternity.training import (
+    accuracy,
+    add_fixture_arguments,
     default_fixtures_root,
     evaluate_annotated,
+    format_folds,
     format_report,
     leave_one_out,
     load_corpus,
@@ -25,16 +28,7 @@ from patternity.training import (
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "fixtures",
-        nargs="*",
-        help="fixture paths relative to the fixtures root (default: training_corpus.txt)",
-    )
-    parser.add_argument(
-        "--fixtures-root",
-        type=Path,
-        help="directory holding fixtures and training_corpus.txt (default: nearest tests/fixtures)",
-    )
+    add_fixture_arguments(parser)
     parser.add_argument("--weights", type=Path, help="weights JSON (default: packaged)")
     parser.add_argument("--show", type=int, default=20, help="disagreements to list")
     parser.add_argument("--loo", action="store_true", help="also train/score leave-one-chart-out")
@@ -59,7 +53,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         fixtures = args.fixtures or load_corpus(root)
 
-    model = FootingModel.load(args.weights) if args.weights else FootingModel.default()
+    model = FootingModel.load(args.weights)
     total_rows = total_errors = 0
 
     for rel in fixtures:
@@ -71,13 +65,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if total_rows:
         console.print(
-            f"TOTAL: {1 - total_errors / total_rows:.2%} ({total_errors} / {total_rows} rows)"
+            f"TOTAL: {accuracy(total_errors, total_rows):.2%} ({total_errors} / {total_rows} rows)"
         )
 
     if args.loo:
         console.print("Leave-one-chart-out:")
-        for fold in leave_one_out(load_examples(fixtures, root)):
-            console.print(f"  {fold.held_out:32s} {fold.accuracy:7.2%} ({fold.errors}/{fold.rows})")
+        console.print(format_folds(leave_one_out(load_examples(fixtures, root))))
 
     return 0
 

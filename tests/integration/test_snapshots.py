@@ -22,7 +22,7 @@ from typing import Any
 
 import pytest
 
-from patternity import StepmaniaFileParser, read_simfile, resolve_chart
+from patternity import parse_simfile, read_simfile, resolve_chart
 from patternity.analysis import count_basic
 from patternity.footing import ResolvedStep
 from patternity.footing.stance import FootMove
@@ -99,7 +99,7 @@ def _footing(chart: Chart) -> dict[str, Any]:
 def _check(
     kind: str, relpath: str, describe: Callable[[Chart], dict[str, Any]], update: bool
 ) -> None:
-    song = StepmaniaFileParser.parse(read_simfile(FIXTURES / relpath))
+    song = parse_simfile(read_simfile(FIXTURES / relpath))
     actual = {"fixture": relpath, "charts": [describe(chart) for chart in song.charts]}
     path = SNAPSHOTS / kind / (Path(relpath).stem + ".json")
 

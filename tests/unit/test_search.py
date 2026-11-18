@@ -93,7 +93,7 @@ def test_confidence_is_the_extra_cost_of_the_cheapest_other_foot_move() -> None:
             forced.cost
             for move in (FootMove.LEFT, FootMove.RIGHT, FootMove.BOTH)
             if move != state.moved
-            and not (forced := viterbi(trellis, weights, allowed={i: move})).relaxed_rows
+            and not (forced := viterbi(trellis, weights, allowed={i: move})).unsatisfied_rows
         ]
         expected.append(min(others, default=math.inf) - best.cost)
 

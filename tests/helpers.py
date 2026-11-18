@@ -1,8 +1,6 @@
 """Shared builders for unit tests: chart text, gold-annotated paths, synthetic paths."""
 
-from patternity.footing import ResolvedStep
-from patternity.footing.features import FEATURE_NAMES
-from patternity.footing.search import build_trellis, viterbi
+from patternity.footing import FootingModel, ResolvedStep, resolve_chart
 from patternity.footing.stance import FootMove, FootPlacement, FootRow, Stance
 from patternity.simfile import PANELS, NoteRow, Panel
 from patternity.simfile.notes import parse_columns
@@ -50,14 +48,12 @@ def chart_rows(rows: list[str], bpm: float = 120.0) -> list[NoteRow]:
 def gold_steps(rows: list[str], bpm: float = 120.0) -> list[ResolvedStep]:
     """The path that satisfies every ``@foot`` / ``@feet`` tag, decoded with zero weights."""
     annotated = parse_annotated_sm(chart_text(rows, bpm))
-    trellis = build_trellis(annotated.chart.notes)
-    decoded = viterbi(trellis, [0.0] * len(FEATURE_NAMES), allowed=annotated.tagged_assignments)
-    return [
-        ResolvedStep(index=i, note_row=row, foot_row=state)
-        for i, (row, state) in enumerate(
-            zip(annotated.chart.notes, decoded.states(trellis), strict=True)
-        )
-    ]
+    return resolve_chart(
+        annotated.chart.notes,
+        FootingModel(),
+        allowed=annotated.tagged_assignments,
+        with_confidence=False,
+    ).steps
 
 
 def synthetic_steps(moves: list[tuple[str, str, str]]) -> list[ResolvedStep]:

@@ -1,4 +1,5 @@
 import importlib.util
+import sys
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,8 @@ _spec = importlib.util.spec_from_file_location(
 )
 assert _spec and _spec.loader
 _mod = importlib.util.module_from_spec(_spec)
+# Registered before running, as importlib documents, so the script's dataclasses resolve.
+sys.modules[_spec.name] = _mod
 _spec.loader.exec_module(_mod)
 suggest_file = _mod.suggest_file
 
@@ -72,7 +75,8 @@ def test_suggest_adds_measure_markers_and_measure_on_tags(mock_console, tmp_path
         0,
     )
     text = path.read_text(encoding="utf-8")
-    assert "// measure 0\n" in text
+    # Measure 0's marker goes above the first row, even an empty one.
+    assert "#NOTES:\n// measure 0\n0000\n" in text
     assert ",  // measure 1" in text
     assert "0100 // @suggest_foot=" in text
     assert "1000 // @suggest_foot=" in text
@@ -101,6 +105,18 @@ def test_suggest_rerun_is_stable(mock_console, tmp_path: Path) -> None:
     once = path.read_text(encoding="utf-8")
     suggest_file(mock_console, path, FootingModel.default(), list_rows=0)
     assert path.read_text(encoding="utf-8") == once
+
+
+def test_rerun_relabels_stale_comma_markers(mock_console, tmp_path: Path) -> None:
+    # With "// measure 0" already present no line is inserted, so commas must be
+    # relabelled in place rather than one line further down.
+    stale = _MINI_CHART.replace("#NOTES:\n", "#NOTES:\n// measure 0\n").replace(",\n", ", // m7\n")
+    path = tmp_path / "mini.ssc"
+    path.write_text(stale, encoding="utf-8")
+    suggest_file(mock_console, path, FootingModel.default(), list_rows=0)
+    text = path.read_text(encoding="utf-8")
+    assert ",  // measure 1\n1000 // @suggest_foot=" in text
+    assert "m7" not in text
 
 
 def test_accepting_all_suggestions_by_find_replace(mock_console, tmp_path: Path) -> None:

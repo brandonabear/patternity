@@ -9,7 +9,7 @@ from pathlib import Path
 from rich.console import Console
 
 from patternity.analysis import analyze_chart
-from patternity.simfile.parser import SimfileError, StepmaniaFileParser
+from patternity.simfile.parser import SimfileError, parse_simfile
 from patternity.simfile.reader import UnsupportedSimfileSuffix, read_simfile
 from patternity.simfile.serializer import output_path, serialize
 
@@ -62,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         data = read_simfile(args.file)
         console.print(f"Read file: {args.file.name}")
-        song = StepmaniaFileParser.parse(data)
+        song = parse_simfile(data)
     except (OSError, UnsupportedSimfileSuffix, SimfileError) as exc:
         console.print(f"Error: {exc}")
         return 1

@@ -11,7 +11,7 @@
 ```mermaid
 flowchart TD
     file[".sm / .ssc file"] --> reader["simfile.read_simfile"]
-    reader --> parser["simfile.StepmaniaFileParser"]
+    reader --> parser["simfile.parse_simfile"]
     parser --> song["Song → Chart → NoteRow[]"]
     song --> footing["footing.resolve_chart<br/>(Viterbi over foot states)"]
     weights[("data/footing_weights.json")] --> footing

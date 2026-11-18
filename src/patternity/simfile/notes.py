@@ -23,15 +23,15 @@ class Panel(IntFlag):
     U = 4
     R = 8
 
-    @classmethod
-    def at(cls, col: int) -> Panel:
-        """The single panel at column index ``col`` (0-3, LDUR order)."""
-        return PANELS[col]
-
     @property
     def column(self) -> int:
         """Column index (0-3, LDUR order) of a single panel."""
         return PANELS.index(self)
+
+    @property
+    def single(self) -> Panel:
+        """This set if it holds exactly one panel, else ``Panel.NONE``."""
+        return self if len(self) == 1 else Panel.NONE
 
 
 # Single panels in column (LDUR) order; zip with per-column data such as
@@ -110,6 +110,14 @@ class NoteRow:
     def mines(self) -> Panel:
         """Panels with a MINE on this row."""
         return self.panels_with(MINE_NOTES)
+
+    @property
+    def held(self) -> Panel:
+        """Panels with a hold or roll already underway on this row, through its tail.
+
+        A panel is not considered held on the row where it is pressed.
+        """
+        return (self.holds_active | self.rolls_active) & ~self.pressed
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> NoteRow:

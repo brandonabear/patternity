@@ -8,16 +8,31 @@ disagreement sorted by model confidence (least confident first).
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from patternity.footing.model import FootingModel
-from patternity.footing.resolve import resolve_trellis
+from patternity.footing.resolve import ResolvedStep, resolve_trellis
 from patternity.footing.search import Trellis, build_trellis, viterbi
 from patternity.footing.stance import FootMove
 from patternity.patterns import PatternKind, detect_tech_patterns
 from patternity.training.annotations import PATTERN_TAGS, AnnotatedChart
 
 SCORED_KINDS: tuple[PatternKind, ...] = tuple(dict.fromkeys(PATTERN_TAGS.values()))
+
+
+def accuracy(errors: int, rows: int) -> float:
+    """Share of annotated rows decoded correctly (1.0 when nothing is annotated)."""
+    return 1.0 - errors / rows if rows else 1.0
+
+
+def pattern_anchors(steps: Sequence[ResolvedStep]) -> dict[PatternKind, set[int]]:
+    """Row indices of each detected pattern kind, anchored where ``@pattern`` tags go:
+    on the span's last step."""
+    anchors: dict[PatternKind, set[int]] = {}
+    for span in detect_tech_patterns(steps).spans:
+        anchors.setdefault(span.kind, set()).add(span.steps[-1].index)
+    return anchors
 
 
 @dataclass(frozen=True)
@@ -63,7 +78,7 @@ class FixtureReport:
 
     @property
     def accuracy(self) -> float:
-        return 1.0 - self.errors / self.rows if self.rows else 1.0
+        return accuracy(self.errors, self.rows)
 
 
 def score_patterns(
@@ -107,34 +122,26 @@ def evaluate_annotated(
     result = resolve_trellis(trellis, model)
     gold = annotated.tagged_assignments
 
-    disagreements = []
-    for index, expected in gold.items():
-        step = result.steps[index]
-        if step.foot_row.moved == expected:
-            continue
-        row = annotated.rows[index]
-        disagreements.append(
-            Disagreement(
-                index=index,
-                line_number=row.line_number,
-                beat=row.beat,
-                expected=expected,
-                actual=step.foot_row.moved,
-                confidence=step.confidence,
-            )
+    moved = [step.foot_row.moved for step in result.steps]
+    disagreements = [
+        Disagreement(
+            index=index,
+            line_number=annotated.rows[index].line_number,
+            beat=annotated.rows[index].note_row.beat,
+            expected=gold[index],
+            actual=moved[index],
+            confidence=result.steps[index].confidence,
         )
+        for index in annotated.mismatched_rows(moved)
+    ]
     disagreements.sort(key=lambda d: math.inf if d.confidence is None else d.confidence)
 
-    detected: dict[PatternKind, set[int]] = {}
-    for span in detect_tech_patterns(result.steps).spans:
-        detected.setdefault(span.kind, set()).add(span.steps[-1].index)
-
-    impossible = list(viterbi(trellis, model.vector(), allowed=gold).relaxed_rows)
+    impossible = list(viterbi(trellis, model.vector(), allowed=gold).unsatisfied_rows)
     return FixtureReport(
         name=name,
         rows=len(gold),
         disagreements=disagreements,
-        patterns=score_patterns(annotated, detected),
+        patterns=score_patterns(annotated, pattern_anchors(result.steps)),
         impossible_annotations=impossible,
     )
 
@@ -148,7 +155,7 @@ def format_report(report: FixtureReport, annotated: AnnotatedChart, *, show: int
     ]
     for index in report.impossible_annotations:
         row = annotated.rows[index]
-        lines.append(f"  IMPOSSIBLE annotation: line {row.line_number} beat {row.beat}")
+        lines.append(f"  IMPOSSIBLE annotation: line {row.line_number} beat {row.note_row.beat}")
     for kind, score in report.patterns.items():
         if not (score.true_positives or score.false_positives or score.false_negatives):
             continue

@@ -1,7 +1,7 @@
 import pytest
 
 from patternity.simfile import Difficulty, MissingTimingError, NoteRow, Panel, SimfileError
-from patternity.simfile.parser import StepmaniaFileParser, parse_simfile_with_notes
+from patternity.simfile.parser import parse_simfile, parse_simfile_with_notes
 
 
 def test_multiline_header_values_are_parsed() -> None:
@@ -11,7 +11,7 @@ def test_multiline_header_values_are_parsed() -> None:
         "#NOTES:\n     dance-single:\n     t:\n     Challenge:\n     1:\n"
         "     0,0,0,0,0:\n1000\n0000\n0000\n0000\n,\n1000\n0000\n0000\n0000\n;\n"
     )
-    song = StepmaniaFileParser.parse(data)
+    song = parse_simfile(data)
     assert song.header.bpms == {0.0: 128.0, 4.0: 64.0}
     second = song.charts[0].notes[1]
     assert abs(second.timestamp - 4 * 60 / 128) < 1e-9
@@ -28,7 +28,7 @@ _HEADER = "#TITLE:t;\n#BPMS:0.000=120.000;\n"
 
 
 def test_edit_difficulty_is_parsed() -> None:
-    song = StepmaniaFileParser.parse(_HEADER + _sm_chart("dance-single", "Edit", "1000"))
+    song = parse_simfile(_HEADER + _sm_chart("dance-single", "Edit", "1000"))
     assert [chart.metadata.difficulty for chart in song.charts] == [Difficulty.EDIT]
     assert song.skipped_charts == []
 
@@ -48,7 +48,7 @@ def test_unsupported_chart_is_skipped_without_losing_the_others(
     data = (
         _HEADER + _sm_chart(mode, difficulty, row) + _sm_chart("dance-single", "Challenge", "0100")
     )
-    song = StepmaniaFileParser.parse(data)
+    song = parse_simfile(data)
 
     assert [chart.metadata.difficulty for chart in song.charts] == [Difficulty.CHALLENGE]
     (skipped,) = song.skipped_charts
@@ -58,11 +58,11 @@ def test_unsupported_chart_is_skipped_without_losing_the_others(
 
 def test_chart_without_bpms_raises() -> None:
     with pytest.raises(MissingTimingError):
-        StepmaniaFileParser.parse("#TITLE:t;\n" + _sm_chart("dance-single", "Hard", "1000"))
+        parse_simfile("#TITLE:t;\n" + _sm_chart("dance-single", "Hard", "1000"))
 
 
 def test_header_only_file_needs_no_bpms() -> None:
-    assert StepmaniaFileParser.parse("#TITLE:t;\n").charts == []
+    assert parse_simfile("#TITLE:t;\n").charts == []
 
 
 def test_header_tags_are_converted_by_field() -> None:
@@ -70,7 +70,7 @@ def test_header_tags_are_converted_by_field() -> None:
         "#TITLE:Song;\n#OFFSET:-0.5;\n#SAMPLESTART:12.5;\n#SELECTABLE:YES;\n"
         "#DISPLAYBPM:150;\n#STOPS:4=0.25;\n#NOTAREALTAG:x;\n"
     )
-    header = StepmaniaFileParser.parse(data).header
+    header = parse_simfile(data).header
 
     assert (header.title, header.offset, header.samplestart) == ("Song", -0.5, 12.5)
     assert header.selectable is True
@@ -79,7 +79,7 @@ def test_header_tags_are_converted_by_field() -> None:
 
 
 def test_display_bpm_that_is_not_a_number_stays_text() -> None:
-    assert StepmaniaFileParser.parse("#DISPLAYBPM:120:180;\n").header.displaybpm == "120:180"
+    assert parse_simfile("#DISPLAYBPM:120:180;\n").header.displaybpm == "120:180"
 
 
 def _file_line(data: str, text: str) -> int:
@@ -128,7 +128,7 @@ def test_notes_bodies_line_up_with_parsed_charts_when_one_is_skipped() -> None:
 
 def test_sm_notes_section_with_missing_fields_raises() -> None:
     with pytest.raises(SimfileError, match="malformed #NOTES"):
-        StepmaniaFileParser.parse(_HEADER + "#NOTES:\n dance-single:\n Hard:\n1000\n;\n")
+        parse_simfile(_HEADER + "#NOTES:\n dance-single:\n Hard:\n1000\n;\n")
 
 
 def _sm(notes: str, *, header: str = _HEADER, radar: str = "0,0,0,0,0") -> str:
@@ -140,7 +140,7 @@ def _sm(notes: str, *, header: str = _HEADER, radar: str = "0,0,0,0,0") -> str:
 
 
 def _rows(data: str) -> list[NoteRow]:
-    return StepmaniaFileParser.parse(data).charts[0].notes
+    return parse_simfile(data).charts[0].notes
 
 
 def test_empty_rows_are_skipped_but_keep_their_place_in_the_measure() -> None:
@@ -201,13 +201,13 @@ def test_comments_are_stripped_from_note_data() -> None:
 
 
 def test_comment_inside_a_header_tag_is_dropped() -> None:
-    header = StepmaniaFileParser.parse("#TITLE:Song // not part of the title\n;\n").header
+    header = parse_simfile("#TITLE:Song // not part of the title\n;\n").header
     assert header.title == "Song"
 
 
 def test_groove_radar_values_are_parsed_in_order() -> None:
     data = _sm("1000", radar="0.5,0.25,0.125,0,1,10,8,2,3,4,1")
-    radar = StepmaniaFileParser.parse(data).charts[0].metadata.radar
+    radar = parse_simfile(data).charts[0].metadata.radar
 
     assert (radar.stream, radar.voltage, radar.air, radar.freeze, radar.chaos) == (
         0.5,
@@ -227,7 +227,7 @@ def test_groove_radar_values_are_parsed_in_order() -> None:
 
 
 def test_missing_groove_radar_values_stay_unset() -> None:
-    radar = StepmaniaFileParser.parse(_sm("1000", radar="0.5,,")).charts[0].metadata.radar
+    radar = parse_simfile(_sm("1000", radar="0.5,,")).charts[0].metadata.radar
     assert (radar.stream, radar.voltage, radar.hands) == (0.5, None, None)
 
 
@@ -244,7 +244,7 @@ def test_ssc_chart_reads_its_metadata_from_tags() -> None:
         # .ssc files list each value twice (player 1, then player 2).
         "#RADARVALUES:0.5,0,0,0,0,4,4,0,0,0,0,0.5,0,0,0,0,9,9,9,9,9,9;\n"
     )
-    chart = StepmaniaFileParser.parse(_HEADER + _ssc_chart(tags, "1000\n0100")).charts[0]
+    chart = parse_simfile(_HEADER + _ssc_chart(tags, "1000\n0100")).charts[0]
     metadata = chart.metadata
 
     assert (metadata.mode, metadata.difficulty, metadata.rating) == (
@@ -259,7 +259,7 @@ def test_ssc_chart_reads_its_metadata_from_tags() -> None:
 
 def test_ssc_chart_falls_back_to_its_description_for_credit() -> None:
     data = _HEADER + _ssc_chart("#DESCRIPTION:described;\n", "1000")
-    assert StepmaniaFileParser.parse(data).charts[0].metadata.credit == "described"
+    assert parse_simfile(data).charts[0].metadata.credit == "described"
 
 
 def test_ssc_chart_timing_overrides_the_header() -> None:
@@ -269,7 +269,7 @@ def test_ssc_chart_timing_overrides_the_header() -> None:
         + _ssc_chart("", "1000\n0100\n0010\n0001")
         + _ssc_chart("#BPMS:0.000=60.000;\n#STOPS:1.000=0.500;\n", "1000\n0100\n0010\n0001")
     )
-    shared, split = StepmaniaFileParser.parse(data).charts
+    shared, split = parse_simfile(data).charts
 
     assert [row.timestamp for row in shared.notes] == pytest.approx([0.0, 0.5, 1.0, 1.5])
     assert [row.timestamp for row in split.notes] == pytest.approx([0.0, 1.0, 2.5, 3.5])

@@ -1,6 +1,7 @@
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
+from enum import Enum, auto
 
 from patternity.simfile.notes import AnchorTracker, InvalidNoteRow, NoteRow, parse_columns
 from patternity.simfile.song import (
@@ -40,21 +41,13 @@ class MissingTimingError(SimfileError):
     """A chart has no ``#BPMS``, so its rows cannot be given timestamps."""
 
 
-@dataclass(frozen=True)
-class NotesBody:
-    """A chart's note data as written, and where it sits in the file.
+@dataclass(frozen=True, slots=True)
+class SourceText:
+    """A piece of the simfile, such as a section or a chart's note data, and where it sits.
 
     ``first_line`` is the 1-based file line of ``text``'s first line, so line
     ``i`` of ``text.splitlines()`` is file line ``first_line + i``.
     """
-
-    text: str
-    first_line: int
-
-
-@dataclass(frozen=True)
-class _Section:
-    """One ``;``-terminated section, leading comments stripped, and its 1-based file line."""
 
     text: str
     first_line: int
@@ -69,27 +62,24 @@ def _leading_comment_lines(lines: list[str]) -> int:
     return len(lines)
 
 
-def strip_leading_comments(section: str) -> str:
-    """Strip leading comments from a section.
+def _sections(data: str) -> Iterator[SourceText]:
+    """The non-empty ``;``-terminated sections of a simfile, in order.
 
-    There is often a decorative comment before the note data section.
+    Leading comments are stripped; there is often a decorative one before a
+    chart's note data:
     ```sm
     #HEADER:;
     //------ dance-single -------
     #NOTES:;
     ```
     """
-    lines = section.splitlines()
-    return "\n".join(lines[_leading_comment_lines(lines) :]).strip()
-
-
-def _sections(data: str) -> Iterator[_Section]:
-    """The non-empty sections of a simfile, in order."""
     line = 1
     for raw in data.split(";"):
-        text = strip_leading_comments(raw)
+        lines = raw.splitlines()
+        skipped = _leading_comment_lines(lines)
+        text = "\n".join(lines[skipped:]).strip()
         if text:
-            yield _Section(text, line + _leading_comment_lines(raw.splitlines()))
+            yield SourceText(text, line + skipped)
         line += raw.count("\n")
 
 
@@ -126,20 +116,51 @@ class SourceRow:
     beat: float
 
 
-def _split_measures(notes: str) -> list[list[tuple[int, str]]]:
-    """Group ``(line_index, row_text)`` into measures separated by ',' lines."""
-    measures: list[list[tuple[int, str]]] = []
-    current: list[tuple[int, str]] = []
-    for line_index, raw in enumerate(notes.splitlines()):
-        line = _strip_comment(raw)
-        if not line:
-            continue
-        if line.startswith((",", ";")):
+class LineKind(Enum):
+    BLANK = auto()  # empty or comment-only
+    SEPARATOR = auto()  # starts with "," or ";"
+    ROW = auto()  # note row, empty "0000" rows included
+
+
+@dataclass(frozen=True, slots=True)
+class NotesLine:
+    """One line of a chart's notes text, classified the way the parser reads it."""
+
+    index: int  # 0-based line within the notes text
+    kind: LineKind
+    notes: str  # text before "//", stripped
+    comment: str  # text after the first "//", stripped ("" if none)
+
+
+def _line_kind(notes: str) -> LineKind:
+    if not notes:
+        return LineKind.BLANK
+    if notes.startswith((",", ";")):
+        return LineKind.SEPARATOR
+    return LineKind.ROW
+
+
+def notes_lines(notes: str) -> list[NotesLine]:
+    """Every line of ``notes``, so callers that need comments or positions agree with the parser."""
+    lines: list[NotesLine] = []
+    for index, raw in enumerate(notes.splitlines()):
+        note_text, _, comment = raw.partition("//")
+        note_text = note_text.strip()
+        lines.append(NotesLine(index, _line_kind(note_text), note_text, comment.strip()))
+    return lines
+
+
+def _split_measures(notes: str) -> list[list[NotesLine]]:
+    """Group note rows into measures separated by ',' lines."""
+    measures: list[list[NotesLine]] = []
+    current: list[NotesLine] = []
+    for line in notes_lines(notes):
+        if line.kind is LineKind.SEPARATOR:
             if current:
                 measures.append(current)
                 current = []
-        else:
-            current.append((line_index, line))
+        elif line.kind is LineKind.ROW:
+            current.append(line)
     # The chart-closing ";" is treated as the section delimiter, so the last
     # measure may have no trailing ",".
     if current:
@@ -152,13 +173,13 @@ def source_rows(notes: str) -> list[SourceRow]:
     rows: list[SourceRow] = []
     for measure_idx, measure in enumerate(_split_measures(notes)):
         quantization = len(measure)
-        for slot, (line_index, text) in enumerate(measure):
-            if text == "0000":
+        for slot, line in enumerate(measure):
+            if line.notes == "0000":
                 continue
             rows.append(
                 SourceRow(
-                    text=text,
-                    line_index=line_index,
+                    text=line.notes,
+                    line_index=line.index,
                     measure=measure_idx,
                     quantization=quantization,
                     beat=round(measure_idx * 4 + slot * 4 / quantization, 4),
@@ -276,7 +297,7 @@ def _timing(header: Header, chart_tags: dict[str, str] | None = None) -> TimingE
     return TimingEngine(bpms=bpms, stops=stops)
 
 
-def _sm_chart(section: _Section, header: Header) -> tuple[Chart | SkippedChart, NotesBody]:
+def _sm_chart(section: SourceText, header: Header) -> tuple[Chart | SkippedChart, SourceText]:
     """A chart from a .sm ``#NOTES:`` section, which packs metadata and notes into
     colon-separated fields: ``#NOTES:mode:credit:difficulty:meter:radar:notes``."""
     pieces = section.text.split(":", 6)
@@ -286,7 +307,7 @@ def _sm_chart(section: _Section, header: Header) -> tuple[Chart | SkippedChart, 
 
     # The notes start after the last colon and any whitespace that follows it.
     before_notes = section.text[: len(section.text) - len(raw_notes.lstrip())]
-    notes = NotesBody(raw_notes.strip(), section.first_line + before_notes.count("\n"))
+    notes = SourceText(raw_notes.strip(), section.first_line + before_notes.count("\n"))
 
     chart = _build_chart(
         mode=mode.strip(),
@@ -301,10 +322,10 @@ def _sm_chart(section: _Section, header: Header) -> tuple[Chart | SkippedChart, 
 
 
 def _ssc_chart(
-    tags: dict[str, str], section: _Section, header: Header
-) -> tuple[Chart | SkippedChart, NotesBody]:
+    tags: dict[str, str], section: SourceText, header: Header
+) -> tuple[Chart | SkippedChart, SourceText]:
     """A chart from an .ssc ``#NOTEDATA`` block: its tags, then the ``#NOTES:`` section."""
-    notes = NotesBody(section.text.split(":", 1)[1], section.first_line)
+    notes = SourceText(section.text.split(":", 1)[1], section.first_line)
     chart = _build_chart(
         mode=tags.get("#STEPSTYPE", ""),
         credit=tags.get("#CREDIT") or tags.get("#DESCRIPTION") or "",
@@ -317,18 +338,18 @@ def _ssc_chart(
     return chart, notes
 
 
-def parse_simfile_with_notes(data: str) -> tuple[Song, list[NotesBody]]:
+def parse_simfile_with_notes(data: str) -> tuple[Song, list[SourceText]]:
     """Parse a .sm or .ssc file, also returning each chart's note data as written.
 
     The second value lines up with ``song.charts``. It is for tools that read
     what the parser discards (comments, source line numbers).
     """
     song = Song(header=Header())
-    bodies: list[NotesBody] = []
+    bodies: list[SourceText] = []
     # Tags of the #NOTEDATA block being read (.ssc only); None outside one.
     ssc_tags: dict[str, str] | None = None
 
-    def add(chart: Chart | SkippedChart, notes: NotesBody) -> None:
+    def add(chart: Chart | SkippedChart, notes: SourceText) -> None:
         if isinstance(chart, Chart):
             song.charts.append(chart)
             bodies.append(notes)
@@ -355,11 +376,7 @@ def parse_simfile_with_notes(data: str) -> tuple[Song, list[NotesBody]]:
     return song, bodies
 
 
-class StepmaniaFileParser:
-    """Parses StepMania .sm and .ssc files."""
-
-    @staticmethod
-    def parse(data: str) -> Song:
-        """Parse a .sm or .ssc file."""
-        song, _ = parse_simfile_with_notes(data)
-        return song
+def parse_simfile(data: str) -> Song:
+    """Parse a .sm or .ssc file."""
+    song, _ = parse_simfile_with_notes(data)
+    return song

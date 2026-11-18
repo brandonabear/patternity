@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from patternity import Analyzer, analyze_chart, resolve_chart
+from patternity import analyze_chart, resolve_chart
 from patternity.footing import FootingModel, resolve_trellis
 from patternity.footing.features import FEATURE_NAMES, featurize
 from patternity.footing.grace import hold_grace
@@ -45,7 +45,7 @@ def _brute_force_min(rows: list[NoteRow], weights: list[float]) -> float:
         for curr in iter_legal_transitions(prev, row, grace=grace.panels):
             if row.pressed and row.mines and hits_mine(curr, row.mines):
                 continue
-            feats = featurize(prev, curr, row, dt, grace_remaining=grace.remaining)
+            feats = featurize(prev, curr, row, dt, grace_left=grace.left)
             edge = sum(weights[FEATURE_NAMES.index(k)] * v for k, v in feats.items())
             walk(i + 1, curr, cost + edge, now if row.pressed else last_press)
 
@@ -92,7 +92,7 @@ def test_physically_impossible_annotation_is_reported() -> None:
     decoded = viterbi(
         trellis, FootingModel.default().vector(), allowed=annotated.tagged_assignments
     )
-    assert decoded.relaxed_rows == (1,)
+    assert decoded.unsatisfied_rows == (1,)
 
 
 def test_switch_after_hold_release_needs_mine_cue() -> None:
@@ -222,11 +222,10 @@ def test_lifts_and_fakes_are_counted_but_never_stepped_on() -> None:
     assert moves[1] == FootMove.NONE
 
 
-def test_analyzer_wrapper_matches_analyze_chart_and_is_repeatable() -> None:
+def test_analyze_chart_is_repeatable() -> None:
     chart = parse_annotated_sm(chart_text(["1000", "0100", "0110", ","])).chart
-    analyzer = Analyzer(chart)
 
-    assert analyzer.analyze() == analyzer.analyze() == analyze_chart(chart).to_dict()
+    assert analyze_chart(chart).to_dict() == analyze_chart(chart).to_dict()
 
 
 def test_resolve_trellis_matches_resolve_chart() -> None:

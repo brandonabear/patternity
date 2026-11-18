@@ -24,39 +24,38 @@ import math
 import re
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 from rich.console import Console
 
-from patternity.footing import FootingModel, FootMove, ResolvedStep, resolve_chart
-from patternity.patterns import PatternKind, detect_tech_patterns
-from patternity.simfile import read_simfile
-from patternity.simfile.parser import parse_simfile_with_notes
-from patternity.training.annotations import parse_annotated_sm
-from patternity.training.evaluation import PATTERN_TAGS
+from patternity.footing import FootingModel, FootingResult, FootMove, ResolvedStep, resolve_chart
+from patternity.patterns import PatternKind
+from patternity.simfile.parser import LineKind, notes_lines, parse_simfile_with_notes
+from patternity.training.annotations import PATTERN_TAGS, AnnotatedChart, parse_annotated_sm
+from patternity.training.evaluation import pattern_anchors
 
-_NOTE_ROW_RE = re.compile(r"^[0-4MFL]{4}", re.IGNORECASE)
 _SUGGEST_RE = re.compile(r"@suggest(?:_\w+)?=\S+", re.IGNORECASE)
 _MARGIN_RE = re.compile(r"@margin=\S+", re.IGNORECASE)
 _MEASURE_IN_COMMENT_RE = re.compile(r"measure\s+\d+", re.IGNORECASE)
 _MEASURE_LINE_RE = re.compile(r"^\s*//\s*measure\s+(\d+)\s*$", re.IGNORECASE)
 
 
-_KIND_TAG: dict[PatternKind, str] = {
-    PatternKind.JACK: "jack",
-    PatternKind.DOUBLESTEP: "doublestep",
-    PatternKind.FOOTSWITCH: "footswitch",
-    PatternKind.SIDESWITCH: "sideswitch",
-    PatternKind.BRACKET: "bracket",
-    PatternKind.CROSSOVER: "crossover",
-    PatternKind.INVERTED_CROSSOVER: "crossover",
-    PatternKind.CANDLE: "candle",
-}
-_TAG_ORDER = tuple(dict.fromkeys(_KIND_TAG.values()))
-_TAG_ALIASES: dict[str, str] = {
-    **{tag: _KIND_TAG[kind] for tag, kind in PATTERN_TAGS.items()},
-    "crossover": "crossover",
-}
+def _kind_tag(kind: PatternKind) -> str:
+    """The ``@pattern`` tag for a detected kind; charts tag inverted crossovers as crossovers."""
+    return PatternKind.CROSSOVER.value if kind is PatternKind.INVERTED_CROSSOVER else kind.value
+
+
+_TAG_ORDER = tuple(dict.fromkeys(_kind_tag(kind) for kind in PatternKind))
+
+
+def _tagged_patterns(patterns: frozenset[str]) -> set[str]:
+    """A row's ``@pattern`` tags as detector tags (``holdswitch`` is a footswitch).
+
+    Tags no detector kind produces, such as ``jump``, are dropped.
+    """
+    tags = {_kind_tag(PATTERN_TAGS[tag]) if tag in PATTERN_TAGS else tag for tag in patterns}
+    return tags & set(_TAG_ORDER)
 
 
 def _tag(move: FootMove) -> str:
@@ -74,8 +73,9 @@ def _ordered(tags: set[str]) -> list[str]:
 def _decoded_patterns(steps: Sequence[ResolvedStep]) -> dict[int, set[str]]:
     """Pattern tags per row index, anchored on the last step of each span."""
     decoded: dict[int, set[str]] = {}
-    for span in detect_tech_patterns(steps).spans:
-        decoded.setdefault(span.steps[-1].index, set()).add(_KIND_TAG[span.kind])
+    for kind, rows in pattern_anchors(steps).items():
+        for index in rows:
+            decoded.setdefault(index, set()).add(_kind_tag(kind))
     return decoded
 
 
@@ -92,130 +92,146 @@ def _strip_suggestion_suffix(body: str) -> str:
     return left.rstrip()
 
 
-def _format_comma_measure(line: str, measure: int) -> str:
-    note = line.split("//", 1)[0].rstrip()
-    token = note.strip()
-    if not token.startswith(","):
-        return line
-    return f"{token}  // measure {measure}"
+@dataclass
+class _ChartLines:
+    """A chart file as editable lines, each keeping its original line ending."""
+
+    lines: list[str]
+    endings: list[str]
+
+    @classmethod
+    def read(cls, path: Path) -> _ChartLines:
+        raw_lines = path.read_text(encoding="utf-8", newline="").splitlines(keepends=True)
+        lines = [raw.rstrip("\r\n") for raw in raw_lines]
+        endings = [raw[len(line) :] for raw, line in zip(raw_lines, lines, strict=True)]
+        return cls(lines, endings)
+
+    def text(self) -> str:
+        return "".join(line + end for line, end in zip(self.lines, self.endings, strict=True))
+
+    def write(self, path: Path) -> None:
+        path.write_text(self.text(), encoding="utf-8", newline="")
+
+    def insert(self, index: int, line: str) -> None:
+        """Insert ``line`` before ``index``, with the ending of the line it displaces."""
+        self.endings.insert(index, self.endings[index] if index < len(self.endings) else "\n")
+        self.lines.insert(index, line)
+
+    def append_comment(self, line_number: int, text: str) -> None:
+        """Add ``text`` to the comment on 1-based ``line_number``, starting one if needed."""
+        line = self.lines[line_number - 1]
+        self.lines[line_number - 1] = f"{line} {text}" if "//" in line else f"{line} // {text}"
 
 
-def _add_measure_markers(lines: list[str], endings: list[str]) -> None:
+@dataclass(frozen=True, slots=True)
+class _Suggestion:
+    line_number: int
+    measure: int
+    tag: str  # Written into the chart's comment.
+    detail: str  # Printed after the line and measure.
+    margin: float = math.inf  # Model confidence; low margins are listed first.
+
+
+def _add_measure_markers(chart: _ChartLines) -> None:
     """Label ``// measure 0`` and comma lines in the first chart's note body."""
-    text = "".join(body + end for body, end in zip(lines, endings, strict=True))
-    _, bodies = parse_simfile_with_notes(text)
+    _, bodies = parse_simfile_with_notes(chart.text())
     if not bodies:
         return
     notes = bodies[0]
     body_start = notes.first_line - 1
 
-    first_note_offset: int | None = None
-    comma_updates: list[tuple[int, int]] = []
-
-    for offset, raw_line in enumerate(notes.text.splitlines()):
-        stripped = raw_line.strip()
-        if not stripped:
-            continue
-        if stripped.startswith("//"):
-            continue
-        note_text, _, _ = stripped.partition("//")
-        note_text = note_text.strip()
-        if note_text.startswith((",", ";")):
-            comma_updates.append((body_start + offset, len(comma_updates) + 1))
-            continue
-        if note_text and _NOTE_ROW_RE.match(note_text) and first_note_offset is None:
-            first_note_offset = offset
-
-    if first_note_offset is None:
+    body_lines = notes_lines(notes.text)
+    first_row = next((line for line in body_lines if line.kind is LineKind.ROW), None)
+    if first_row is None:
         return
+    separators = [line for line in body_lines if line.kind is LineKind.SEPARATOR]
 
-    insert_at = body_start + first_note_offset
+    # Label commas before inserting the measure 0 line, so body indices still match.
+    for measure, separator in enumerate(separators, start=1):
+        if separator.notes.startswith(","):
+            chart.lines[body_start + separator.index] = f"{separator.notes}  // measure {measure}"
+
+    insert_at = body_start + first_row.index
     prev_i = insert_at - 1
-    if prev_i >= 0 and _MEASURE_LINE_RE.match(lines[prev_i]):
-        lines[prev_i] = "// measure 0"
+    if prev_i >= 0 and _MEASURE_LINE_RE.match(chart.lines[prev_i]):
+        chart.lines[prev_i] = "// measure 0"
     else:
-        ending = endings[insert_at] if insert_at < len(endings) else "\n"
-        lines.insert(insert_at, "// measure 0")
-        endings.insert(insert_at, ending)
+        chart.insert(insert_at, "// measure 0")
 
-    for line_i, measure in comma_updates:
-        if line_i >= insert_at:
-            line_i += 1
-        lines[line_i] = _format_comma_measure(lines[line_i], measure)
+
+def _foot_suggestions(annotated: AnnotatedChart, result: FootingResult) -> list[_Suggestion]:
+    """Pressed rows where the decoded feet are untagged or differ from the tag."""
+    gold = annotated.tagged_assignments
+    suggestions: list[_Suggestion] = []
+    for row in annotated.rows:
+        step = result.steps[row.index]
+        move, expected = step.foot_row.moved, gold.get(row.index)
+        if not step.note_row.pressed or expected == move:
+            continue
+        margin = math.inf if step.confidence is None else step.confidence
+        margin_text = "inf" if margin == math.inf else f"{margin:.1f}"
+        tag = f"{_tag(move)} @margin={margin_text}"
+        label = "DISAGREES" if expected is not None else "untagged"
+        measure = row.note_row.measure
+        suggestions.append(
+            _Suggestion(row.line_number, measure, tag, f"{label} m{measure} {tag}", margin)
+        )
+    return sorted(suggestions, key=lambda s: (s.margin, s.line_number))
+
+
+def _pattern_suggestions(annotated: AnnotatedChart, result: FootingResult) -> list[_Suggestion]:
+    """Pressed rows where the patterns detected on the decoded path differ from the tags."""
+    decoded = _decoded_patterns(result.steps)
+    suggestions: list[_Suggestion] = []
+    for row in annotated.rows:
+        tagged = _tagged_patterns(row.patterns)
+        found = decoded.get(row.index, set())
+        if not result.steps[row.index].note_row.pressed or found == tagged:
+            continue
+        tag = "@suggest_pattern=" + (",".join(_ordered(found)) or "none")
+        was = ",".join(_ordered(tagged)) or "untagged"
+        suggestions.append(
+            _Suggestion(row.line_number, row.note_row.measure, tag, f"{tag} (was {was})")
+        )
+    return suggestions
+
+
+def _report(
+    console: Console, feet: list[_Suggestion], patterns: list[_Suggestion], list_rows: int
+) -> None:
+    def show(suggestion: _Suggestion) -> None:
+        line, measure = suggestion.line_number, suggestion.measure
+        console.print(f"  line {line:5d} m{measure}: {suggestion.detail}")
+
+    for suggestion in feet[:list_rows]:
+        show(suggestion)
+    if patterns:
+        console.print("Pattern suggestions:")
+        for suggestion in patterns[:list_rows]:
+            show(suggestion)
 
 
 def suggest_file(
     console: Console, path: Path, model: FootingModel, *, list_rows: int
 ) -> tuple[int, int]:
     """Write suggestions in place; return (foot suggestions, pattern suggestions)."""
-    data = read_simfile(path)
-    raw_lines = path.read_text(encoding="utf-8", newline="").splitlines(keepends=True)
-    lines: list[str] = []
-    endings: list[str] = []
-    for raw in raw_lines:
-        body = raw.rstrip("\r\n")
-        endings.append(raw[len(body) :])
-        lines.append(_strip_suggestion_suffix(body))
+    original = _ChartLines.read(path)
+    chart = _ChartLines(
+        [_strip_suggestion_suffix(line) for line in original.lines], original.endings
+    )
+    _add_measure_markers(chart)
 
-    _add_measure_markers(lines, endings)
-    data = "".join(body + end for body, end in zip(lines, endings, strict=True))
-
-    annotated = parse_annotated_sm(data)
+    annotated = parse_annotated_sm(chart.text())
     result = resolve_chart(annotated.chart.notes, model)
-    gold = annotated.tagged_assignments
-    decoded = _decoded_patterns(result.steps)
+    feet = _foot_suggestions(annotated, result)
+    patterns = _pattern_suggestions(annotated, result)
 
-    suggestions: list[tuple[float, int, int, str]] = []
-    pattern_suggestions: list[str] = []
-    for row in annotated.rows:
-        step = result.steps[row.index]
-        if not step.note_row.pressed:
-            continue
-        parts: list[str] = []
-
-        move = step.foot_row.moved
-        expected = gold.get(row.index)
-        if expected != move:
-            margin = math.inf if step.confidence is None else step.confidence
-            margin_text = "inf" if margin == math.inf else f"{margin:.1f}"
-            foot_suffix = f"{_tag(move)} @margin={margin_text}"
-            parts.append(foot_suffix)
-            label = "DISAGREES" if expected is not None else "untagged"
-            suggestions.append(
-                (
-                    margin,
-                    row.line_number,
-                    row.measure,
-                    f"{label} m{row.measure} {foot_suffix}",
-                )
-            )
-
-        tagged = {_TAG_ALIASES[tag] for tag in row.patterns if tag in _TAG_ALIASES}
-        found = decoded.get(row.index, set())
-        if found != tagged:
-            pattern_tag = "@suggest_pattern=" + (",".join(_ordered(found)) or "none")
-            parts.append(pattern_tag)
-            was = ",".join(_ordered(tagged)) or "untagged"
-            pattern_suggestions.append(
-                f"  line {row.line_number:5d} m{row.measure}: {pattern_tag} (was {was})"
-            )
-
-        if parts:
-            line_i = row.line_number - 1
-            text = lines[line_i]
-            suffix = " ".join(parts)
-            lines[line_i] = f"{text} {suffix}" if "//" in text else f"{text} // {suffix}"
-
-    with path.open("w", encoding="utf-8", newline="") as out:
-        out.writelines(body + end for body, end in zip(lines, endings, strict=True))
-    suggestions.sort()
-    for _margin, line_number, measure, text in suggestions[:list_rows]:
-        console.print(f"  line {line_number:5d} m{measure}: {text}")
-    if pattern_suggestions:
-        console.print("Pattern suggestions:")
-        for text in pattern_suggestions[:list_rows]:
-            console.print(text)
-    return len(suggestions), len(pattern_suggestions)
+    # Foot tags go first, so a row with both reads "// @suggest_foot=... @suggest_pattern=...".
+    for suggestion in feet + patterns:
+        chart.append_comment(suggestion.line_number, suggestion.tag)
+    chart.write(path)
+    _report(console, feet, patterns, list_rows)
+    return len(feet), len(patterns)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -230,8 +246,10 @@ def main(argv: list[str] | None = None) -> int:
     console = Console()
     parser = build_parser()
     args = parser.parse_args(args=argv)
+    if args.chart.suffix not in (".sm", ".ssc"):
+        parser.error(f"{args.chart} is not a .sm or .ssc file")
 
-    model = FootingModel.load(args.weights) if args.weights else FootingModel.default()
+    model = FootingModel.load(args.weights)
     feet, patterns = suggest_file(console, args.chart.resolve(), model, list_rows=args.list)
     console.print(f"Wrote {feet} foot and {patterns} pattern suggestions to {args.chart}")
     return 0

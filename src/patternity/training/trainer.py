@@ -30,6 +30,7 @@ from patternity.training.annotations import (
     AnnotationError,
     parse_annotated_sm,
 )
+from patternity.training.evaluation import accuracy
 
 # Maximum passes over the charts, and how much the annotated foot must win by.
 DEFAULT_EPOCHS = 100
@@ -79,7 +80,7 @@ def _require_possible_annotations(name: str, annotated: AnnotatedChart, trellis:
     """
     # Reachability doesn't depend on the weights, so zeros will do.
     no_weights = [0.0] * len(FEATURE_NAMES)
-    impossible = viterbi(trellis, no_weights, allowed=annotated.tagged_assignments).relaxed_rows
+    impossible = viterbi(trellis, no_weights, allowed=annotated.tagged_assignments).unsatisfied_rows
     if impossible:
         lines = ", ".join(str(annotated.rows[i].line_number) for i in impossible)
         raise AnnotationError(f"{name}: physically impossible annotation on line(s) {lines}")
@@ -170,8 +171,8 @@ def _perceptron_update(weights: list[float], example: Example, margin: float, st
 
 def _disagreements(example: Example, decoded: Decoded) -> int:
     """Annotated rows where ``decoded`` moves a different foot than tagged."""
-    states = decoded.states(example.trellis)
-    return sum(1 for i, move in example.gold.items() if states[i].moved != move)
+    moved = [state.moved for state in decoded.states(example.trellis)]
+    return len(example.annotated.mismatched_rows(moved))
 
 
 def _project(weights: list[float]) -> None:
@@ -207,7 +208,15 @@ class FoldResult:
 
     @property
     def accuracy(self) -> float:
-        return 1.0 - self.errors / self.rows if self.rows else 1.0
+        return accuracy(self.errors, self.rows)
+
+
+def format_folds(folds: Sequence[FoldResult]) -> str:
+    """One line per held-out chart: its accuracy, errors and annotated rows."""
+    return "\n".join(
+        f"  {fold.held_out:32s} {fold.accuracy:7.2%}  ({fold.errors} errors / {fold.rows} rows)"
+        for fold in folds
+    )
 
 
 def leave_one_out(

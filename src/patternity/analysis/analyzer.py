@@ -50,20 +50,3 @@ def analyze_chart(
         movement=detect_movement(resolved),
     )
 
-
-class Analyzer:
-    """Earlier entry point, kept for existing callers; prefer ``analyze_chart``."""
-
-    def __init__(
-        self,
-        chart: Chart,
-        *,
-        model: FootingModel | None = None,
-        allow_brackets: bool = True,
-    ) -> None:
-        self.chart = chart
-        self.model = model
-        self.allow_brackets = allow_brackets
-
-    def analyze(self) -> dict[str, Any]:
-        return analyze_chart(self.chart, self.model, allow_brackets=self.allow_brackets).to_dict()

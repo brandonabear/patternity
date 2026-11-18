@@ -56,9 +56,9 @@ Without `-a`, the CLI only parses the file and prints the song title.
 ```python
 from pathlib import Path
 
-from patternity import StepmaniaFileParser, analyze_chart, read_simfile
+from patternity import analyze_chart, parse_simfile, read_simfile
 
-song = StepmaniaFileParser.parse(read_simfile(Path("chart.ssc")))
+song = parse_simfile(read_simfile(Path("chart.ssc")))
 for chart in song.charts:
     analysis = analyze_chart(chart)
     print(chart.metadata.difficulty, analysis.tech.jacks, analysis.to_dict())

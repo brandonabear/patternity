@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from dataclasses import fields as _fields
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from patternity.simfile.notes import NoteRow, NoteType
@@ -47,10 +46,9 @@ class BasicMetrics:
             if heads >= 2:
                 self.jumps += 1
             # An ongoing hold or roll occupies a foot or hand, as in ITGmania.
-            ongoing = (note_row.holds_active | note_row.rolls_active) & ~note_row.pressed
-            covered_panels = len(note_row.pressed | ongoing)
+            covered_panels = len(note_row.pressed | note_row.held)
             if covered_panels >= 3:
                 self.hands += 1
 
     def to_dict(self) -> dict[str, Any]:
-        return {f.name: getattr(self, f.name) for f in _fields(self)}
+        return asdict(self)

@@ -46,7 +46,7 @@ Song (one .sm / .ssc file)
 
 ## Code Model Mapping
 
-[`StepmaniaFileParser.parse`](../src/patternity/simfile/parser.py) reads a file string and returns a **`Song`**. Exhaustive SM/SSC tag lists live in the [OutFox SM support wiki](https://outfox.wiki/en/dev/mode-support/sm-support).
+[`parse_simfile`](../src/patternity/simfile/parser.py) reads a file string and returns a **`Song`**. Exhaustive SM/SSC tag lists live in the [OutFox SM support wiki](https://outfox.wiki/en/dev/mode-support/sm-support).
 
 | Concept | Python type | Module |
 | --- | --- | --- |

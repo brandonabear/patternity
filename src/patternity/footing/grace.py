@@ -9,14 +9,15 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from patternity.footing.rules import held_panels
 from patternity.simfile.notes import ANCHORED_NOTES, PANELS, NoteRow, NoteType, Panel
 
 # StepMania / ITG hold and roll life windows.
 HOLD_GRACE_SEC = 0.32
 ROLL_GRACE_SEC = 0.35
 
-Remaining = tuple[float | None, float | None, float | None, float | None]
+# Per column: the share of its grace window left before the tail (``None`` outside one).
+GraceLeft = tuple[float | None, ...]
+NO_GRACE: GraceLeft = (None, None, None, None)
 
 
 @dataclass(frozen=True)
@@ -24,11 +25,11 @@ class GraceWindow:
     """Grace state of one row.
 
     ``panels``: held panels whose tail is within the grace window.
-    ``remaining``: seconds left to each such panel's tail, by column (``None`` elsewhere).
+    ``left``: for each such panel, time to its tail as a share of its window, by column.
     """
 
     panels: Panel = Panel.NONE
-    remaining: Remaining = (None, None, None, None)
+    left: GraceLeft = NO_GRACE
 
 
 def hold_grace(rows: Sequence[NoteRow]) -> list[GraceWindow]:
@@ -42,8 +43,8 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[GraceWindow]:
                 next_tail[col] = row.timestamp
 
         releasable = Panel.NONE
-        remaining: list[float | None] = [None] * 4
-        held = held_panels(row)
+        left: list[float | None] = [None] * 4
+        held = row.held
 
         for col, panel in enumerate(PANELS):
             tail, now = next_tail[col], row.timestamp
@@ -55,11 +56,9 @@ def hold_grace(rows: Sequence[NoteRow]) -> list[GraceWindow]:
             window = ROLL_GRACE_SEC if panel in row.rolls_active else HOLD_GRACE_SEC
             if 0.0 <= tail - now <= window:
                 releasable |= panel
-                remaining[col] = tail - now
+                left[col] = (tail - now) / window
 
-        out.append(
-            GraceWindow(releasable, (remaining[0], remaining[1], remaining[2], remaining[3]))
-        )
+        out.append(GraceWindow(releasable, tuple(left)))
 
         for col, note in enumerate(row.notes):
             if note in ANCHORED_NOTES:

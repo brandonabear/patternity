@@ -22,6 +22,11 @@ def parse_beat_value_map(value: str) -> dict[float, float]:
     return beat_value_map
 
 
+def _set_fields(obj: Any) -> dict[str, Any]:
+    """A dataclass's fields as a dict, leaving out those that are ``None``."""
+    return {f.name: value for f in _fields(obj) if (value := getattr(obj, f.name)) is not None}
+
+
 @dataclass
 class Header:
     title: str | None = None
@@ -57,11 +62,7 @@ class Header:
             setattr(self, name, _HEADER_CONVERTERS.get(name, str)(value))
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            f.name: getattr(self, f.name)
-            for f in _fields(self)
-            if getattr(self, f.name) is not None
-        }
+        return _set_fields(self)
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Header:
@@ -72,13 +73,13 @@ class Header:
             if value is None:
                 continue
 
-            if field_name.name in {"selectable"}:
+            if field_name.name == "selectable":
                 # ``to_dict`` writes a bool; older JSON may hold the raw "YES" / "NO".
-                selectable = value if isinstance(value, bool) else str(value).lower() == "yes"
+                selectable = value if isinstance(value, bool) else _is_yes(str(value))
                 setattr(obj, field_name.name, selectable)
             elif isinstance(value, dict):
                 setattr(obj, field_name.name, {float(k): float(v) for k, v in value.items()})
-            elif field_name.name in {"samplestart", "samplelength", "offset"}:
+            elif _HEADER_CONVERTERS.get(field_name.name) is float:
                 setattr(obj, field_name.name, float(value))
             else:
                 setattr(obj, field_name.name, value)
@@ -141,11 +142,7 @@ class GrooveRadar:
     hands: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            f.name: getattr(self, f.name)
-            for f in _fields(self)
-            if getattr(self, f.name) is not None
-        }
+        return _set_fields(self)
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> GrooveRadar:

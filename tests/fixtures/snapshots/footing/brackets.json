@@ -15,7 +15,7 @@
       },
       "movement": {
         "direction_shifts": 10,
-        "total_cost": 2687.655644,
+        "total_cost": 3292.467718,
         "foot_path_feasible": true
       },
       "moved": [

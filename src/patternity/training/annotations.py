@@ -7,12 +7,19 @@ of ``Chart.notes``.
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 
-from patternity.footing.stance import FootMove
+from patternity.footing.stance import Foot, FootMove
 from patternity.patterns.spans import PatternKind
 from patternity.simfile.notes import NoteRow
-from patternity.simfile.parser import parse_simfile_with_notes, source_rows
+from patternity.simfile.parser import (
+    LineKind,
+    NotesLine,
+    notes_lines,
+    parse_simfile_with_notes,
+    source_rows,
+)
 from patternity.simfile.song import Chart, Song
 
 # Legal values of the tags read from a note row's comment.
@@ -45,22 +52,17 @@ class AnnotationError(ValueError):
 class AnnotatedRow:
     index: int
     line_number: int
-    measure: int
-    beat: float
-    row: NoteRow
-    feet: tuple[str, ...] = ()
+    note_row: NoteRow
+    feet: tuple[Foot, ...] = ()
     patterns: frozenset[str] = frozenset()
     section: str = "default"
 
     def expected_foot_move(self) -> FootMove | None:
-        """Map ``@foot`` / ``@feet`` to ``FootMove`` for regression checks."""
-        if len(self.feet) == 1:
-            return FootMove.LEFT if self.feet[0] == "L" else FootMove.RIGHT
-        if len(self.feet) == 2:
-            if self.feet[0] == self.feet[1]:
-                return FootMove.LEFT if self.feet[0] == "L" else FootMove.RIGHT
-            return FootMove.BOTH
-        return None
+        """The feet ``@foot`` / ``@feet`` say moved (``L,L`` is one foot), or None if untagged."""
+        moved = FootMove.NONE
+        for foot in self.feet:
+            moved |= foot.move
+        return moved or None
 
 
 @dataclass(frozen=True)
@@ -78,6 +80,10 @@ class AnnotatedChart:
         return {
             row.index: move for row in self.rows if (move := row.expected_foot_move()) is not None
         }
+
+    def mismatched_rows(self, moved: Sequence[FootMove]) -> list[int]:
+        """Tagged rows where ``moved`` (one entry per chart row) differs from the tag."""
+        return [index for index, move in self.tagged_assignments.items() if moved[index] != move]
 
 
 def _tag_values(comment: str, *, line_number: int) -> dict[str, str]:
@@ -98,12 +104,12 @@ def _tag_values(comment: str, *, line_number: int) -> dict[str, str]:
     return values
 
 
-def _parse_tags(comment: str, *, line_number: int) -> tuple[tuple[str, ...], frozenset[str]]:
+def _parse_tags(comment: str, *, line_number: int) -> tuple[tuple[Foot, ...], frozenset[str]]:
     values = _tag_values(comment, line_number=line_number)
     if "@foot" in values and "@feet" in values:
         raise AnnotationError(f"line {line_number}: use either @foot or @feet, not both")
     foot_value = values.get("@foot") or values.get("@feet")
-    feet = tuple(foot_value.split(",")) if foot_value else ()
+    feet = tuple(Foot(value) for value in foot_value.split(",")) if foot_value else ()
 
     pattern_value = values.get("@pattern")
     patterns = frozenset(pattern_value.split(",")) if pattern_value else frozenset()
@@ -115,7 +121,7 @@ def _parse_tags(comment: str, *, line_number: int) -> tuple[tuple[str, ...], fro
     return feet, patterns
 
 
-def _sections_by_line(lines: list[str]) -> list[str]:
+def _sections_by_line(lines: list[NotesLine]) -> list[str]:
     """The active ``@section`` name at each body line.
 
     A section is set by a comment-only line or a comment on a measure separator,
@@ -124,10 +130,8 @@ def _sections_by_line(lines: list[str]) -> list[str]:
     section = "default"
     sections: list[str] = []
     for line in lines:
-        note_text, _, comment = line.partition("//")
-        note_text = note_text.strip()
-        if not note_text or note_text.startswith((",", ";")):
-            match = _SECTION_RE.search(comment.strip())
+        if line.kind is not LineKind.ROW:
+            match = _SECTION_RE.search(line.comment)
             if match:
                 section = match.group(1)
         sections.append(section)
@@ -136,7 +140,7 @@ def _sections_by_line(lines: list[str]) -> list[str]:
 
 def _validate_row(item: AnnotatedRow, *, require_complete: bool) -> None:
     line, feet = item.line_number, item.feet
-    press_count = len(item.row.pressed)
+    press_count = len(item.note_row.pressed)
     if len(feet) == 2 and press_count != 2:
         raise AnnotationError(
             f"line {line}: @feet expects two panels but row has {press_count} pressable notes"
@@ -161,21 +165,19 @@ def parse_annotated_sm(data: str, *, require_complete: bool = False) -> Annotate
     notes = song.charts[0].notes
     body = bodies[0]
 
-    lines = body.text.splitlines()
+    lines = notes_lines(body.text)
     sources = source_rows(body.text)
     sections = _sections_by_line(lines)
 
     annotated: list[AnnotatedRow] = []
     for index, (source, note_row) in enumerate(zip(sources, notes, strict=True)):
         line_number = body.first_line + source.line_index
-        _, _, comment = lines[source.line_index].partition("//")
-        feet, patterns = _parse_tags(comment.strip(), line_number=line_number)
+        comment = lines[source.line_index].comment
+        feet, patterns = _parse_tags(comment, line_number=line_number)
         item = AnnotatedRow(
             index=index,
             line_number=line_number,
-            measure=source.measure,
-            beat=source.beat,
-            row=note_row,
+            note_row=note_row,
             feet=feet,
             patterns=patterns,
             section=sections[source.line_index],
