@@ -63,7 +63,7 @@ LEGEND = 44
 
 
 @dataclass(frozen=True, slots=True)
-class Example:
+class Phrase:
     """A short phrase at one tempo that demonstrates ``kind``."""
 
     name: str
@@ -75,15 +75,17 @@ class Example:
 
 
 @dataclass(frozen=True, slots=True)
-class Decoded:
-    example: Example
+class FootedPhrase:
+    """A phrase with its footing and the detected spans of its kind."""
+
+    example: Phrase
     steps: tuple[ResolvedStep, ...]
     spans: tuple[PatternSpan, ...]
 
 
 EXAMPLES = (
     # Left (L) on the beat, then Right (R) on the 8th and again on the 16th.
-    Example(
+    Phrase(
         name="jack",
         title="Jack",
         kind=PatternKind.JACK,
@@ -96,7 +98,7 @@ EXAMPLES = (
         ),
     ),
     # Left (L), Up (R), then a Left/Up jump (L/R) whose Left is jacked on the next 16th.
-    Example(
+    Phrase(
         name="jack_from_jump",
         title="Jack out of a jump",
         kind=PatternKind.JACK,
@@ -109,7 +111,7 @@ EXAMPLES = (
         ),
     ),
     # Left hold (L) anchors the left foot, so the right foot takes Down then Right.
-    Example(
+    Phrase(
         name="doublestep_hold",
         title="Doublestep around a hold",
         kind=PatternKind.DOUBLESTEP,
@@ -122,7 +124,7 @@ EXAMPLES = (
         ),
     ),
     # Left, Down, Right, Up: a mine on Down drives the right foot off it onto Right.
-    Example(
+    Phrase(
         name="doublestep_mine",
         title="Doublestep cued by a mine",
         kind=PatternKind.DOUBLESTEP,
@@ -135,7 +137,7 @@ EXAMPLES = (
         ),
     ),
     # Left, Down, Down, Right on 12ths: a mine on Left moves the left foot onto Down.
-    Example(
+    Phrase(
         name="footswitch",
         title="Footswitch",
         kind=PatternKind.FOOTSWITCH,
@@ -148,7 +150,7 @@ EXAMPLES = (
         ),
     ),
     # The left foot releases an Up hold; a mine on Right sends the right foot onto Up.
-    Example(
+    Phrase(
         name="holdswitch",
         title="Holdswitch",
         kind=PatternKind.FOOTSWITCH,
@@ -163,7 +165,7 @@ EXAMPLES = (
     ),
     # Left, Down, Right, Right, Left on 8ths: the left foot crosses over to Right, a mine on
     # Down cues the right foot off Down to take Right, and the left foot returns to Left.
-    Example(
+    Phrase(
         name="sideswitch",
         title="Sideswitch",
         kind=PatternKind.SIDESWITCH,
@@ -174,7 +176,7 @@ EXAMPLES = (
         ),
     ),
     # Left, Right, then Left+Up with the left foot alone, then Right.
-    Example(
+    Phrase(
         name="bracket",
         title="Bracket",
         kind=PatternKind.BRACKET,
@@ -185,7 +187,7 @@ EXAMPLES = (
         ),
     ),
     # Right, Down, Left+Up, Down, Right on 16ths: the right foot brackets across the left.
-    Example(
+    Phrase(
         name="crossover_bracket",
         title="Crossover bracket",
         kind=PatternKind.BRACKET,
@@ -199,7 +201,7 @@ EXAMPLES = (
     ),
     # Left, Down, Right, Down, Left: the left foot crosses in front of the right foot on Down
     # and returns to Left.
-    Example(
+    Phrase(
         name="crossover",
         title="Crossover",
         kind=PatternKind.CROSSOVER,
@@ -211,7 +213,7 @@ EXAMPLES = (
     ),
     # Left, Up, Right, Up, Left: the left foot crosses behind the right foot on Up and
     # returns to Left.
-    Example(
+    Phrase(
         name="crossunder",
         title="Crossunder",
         kind=PatternKind.CROSSOVER,
@@ -224,7 +226,7 @@ EXAMPLES = (
     ),
     # Left, Down, Right, Left, Up, Right lateral: the player spins through facing backward
     # (right foot on Left, left foot on Right) and back to facing forward.
-    Example(
+    Phrase(
         name="inverted_crossover",
         title="Inverted crossover",
         kind=PatternKind.INVERTED_CROSSOVER,
@@ -236,7 +238,7 @@ EXAMPLES = (
     ),
     # Left, Down, Left, Up, Down, Right, Up, Down, Left on 16ths, alternating feet: the right
     # foot goes Down to Up, and later the left foot goes Down to Up.
-    Example(
+    Phrase(
         name="candle_run",
         title="Candles in a 16th run",
         kind=PatternKind.CANDLE,
@@ -249,7 +251,7 @@ EXAMPLES = (
         ),
     ),
     # The 5-arrow crossover: the crossing left foot moves Left to Right and back.
-    Example(
+    Phrase(
         name="candle_crossover",
         title="Candles in a crossover",
         kind=PatternKind.CANDLE,
@@ -262,7 +264,7 @@ EXAMPLES = (
 )  # fmt: skip
 
 
-def decode(example: Example) -> Decoded:
+def decode(example: Phrase) -> FootedPhrase:
     """Footing (tags first, model otherwise) and detected spans of the example's kind."""
     annotated = parse_annotated_sm(_chart_text(example))
     result = resolve_chart(
@@ -272,10 +274,10 @@ def decode(example: Example) -> Decoded:
     spans = tuple(s for s in detect_tech_patterns(steps).spans if s.kind == example.kind)
     if not spans:
         raise ValueError(f"{example.name}: no {example.kind.value} detected in the phrase")
-    return Decoded(example=example, steps=steps, spans=spans)
+    return FootedPhrase(example=example, steps=steps, spans=spans)
 
 
-def _chart_text(example: Example) -> str:
+def _chart_text(example: Phrase) -> str:
     body = "\n".join(example.rows)
     return (
         f"#TITLE:example;\n#BPMS:0.000={example.bpm};\n#STOPS:;\n#NOTES:\n"
@@ -290,7 +292,7 @@ def quantization(beat: float) -> int:
     return 4 * denominator
 
 
-def render(example: Example) -> str:
+def render(example: Phrase) -> str:
     """The full SVG document for one example."""
     decoded = decode(example)
     pressed = [s for s in decoded.steps if s.note_row.pressed]
@@ -321,7 +323,7 @@ def render(example: Example) -> str:
     return "\n".join(parts) + "\n"
 
 
-def _playfield(d: Decoded, x: float, top: float, beats: int) -> list[str]:
+def _playfield(d: FootedPhrase, x: float, top: float, beats: int) -> list[str]:
     """Lanes, receptors, notes, and span markers; ``top`` is the receptor row center."""
     receptors = top
     top += LEAD_IN  # beat 0
@@ -474,7 +476,7 @@ def _mine(cx: float, cy: float) -> str:
     )
 
 
-def _description(d: Decoded) -> str:
+def _description(d: FootedPhrase) -> str:
     notes = ", ".join(
         "+".join(p.name for p in PANELS if p in s.note_row.pressed)
         + f" ({quantization(s.note_row.beat)}th, "
