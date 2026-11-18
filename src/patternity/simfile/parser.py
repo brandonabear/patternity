@@ -1,6 +1,7 @@
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
+from enum import Enum, auto
 
 from patternity.simfile.notes import AnchorTracker, InvalidNoteRow, NoteRow, parse_columns
 from patternity.simfile.song import (
@@ -126,20 +127,51 @@ class SourceRow:
     beat: float
 
 
-def _split_measures(notes: str) -> list[list[tuple[int, str]]]:
-    """Group ``(line_index, row_text)`` into measures separated by ',' lines."""
-    measures: list[list[tuple[int, str]]] = []
-    current: list[tuple[int, str]] = []
-    for line_index, raw in enumerate(notes.splitlines()):
-        line = _strip_comment(raw)
-        if not line:
-            continue
-        if line.startswith((",", ";")):
+class LineKind(Enum):
+    BLANK = auto()  # empty or comment-only
+    SEPARATOR = auto()  # starts with "," or ";"
+    ROW = auto()  # note row, empty "0000" rows included
+
+
+@dataclass(frozen=True, slots=True)
+class NotesLine:
+    """One line of a chart's notes text, classified the way the parser reads it."""
+
+    index: int  # 0-based line within the notes text
+    kind: LineKind
+    notes: str  # text before "//", stripped
+    comment: str  # text after the first "//", stripped ("" if none)
+
+
+def _line_kind(notes: str) -> LineKind:
+    if not notes:
+        return LineKind.BLANK
+    if notes.startswith((",", ";")):
+        return LineKind.SEPARATOR
+    return LineKind.ROW
+
+
+def notes_lines(notes: str) -> list[NotesLine]:
+    """Every line of ``notes``, so callers that need comments or positions agree with the parser."""
+    lines: list[NotesLine] = []
+    for index, raw in enumerate(notes.splitlines()):
+        note_text, _, comment = raw.partition("//")
+        note_text = note_text.strip()
+        lines.append(NotesLine(index, _line_kind(note_text), note_text, comment.strip()))
+    return lines
+
+
+def _split_measures(notes: str) -> list[list[NotesLine]]:
+    """Group note rows into measures separated by ',' lines."""
+    measures: list[list[NotesLine]] = []
+    current: list[NotesLine] = []
+    for line in notes_lines(notes):
+        if line.kind is LineKind.SEPARATOR:
             if current:
                 measures.append(current)
                 current = []
-        else:
-            current.append((line_index, line))
+        elif line.kind is LineKind.ROW:
+            current.append(line)
     # The chart-closing ";" is treated as the section delimiter, so the last
     # measure may have no trailing ",".
     if current:
@@ -152,13 +184,13 @@ def source_rows(notes: str) -> list[SourceRow]:
     rows: list[SourceRow] = []
     for measure_idx, measure in enumerate(_split_measures(notes)):
         quantization = len(measure)
-        for slot, (line_index, text) in enumerate(measure):
-            if text == "0000":
+        for slot, line in enumerate(measure):
+            if line.notes == "0000":
                 continue
             rows.append(
                 SourceRow(
-                    text=text,
-                    line_index=line_index,
+                    text=line.notes,
+                    line_index=line.index,
                     measure=measure_idx,
                     quantization=quantization,
                     beat=round(measure_idx * 4 + slot * 4 / quantization, 4),

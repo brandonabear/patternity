@@ -104,6 +104,18 @@ def test_suggest_rerun_is_stable(mock_console, tmp_path: Path) -> None:
     assert path.read_text(encoding="utf-8") == once
 
 
+def test_rerun_relabels_stale_comma_markers(mock_console, tmp_path: Path) -> None:
+    # With "// measure 0" already present no line is inserted, so commas must be
+    # relabelled in place rather than one line further down.
+    stale = _MINI_CHART.replace("#NOTES:\n", "#NOTES:\n// measure 0\n").replace(",\n", ", // m7\n")
+    path = tmp_path / "mini.ssc"
+    path.write_text(stale, encoding="utf-8")
+    suggest_file(mock_console, path, FootingModel.default(), list_rows=0)
+    text = path.read_text(encoding="utf-8")
+    assert ",  // measure 1\n1000 // @suggest_foot=" in text
+    assert "m7" not in text
+
+
 def test_accepting_all_suggestions_by_find_replace(mock_console, tmp_path: Path) -> None:
     path = tmp_path / "patterns.ssc"
     path.write_text(_PATTERN_CHART.replace(" // @pattern=candle", ""), encoding="utf-8")

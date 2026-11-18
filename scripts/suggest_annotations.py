@@ -31,7 +31,7 @@ from rich.console import Console
 from patternity.footing import FootingModel, FootMove, ResolvedStep, resolve_chart
 from patternity.patterns import PatternKind, detect_tech_patterns
 from patternity.simfile import read_simfile
-from patternity.simfile.parser import parse_simfile_with_notes
+from patternity.simfile.parser import LineKind, notes_lines, parse_simfile_with_notes
 from patternity.training.annotations import parse_annotated_sm
 from patternity.training.evaluation import PATTERN_TAGS
 
@@ -91,14 +91,6 @@ def _strip_suggestion_suffix(body: str) -> str:
     return left.rstrip()
 
 
-def _format_comma_measure(line: str, measure: int) -> str:
-    note = line.split("//", 1)[0].rstrip()
-    token = note.strip()
-    if not token.startswith(","):
-        return line
-    return f"{token}  // measure {measure}"
-
-
 def _add_measure_markers(lines: list[str], endings: list[str]) -> None:
     """Label ``// measure 0`` and comma lines in the first chart's note body."""
     text = "".join(body + end for body, end in zip(lines, endings, strict=True))
@@ -108,23 +100,18 @@ def _add_measure_markers(lines: list[str], endings: list[str]) -> None:
     notes = bodies[0]
     body_start = notes.first_line - 1
 
-    # Classify lines the way the parser does: anything left after stripping the
-    # comment is a separator or a note row (empty rows included).
-    first_row_offset: int | None = None
-    comma_updates: list[tuple[int, int]] = []
-    for offset, raw_line in enumerate(notes.text.splitlines()):
-        note_text = raw_line.partition("//")[0].strip()
-        if not note_text:
-            continue
-        if note_text.startswith((",", ";")):
-            comma_updates.append((body_start + offset, len(comma_updates) + 1))
-        elif first_row_offset is None:
-            first_row_offset = offset
-
-    if first_row_offset is None:
+    body_lines = notes_lines(notes.text)
+    first_row = next((line for line in body_lines if line.kind is LineKind.ROW), None)
+    if first_row is None:
         return
+    separators = [line for line in body_lines if line.kind is LineKind.SEPARATOR]
 
-    insert_at = body_start + first_row_offset
+    # Label commas before inserting the measure 0 line, so body indices still match.
+    for measure, separator in enumerate(separators, start=1):
+        if separator.notes.startswith(","):
+            lines[body_start + separator.index] = f"{separator.notes}  // measure {measure}"
+
+    insert_at = body_start + first_row.index
     prev_i = insert_at - 1
     if prev_i >= 0 and _MEASURE_LINE_RE.match(lines[prev_i]):
         lines[prev_i] = "// measure 0"
@@ -132,11 +119,6 @@ def _add_measure_markers(lines: list[str], endings: list[str]) -> None:
         ending = endings[insert_at] if insert_at < len(endings) else "\n"
         lines.insert(insert_at, "// measure 0")
         endings.insert(insert_at, ending)
-
-    for line_i, measure in comma_updates:
-        if line_i >= insert_at:
-            line_i += 1
-        lines[line_i] = _format_comma_measure(lines[line_i], measure)
 
 
 def suggest_file(

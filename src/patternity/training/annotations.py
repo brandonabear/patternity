@@ -12,7 +12,13 @@ from dataclasses import dataclass
 from patternity.footing.stance import FootMove
 from patternity.patterns.spans import PatternKind
 from patternity.simfile.notes import NoteRow
-from patternity.simfile.parser import parse_simfile_with_notes, source_rows
+from patternity.simfile.parser import (
+    LineKind,
+    NotesLine,
+    notes_lines,
+    parse_simfile_with_notes,
+    source_rows,
+)
 from patternity.simfile.song import Chart, Song
 
 # Legal values of the tags read from a note row's comment.
@@ -115,7 +121,7 @@ def _parse_tags(comment: str, *, line_number: int) -> tuple[tuple[str, ...], fro
     return feet, patterns
 
 
-def _sections_by_line(lines: list[str]) -> list[str]:
+def _sections_by_line(lines: list[NotesLine]) -> list[str]:
     """The active ``@section`` name at each body line.
 
     A section is set by a comment-only line or a comment on a measure separator,
@@ -124,10 +130,8 @@ def _sections_by_line(lines: list[str]) -> list[str]:
     section = "default"
     sections: list[str] = []
     for line in lines:
-        note_text, _, comment = line.partition("//")
-        note_text = note_text.strip()
-        if not note_text or note_text.startswith((",", ";")):
-            match = _SECTION_RE.search(comment.strip())
+        if line.kind is not LineKind.ROW:
+            match = _SECTION_RE.search(line.comment)
             if match:
                 section = match.group(1)
         sections.append(section)
@@ -161,15 +165,15 @@ def parse_annotated_sm(data: str, *, require_complete: bool = False) -> Annotate
     notes = song.charts[0].notes
     body = bodies[0]
 
-    lines = body.text.splitlines()
+    lines = notes_lines(body.text)
     sources = source_rows(body.text)
     sections = _sections_by_line(lines)
 
     annotated: list[AnnotatedRow] = []
     for index, (source, note_row) in enumerate(zip(sources, notes, strict=True)):
         line_number = body.first_line + source.line_index
-        _, _, comment = lines[source.line_index].partition("//")
-        feet, patterns = _parse_tags(comment.strip(), line_number=line_number)
+        comment = lines[source.line_index].comment
+        feet, patterns = _parse_tags(comment, line_number=line_number)
         item = AnnotatedRow(
             index=index,
             line_number=line_number,
