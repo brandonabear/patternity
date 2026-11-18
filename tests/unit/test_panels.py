@@ -4,7 +4,6 @@ from tests.helpers import note_row
 
 def test_panels_in_column_order() -> None:
     assert PANELS == (Panel.L, Panel.D, Panel.U, Panel.R)
-    assert [Panel.at(col) for col in range(4)] == list(PANELS)
     assert [panel.column for panel in PANELS] == [0, 1, 2, 3]
 
 

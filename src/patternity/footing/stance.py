@@ -84,9 +84,6 @@ _BRACKETS = frozenset(
     placement for placement, panels in _PLACEMENT_PANELS.items() if len(panels) == 2
 )
 
-PANELS_TO_PLACEMENT: dict[Panel, FootPlacement] = {
-    panels: placement for placement, panels in _PLACEMENT_PANELS.items()
-}
 ALL_PLACEMENTS: tuple[FootPlacement, ...] = tuple(FootPlacement)
 CARDINAL_PLACEMENTS: tuple[FootPlacement, ...] = (
     FootPlacement.L,
@@ -250,10 +247,6 @@ class Stance(BothFeet):
     def is_crossed(self) -> bool:
         """True if the left foot is strictly right of the right foot (geometric cross)."""
         return self.left.coords[0] > self.right.coords[0]
-
-    def covers(self, required: Panel) -> bool:
-        """True if every panel in ``required`` is under a foot."""
-        return required in self.covered
 
 
 @dataclass(frozen=True, slots=True)

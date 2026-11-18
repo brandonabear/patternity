@@ -23,11 +23,6 @@ class Panel(IntFlag):
     U = 4
     R = 8
 
-    @classmethod
-    def at(cls, col: int) -> Panel:
-        """The single panel at column index ``col`` (0-3, LDUR order)."""
-        return PANELS[col]
-
     @property
     def column(self) -> int:
         """Column index (0-3, LDUR order) of a single panel."""
