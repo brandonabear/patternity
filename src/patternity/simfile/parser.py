@@ -41,21 +41,13 @@ class MissingTimingError(SimfileError):
     """A chart has no ``#BPMS``, so its rows cannot be given timestamps."""
 
 
-@dataclass(frozen=True)
-class NotesBody:
-    """A chart's note data as written, and where it sits in the file.
+@dataclass(frozen=True, slots=True)
+class SourceText:
+    """A piece of the simfile, such as a section or a chart's note data, and where it sits.
 
     ``first_line`` is the 1-based file line of ``text``'s first line, so line
     ``i`` of ``text.splitlines()`` is file line ``first_line + i``.
     """
-
-    text: str
-    first_line: int
-
-
-@dataclass(frozen=True)
-class _Section:
-    """One ``;``-terminated section, leading comments stripped, and its 1-based file line."""
 
     text: str
     first_line: int
@@ -84,13 +76,13 @@ def strip_leading_comments(section: str) -> str:
     return "\n".join(lines[_leading_comment_lines(lines) :]).strip()
 
 
-def _sections(data: str) -> Iterator[_Section]:
-    """The non-empty sections of a simfile, in order."""
+def _sections(data: str) -> Iterator[SourceText]:
+    """The non-empty ``;``-terminated sections of a simfile, leading comments stripped, in order."""
     line = 1
     for raw in data.split(";"):
         text = strip_leading_comments(raw)
         if text:
-            yield _Section(text, line + _leading_comment_lines(raw.splitlines()))
+            yield SourceText(text, line + _leading_comment_lines(raw.splitlines()))
         line += raw.count("\n")
 
 
@@ -308,7 +300,7 @@ def _timing(header: Header, chart_tags: dict[str, str] | None = None) -> TimingE
     return TimingEngine(bpms=bpms, stops=stops)
 
 
-def _sm_chart(section: _Section, header: Header) -> tuple[Chart | SkippedChart, NotesBody]:
+def _sm_chart(section: SourceText, header: Header) -> tuple[Chart | SkippedChart, SourceText]:
     """A chart from a .sm ``#NOTES:`` section, which packs metadata and notes into
     colon-separated fields: ``#NOTES:mode:credit:difficulty:meter:radar:notes``."""
     pieces = section.text.split(":", 6)
@@ -318,7 +310,7 @@ def _sm_chart(section: _Section, header: Header) -> tuple[Chart | SkippedChart, 
 
     # The notes start after the last colon and any whitespace that follows it.
     before_notes = section.text[: len(section.text) - len(raw_notes.lstrip())]
-    notes = NotesBody(raw_notes.strip(), section.first_line + before_notes.count("\n"))
+    notes = SourceText(raw_notes.strip(), section.first_line + before_notes.count("\n"))
 
     chart = _build_chart(
         mode=mode.strip(),
@@ -333,10 +325,10 @@ def _sm_chart(section: _Section, header: Header) -> tuple[Chart | SkippedChart, 
 
 
 def _ssc_chart(
-    tags: dict[str, str], section: _Section, header: Header
-) -> tuple[Chart | SkippedChart, NotesBody]:
+    tags: dict[str, str], section: SourceText, header: Header
+) -> tuple[Chart | SkippedChart, SourceText]:
     """A chart from an .ssc ``#NOTEDATA`` block: its tags, then the ``#NOTES:`` section."""
-    notes = NotesBody(section.text.split(":", 1)[1], section.first_line)
+    notes = SourceText(section.text.split(":", 1)[1], section.first_line)
     chart = _build_chart(
         mode=tags.get("#STEPSTYPE", ""),
         credit=tags.get("#CREDIT") or tags.get("#DESCRIPTION") or "",
@@ -349,18 +341,18 @@ def _ssc_chart(
     return chart, notes
 
 
-def parse_simfile_with_notes(data: str) -> tuple[Song, list[NotesBody]]:
+def parse_simfile_with_notes(data: str) -> tuple[Song, list[SourceText]]:
     """Parse a .sm or .ssc file, also returning each chart's note data as written.
 
     The second value lines up with ``song.charts``. It is for tools that read
     what the parser discards (comments, source line numbers).
     """
     song = Song(header=Header())
-    bodies: list[NotesBody] = []
+    bodies: list[SourceText] = []
     # Tags of the #NOTEDATA block being read (.ssc only); None outside one.
     ssc_tags: dict[str, str] | None = None
 
-    def add(chart: Chart | SkippedChart, notes: NotesBody) -> None:
+    def add(chart: Chart | SkippedChart, notes: SourceText) -> None:
         if isinstance(chart, Chart):
             song.charts.append(chart)
             bodies.append(notes)
