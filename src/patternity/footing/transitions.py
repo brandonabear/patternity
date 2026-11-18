@@ -103,7 +103,7 @@ def _emit_foot_row(
         )
 
     # Only a single-panel press is tracked for jacks and switches.
-    last_press = ctx.pressed if len(ctx.pressed) == 1 else Panel.NONE
+    last_press = ctx.pressed.single
 
     return FootRow(
         stance=stance,

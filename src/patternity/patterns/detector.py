@@ -58,12 +58,6 @@ def column_foot(step: ResolvedStep, panel: Panel) -> Foot | None:
     return None
 
 
-def _single_press(step: ResolvedStep) -> Panel:
-    """The pressed panel if exactly one is pressed on this row, else ``Panel.NONE``."""
-    pressed = step.note_row.pressed
-    return pressed if len(pressed) == 1 else Panel.NONE
-
-
 @dataclass(frozen=True, slots=True)
 class _PanelEvent:
     """A press, or a hold/roll tail, on one panel.
@@ -76,6 +70,11 @@ class _PanelEvent:
     time: float
     epoch: int
     is_tail: bool = False
+
+
+def _if_adjacent(event: _PanelEvent | None, epoch_before: int) -> _PanelEvent | None:
+    """``event``, if it was on the press row right before the current one."""
+    return event if event is not None and event.epoch == epoch_before else None
 
 
 @dataclass
@@ -93,21 +92,11 @@ class _ColumnHistory:
     # Latest mine on this panel since its last press.
     mine_time: float | None = None
 
-    def press_before(self, epoch_before: int) -> _PanelEvent | None:
-        """The last press, if it was on the press row right before this one."""
-        press = self.last_press
-        return press if press is not None and press.epoch == epoch_before else None
-
-    def event_before(self, epoch_before: int) -> _PanelEvent | None:
-        """The last event, if it was no earlier than the press row right before this one."""
-        event = self.last_event
-        return event if event is not None and event.epoch == epoch_before else None
-
-    def mine_after(self, time: float) -> float | None:
-        """The panel's mine time if a mine fell after ``time``."""
+    def clock_start(self, time: float) -> float:
+        """When a repeat's clock started: ``time``, or a later mine on this panel."""
         if self.mine_time is not None and self.mine_time > time:
             return self.mine_time
-        return None
+        return time
 
     def record(self, event: _PanelEvent) -> None:
         self.last_event = event
@@ -178,13 +167,13 @@ class _TechDetector:
         """
         prev = self.prev_press
         moved = step.foot_row.moved
-        press = _single_press(step)
+        press = step.note_row.pressed.single
         if (
             prev is not None
             and len(moved.feet) == 1
             and prev.foot_row.moved == moved
             and press
-            and _single_press(prev) not in (Panel.NONE, press)
+            and prev.note_row.pressed.single not in (Panel.NONE, press)
         ):
             self.spans.append(_span(PatternKind.DOUBLESTEP, (prev, step)))
 
@@ -221,26 +210,24 @@ class _TechDetector:
     ) -> None:
         """Pair this press with the panel's event on the previous press row."""
         history = self.columns[panel]
-        prior_press = history.press_before(epoch_before)
+        prior_press = _if_adjacent(history.last_press, epoch_before)
         if prior_press is not None and prior_press.foot == foot:
             self._jack(step, panel, prior_press)
             return
-        prior_event = history.event_before(epoch_before)
+        prior_event = _if_adjacent(history.last_event, epoch_before)
         if prior_event is not None and prior_event.foot != foot:
             self._switch(step, panel, prior_event)
 
     def _jack(self, step: ResolvedStep, panel: Panel, prior: _PanelEvent) -> None:
         """Same foot, same panel, fast enough. A mine in between resets the clock."""
-        mine_time = self.columns[panel].mine_after(prior.time)
-        since = prior.time if mine_time is None else mine_time
+        since = self.columns[panel].clock_start(prior.time)
         if step.note_row.timestamp - since < ITG_JACK_CUTOFF_SEC:
             self.spans.append(_span(PatternKind.JACK, (prior.step, step)))
 
     def _switch(self, step: ResolvedStep, panel: Panel, prior: _PanelEvent) -> None:
         """The other foot takes over the panel fast enough. A mine in between resets the clock."""
         kind = PatternKind.SIDESWITCH if panel in _SIDE_PANELS else PatternKind.FOOTSWITCH
-        mine_time = self.columns[panel].mine_after(prior.time)
-        since = prior.time if mine_time is None else mine_time
+        since = self.columns[panel].clock_start(prior.time)
         # A switch after a hold release (holdswitch) needs a mine cue, on any panel.
         cued = not prior.is_tail or self.any_mine_time > prior.time
         if cued and step.note_row.timestamp - since < ITG_FOOTSWITCH_CUTOFF_SEC:

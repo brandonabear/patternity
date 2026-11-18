@@ -33,6 +33,11 @@ class Panel(IntFlag):
         """Column index (0-3, LDUR order) of a single panel."""
         return PANELS.index(self)
 
+    @property
+    def single(self) -> Panel:
+        """This set if it holds exactly one panel, else ``Panel.NONE``."""
+        return self if len(self) == 1 else Panel.NONE
+
 
 # Single panels in column (LDUR) order; zip with per-column data such as
 # ``NoteRow.notes``.
