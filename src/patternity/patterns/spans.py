@@ -23,11 +23,23 @@ class PatternKind(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class PatternSpan:
-    """One detected pattern instance anchored to chart beats and measures."""
+    """One detected pattern instance: its kind and the steps it covers, in chart order."""
 
     kind: PatternKind
-    start_beat: float
-    end_beat: float
-    start_measure: int
-    end_measure: int
     steps: tuple[ResolvedStep, ...]
+
+    @property
+    def start_beat(self) -> float:
+        return self.steps[0].note_row.beat
+
+    @property
+    def end_beat(self) -> float:
+        return self.steps[-1].note_row.beat
+
+    @property
+    def start_measure(self) -> int:
+        return self.steps[0].note_row.measure
+
+    @property
+    def end_measure(self) -> int:
+        return self.steps[-1].note_row.measure

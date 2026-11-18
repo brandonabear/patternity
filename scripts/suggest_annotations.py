@@ -163,8 +163,8 @@ def suggest_file(
                 (
                     margin,
                     row.line_number,
-                    row.measure,
-                    f"{label} m{row.measure} {foot_suffix}",
+                    row.note_row.measure,
+                    f"{label} m{row.note_row.measure} {foot_suffix}",
                 )
             )
 
@@ -175,7 +175,7 @@ def suggest_file(
             parts.append(pattern_tag)
             was = ",".join(_ordered(tagged)) or "untagged"
             pattern_suggestions.append(
-                f"  line {row.line_number:5d} m{row.measure}: {pattern_tag} (was {was})"
+                f"  line {row.line_number:5d} m{row.note_row.measure}: {pattern_tag} (was {was})"
             )
 
         if parts:

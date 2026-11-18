@@ -127,7 +127,7 @@ def evaluate_annotated(
         Disagreement(
             index=index,
             line_number=annotated.rows[index].line_number,
-            beat=annotated.rows[index].beat,
+            beat=annotated.rows[index].note_row.beat,
             expected=gold[index],
             actual=moved[index],
             confidence=result.steps[index].confidence,
@@ -155,7 +155,7 @@ def format_report(report: FixtureReport, annotated: AnnotatedChart, *, show: int
     ]
     for index in report.impossible_annotations:
         row = annotated.rows[index]
-        lines.append(f"  IMPOSSIBLE annotation: line {row.line_number} beat {row.beat}")
+        lines.append(f"  IMPOSSIBLE annotation: line {row.line_number} beat {row.note_row.beat}")
     for kind, score in report.patterns.items():
         if not (score.true_positives or score.false_positives or score.false_negatives):
             continue

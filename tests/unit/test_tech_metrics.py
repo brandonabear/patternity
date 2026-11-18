@@ -2,14 +2,7 @@ from patternity.patterns import PatternKind, PatternSpan, TechMetrics
 
 
 def _span(kind: PatternKind) -> PatternSpan:
-    return PatternSpan(
-        kind=kind,
-        start_beat=0.0,
-        end_beat=0.0,
-        start_measure=0,
-        end_measure=0,
-        steps=(),
-    )
+    return PatternSpan(kind=kind, steps=())
 
 
 def test_tech_metrics_counts_derived_from_spans() -> None:

@@ -32,18 +32,6 @@ def _crosses_center(before: FootPlacement, after: FootPlacement) -> bool:
     )
 
 
-def _span(kind: PatternKind, steps: tuple[ResolvedStep, ...]) -> PatternSpan:
-    first, last = steps[0].note_row, steps[-1].note_row
-    return PatternSpan(
-        kind=kind,
-        start_beat=first.beat,
-        end_beat=last.beat,
-        start_measure=first.measure,
-        end_measure=last.measure,
-        steps=steps,
-    )
-
-
 def column_foot(step: ResolvedStep, panel: Panel) -> Foot | None:
     """Foot acting on ``panel``: the moving foot for a press, the hold owner for a tail."""
     note = step.note_row.notes[panel.column]
@@ -145,7 +133,7 @@ class _TechDetector:
         fr = step.foot_row
         for mover in fr.moved.feet:
             if len(fr.stance.placement(mover).panels & step.note_row.pressed) >= 2:
-                self.spans.append(_span(PatternKind.BRACKET, (step,)))
+                self.spans.append(PatternSpan(PatternKind.BRACKET, (step,)))
 
     def _candles(self, step: ResolvedStep) -> None:
         """A foot's press lands opposite its own previous press."""
@@ -155,7 +143,7 @@ class _TechDetector:
             if before is not None and _crosses_center(
                 before.foot_row.stance.placement(mover), fr.stance.placement(mover)
             ):
-                self.spans.append(_span(PatternKind.CANDLE, (before, step)))
+                self.spans.append(PatternSpan(PatternKind.CANDLE, (before, step)))
             self.foot_press[mover] = step
 
     def _doublestep(self, step: ResolvedStep) -> None:
@@ -175,7 +163,7 @@ class _TechDetector:
             and press
             and prev.note_row.pressed.single not in (Panel.NONE, press)
         ):
-            self.spans.append(_span(PatternKind.DOUBLESTEP, (prev, step)))
+            self.spans.append(PatternSpan(PatternKind.DOUBLESTEP, (prev, step)))
 
     def _crossover(self, step: ResolvedStep) -> None:
         """A crossover starts when the legs cross, or turn while staying crossed."""
@@ -188,7 +176,7 @@ class _TechDetector:
                 else PatternKind.CROSSOVER
             )
             entry = (step,) if self.prev_press is None else (self.prev_press, step)
-            self.spans.append(_span(kind, entry))
+            self.spans.append(PatternSpan(kind, entry))
         self.crossed_orientation = orientation
 
     def _jacks_and_switches(self, step: ResolvedStep, epoch_before: int) -> None:
@@ -222,7 +210,7 @@ class _TechDetector:
         """Same foot, same panel, fast enough. A mine in between resets the clock."""
         since = self.columns[panel].clock_start(prior.time)
         if step.note_row.timestamp - since < ITG_JACK_CUTOFF_SEC:
-            self.spans.append(_span(PatternKind.JACK, (prior.step, step)))
+            self.spans.append(PatternSpan(PatternKind.JACK, (prior.step, step)))
 
     def _switch(self, step: ResolvedStep, panel: Panel, prior: _PanelEvent) -> None:
         """The other foot takes over the panel fast enough. A mine in between resets the clock."""
@@ -231,7 +219,7 @@ class _TechDetector:
         # A switch after a hold release (holdswitch) needs a mine cue, on any panel.
         cued = not prior.is_tail or self.any_mine_time > prior.time
         if cued and step.note_row.timestamp - since < ITG_FOOTSWITCH_CUTOFF_SEC:
-            self.spans.append(_span(kind, (prior.step, step)))
+            self.spans.append(PatternSpan(kind, (prior.step, step)))
 
 
 def detect_tech_patterns(steps: Sequence[ResolvedStep]) -> TechMetrics:

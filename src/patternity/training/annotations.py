@@ -52,9 +52,7 @@ class AnnotationError(ValueError):
 class AnnotatedRow:
     index: int
     line_number: int
-    measure: int
-    beat: float
-    row: NoteRow
+    note_row: NoteRow
     feet: tuple[str, ...] = ()
     patterns: frozenset[str] = frozenset()
     section: str = "default"
@@ -145,7 +143,7 @@ def _sections_by_line(lines: list[NotesLine]) -> list[str]:
 
 def _validate_row(item: AnnotatedRow, *, require_complete: bool) -> None:
     line, feet = item.line_number, item.feet
-    press_count = len(item.row.pressed)
+    press_count = len(item.note_row.pressed)
     if len(feet) == 2 and press_count != 2:
         raise AnnotationError(
             f"line {line}: @feet expects two panels but row has {press_count} pressable notes"
@@ -182,9 +180,7 @@ def parse_annotated_sm(data: str, *, require_complete: bool = False) -> Annotate
         item = AnnotatedRow(
             index=index,
             line_number=line_number,
-            measure=source.measure,
-            beat=source.beat,
-            row=note_row,
+            note_row=note_row,
             feet=feet,
             patterns=patterns,
             section=sections[source.line_index],
