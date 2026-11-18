@@ -80,7 +80,7 @@ def _require_possible_annotations(name: str, annotated: AnnotatedChart, trellis:
     """
     # Reachability doesn't depend on the weights, so zeros will do.
     no_weights = [0.0] * len(FEATURE_NAMES)
-    impossible = viterbi(trellis, no_weights, allowed=annotated.tagged_assignments).relaxed_rows
+    impossible = viterbi(trellis, no_weights, allowed=annotated.tagged_assignments).unsatisfied_rows
     if impossible:
         lines = ", ".join(str(annotated.rows[i].line_number) for i in impossible)
         raise AnnotationError(f"{name}: physically impossible annotation on line(s) {lines}")

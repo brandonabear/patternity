@@ -136,7 +136,7 @@ def evaluate_annotated(
     ]
     disagreements.sort(key=lambda d: math.inf if d.confidence is None else d.confidence)
 
-    impossible = list(viterbi(trellis, model.vector(), allowed=gold).relaxed_rows)
+    impossible = list(viterbi(trellis, model.vector(), allowed=gold).unsatisfied_rows)
     return FixtureReport(
         name=name,
         rows=len(gold),

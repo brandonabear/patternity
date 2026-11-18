@@ -92,7 +92,7 @@ def test_physically_impossible_annotation_is_reported() -> None:
     decoded = viterbi(
         trellis, FootingModel.default().vector(), allowed=annotated.tagged_assignments
     )
-    assert decoded.relaxed_rows == (1,)
+    assert decoded.unsatisfied_rows == (1,)
 
 
 def test_switch_after_hold_release_needs_mine_cue() -> None:
